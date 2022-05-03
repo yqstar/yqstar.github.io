@@ -6,7 +6,7 @@
   <link href="https://yqstar.github.io/atom.xml" rel="self"/>
   
   <link href="https://yqstar.github.io/"/>
-  <updated>2022-05-03T12:38:47.417Z</updated>
+  <updated>2022-05-03T17:08:45.456Z</updated>
   <id>https://yqstar.github.io/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>test-codoing</title>
+    <link href="https://yqstar.github.io/2022/05/04/test-codoing/"/>
+    <id>https://yqstar.github.io/2022/05/04/test-codoing/</id>
+    <published>2022-05-03T17:06:34.000Z</published>
+    <updated>2022-05-03T17:08:45.456Z</updated>
+    
+    
+    
+    
+    <category term="深度学习" scheme="https://yqstar.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+    <category term="学习" scheme="https://yqstar.github.io/tags/%E5%AD%A6%E4%B9%A0/"/>
+    
+  </entry>
   
   <entry>
     <title>Hello World</title>
