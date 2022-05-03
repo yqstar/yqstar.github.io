@@ -6,7 +6,7 @@
   <link href="https://yqstar.github.io/atom.xml" rel="self"/>
   
   <link href="https://yqstar.github.io/"/>
-  <updated>2022-05-03T17:08:45.456Z</updated>
+  <updated>2022-05-03T17:47:57.166Z</updated>
   <id>https://yqstar.github.io/</id>
   
   <author>
@@ -17,19 +17,24 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>test-codoing</title>
-    <link href="https://yqstar.github.io/2022/05/04/test-codoing/"/>
-    <id>https://yqstar.github.io/2022/05/04/test-codoing/</id>
-    <published>2022-05-03T17:06:34.000Z</published>
-    <updated>2022-05-03T17:08:45.456Z</updated>
+    <title>Pytorch教程（1）:数据加载</title>
+    <link href="https://yqstar.github.io/2022/05/05/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/"/>
+    <id>https://yqstar.github.io/2022/05/05/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/</id>
+    <published>2022-05-04T17:41:07.000Z</published>
+    <updated>2022-05-03T17:47:57.166Z</updated>
+    
+    <content type="html"><![CDATA[<p>数据加载的重要性，在Pytorch中主要使用DataSet和DataLoader两类。其中DataSet是作为DataLoader实例化类的参数，首先讲解Dataset。在讲解之前简单梳理下数据。DataSize —&gt; BatchSize —&gt; Iteration —&gt; Epoch 的关系。</p><h3 id="DataSet"><a href="#DataSet" class="headerlink" title="DataSet"></a>DataSet</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello world!&quot;</span>)</span><br></pre></td></tr></table></figure><h3 id="DataLoader"><a href="#DataLoader" class="headerlink" title="DataLoader"></a>DataLoader</h3>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;数据加载的重要性，在Pytorch中主要使用DataSet和DataLoader两类。其中DataSet是作为DataLoader实例化类的参数，首先讲解Dataset。在讲解之前简单梳理下数据。DataSize —&amp;gt; BatchSize —&amp;gt; Iteratio</summary>
+      
     
     
     
     
-    <category term="深度学习" scheme="https://yqstar.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
-    
-    
-    <category term="学习" scheme="https://yqstar.github.io/tags/%E5%AD%A6%E4%B9%A0/"/>
+    <category term="Pytorch" scheme="https://yqstar.github.io/tags/Pytorch/"/>
     
   </entry>
   
@@ -47,19 +52,6 @@
       
     <summary type="html">&lt;p&gt;Welcome to &lt;a class=&quot;link&quot;   href=&quot;https://hexo.io/&quot; &gt;Hexo&lt;i class=&quot;fas fa-external-link-alt&quot;&gt;&lt;/i&gt;&lt;/a&gt;! This is your very first post. Che</summary>
       
-    
-    
-    
-    
-  </entry>
-  
-  <entry>
-    <title>test-code</title>
-    <link href="https://yqstar.github.io/2022/05/03/test-code/"/>
-    <id>https://yqstar.github.io/2022/05/03/test-code/</id>
-    <published>2022-05-03T12:36:53.000Z</published>
-    <updated>2022-05-03T12:36:53.977Z</updated>
-    
     
     
     
