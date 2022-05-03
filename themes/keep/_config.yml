@@ -2,7 +2,7 @@
 #  Your basic info
 # ---------------------------------------------------------------------------------------
 base_info:
-  title: AndrewYq Blog
+  title: AndrewYq's Blog
   author: AndrewYq
   url: https://yqstar.github.io/
   # Logo image (You can use local image, image external link or don’t fill)
@@ -54,7 +54,7 @@ style:
 social_contact:
   enable: true
   links:
-    github: # your GitHub URL
+    github: https://github.com/yqstar/ # your GitHub URL
     weixin: # your WeChat QR-Code URL
     qq: # your QQ QR-Code URL
     weibo: # your WeiBo URL
@@ -117,16 +117,16 @@ code_copy:
 # Table of Contents in the Sidebar
 # ---------------------------------------------------------------------------------------
 toc:
-  enable: false
+  enable: true
 
   # Automatically add list number to toc.
-  number: false
+  number: true
 
   # If true, all level of TOC in a post will be displayed, rather than the activated part of it.
-  expand_all: false
+  expand_all: true
 
   # If true, open TOC every time when you enter the article page
-  init_open: false
+  init_open: true
 
 # ---------------------------------------------------------------------------------------
 # Post copyright info
@@ -141,10 +141,10 @@ website_count:
   # busuanzi
   # See: http://ibruce.info/2015/04/04/busuanzi/
   busuanzi_count:
-    enable: false
+    enable: true
     site_uv: false
-    site_pv: false
-    page_pv: false
+    site_pv: true
+    page_pv: true
 
 # ---------------------------------------------------------------------------------------
 # Local Search
@@ -152,7 +152,7 @@ website_count:
 # See: https://github.com/theme-next/hexo-generator-searchdb
 # ---------------------------------------------------------------------------------------
 local_search:
-  enable: false
+  enable: true
   preload: false # Preload the search data when the page loads
 
 # ---------------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ comment:
 # See: https://github.com/hexojs/hexo-generator-feed
 # ---------------------------------------------------------------------------------------
 rss:
-  enable: false
+  enable: true
 
 # ---------------------------------------------------------------------------------------
 # Lazyload image
@@ -201,7 +201,7 @@ lazyload:
 # CDN
 # ---------------------------------------------------------------------------------------
 cdn:
-  enable: false
+  enable: true
 
 # ---------------------------------------------------------------------------------------
 # PJAX

@@ -106,8 +106,23 @@ deploy:
   repo: git@github.com:yqstar/yqstar.github.io.git
   branch: master
 
+# search:
+#   path: search.xml
+#   field: post
+#   format: html
+#   limit: 10000
+
+# Search
+## See: https://github.com/theme-next/hexo-generator-searchdb
 search:
-  path: search.xml
+  path: search.json
   field: post
-  format: html
-  limit: 10000
+  content: true
+  format: striptags
+
+# Feed Atom
+# npm install hexo-generator-feed
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
