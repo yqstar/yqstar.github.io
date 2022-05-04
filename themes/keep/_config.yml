@@ -2,7 +2,7 @@
 #  Your basic info
 # ---------------------------------------------------------------------------------------
 base_info:
-  title: AndrewYq's Blog
+  title: AndrewYq
   author: AndrewYq
   url: https://yqstar.github.io/
   # Logo image (You can use local image, image external link or don’t fill)
@@ -16,10 +16,10 @@ style:
   primary_color: "#0066CC"
 
   # Avatar (You can use local image or image external link)
-  avatar: /images/avatar.svg
+  avatar: /images/ai.svg
 
   # Favicon (You can use local image or image external link)
-  favicon: /images/logo.svg
+  favicon: /images/ai.svg
 
   # Article image align position, value: left | center
   article_img_align: left
@@ -95,9 +95,9 @@ post:
   # Dependencies: hexo-wordcount (npm install hexo-wordcount)
   # See: https://github.com/willin/hexo-wordcount
   word_count:
-    enable: false
-    wordcount: false # word count, one article
-    min2read: false # time to read, one article
+    enable: true
+    wordcount: true # word count, one article
+    min2read: true # time to read, one article
 
   # Author label
   author_label:
@@ -142,7 +142,7 @@ website_count:
   # See: http://ibruce.info/2015/04/04/busuanzi/
   busuanzi_count:
     enable: true
-    site_uv: false
+    site_uv: true
     site_pv: true
     page_pv: true
 
@@ -207,7 +207,7 @@ cdn:
 # PJAX
 # ---------------------------------------------------------------------------------------
 pjax:
-  enable: false
+  enable: true
 
 # ---------------------------------------------------------------------------------------
 # Footer settings

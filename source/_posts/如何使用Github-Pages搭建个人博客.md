@@ -2,6 +2,7 @@
 title: 如何使用Github Pages搭建个人博客
 date: 2022-05-04 10:12:54
 tags:
+categories:
 ---
 
 # 技术原理
