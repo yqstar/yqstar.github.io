@@ -6,7 +6,7 @@
   <link href="https://yqstar.github.io/atom.xml" rel="self"/>
   
   <link href="https://yqstar.github.io/"/>
-  <updated>2022-05-04T06:08:03.815Z</updated>
+  <updated>2022-05-04T08:45:16.495Z</updated>
   <id>https://yqstar.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://yqstar.github.io/2022/05/04/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Github-Pages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/"/>
     <id>https://yqstar.github.io/2022/05/04/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Github-Pages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</id>
     <published>2022-05-04T02:12:54.000Z</published>
-    <updated>2022-05-04T06:08:03.815Z</updated>
+    <updated>2022-05-04T08:45:16.495Z</updated>
     
     <content type="html"><![CDATA[<h1 id="技术原理"><a href="#技术原理" class="headerlink" title="技术原理"></a>技术原理</h1><p>GitHub Pages 是直接从 GitHub 存储库托管的静态网站。 但它们不仅仅是静态文件的集合。 通过利用 Jekyll 和 Liquid 等网站生成技术，开发人员可定义被处理为完整静态网站的动态模板。 每次将更改提交到与网站关联的源分支时，都会使用最新更新重新生成该更改，并自动将其发布到目标 URL。</p><p>GitHub Pages 是直接从 GitHub 存储库托管的免费静态网站。 使用 YAML 和 Markdown 等标准技术，任何人都可以在几分钟内生成和维护网站。</p><h1 id="使用环境"><a href="#使用环境" class="headerlink" title="使用环境"></a>使用环境</h1>]]></content>
     
@@ -41,7 +41,7 @@
     <link href="https://yqstar.github.io/2022/05/04/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/"/>
     <id>https://yqstar.github.io/2022/05/04/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/</id>
     <published>2022-05-03T17:41:07.000Z</published>
-    <updated>2022-05-04T06:48:37.155Z</updated>
+    <updated>2022-05-04T08:45:42.415Z</updated>
     
     <content type="html"><![CDATA[<p>数据加载的重要性，在Pytorch中主要使用DataSet和DataLoader两类。其中DataSet是作为DataLoader实例化类的参数，首先讲解Dataset。在讲解之前简单梳理下数据。DataSize —&gt; BatchSize —&gt; Iteration —&gt; Epoch 的关系。</p><h1 id="DataSet"><a href="#DataSet" class="headerlink" title="DataSet"></a>DataSet</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello world!&quot;</span>)</span><br></pre></td></tr></table></figure><h1 id="DataLoader"><a href="#DataLoader" class="headerlink" title="DataLoader"></a>DataLoader</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a class="link" href="https://blog.csdn.net/guyuealian/article/details/88343924">https://blog.csdn.net/guyuealian/article/details/88343924<i class="fas fa-external-link-alt"></i></a></p>]]></content>
     
@@ -53,6 +53,8 @@
     
     
     
+    <category term="深度学习" scheme="https://yqstar.github.io/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/"/>
+    
     
     <category term="Pytorch" scheme="https://yqstar.github.io/tags/Pytorch/"/>
     
@@ -63,7 +65,7 @@
     <link href="https://yqstar.github.io/2022/05/03/hello-world/"/>
     <id>https://yqstar.github.io/2022/05/03/hello-world/</id>
     <published>2022-05-03T12:38:47.417Z</published>
-    <updated>2022-05-03T12:38:47.417Z</updated>
+    <updated>2022-05-04T08:45:26.265Z</updated>
     
     <content type="html"><![CDATA[<p>Welcome to <a class="link" href="https://hexo.io/">Hexo<i class="fas fa-external-link-alt"></i></a>! This is your very first post. Check <a class="link" href="https://hexo.io/docs/">documentation<i class="fas fa-external-link-alt"></i></a> for more info. If you get any problems when using Hexo, you can find the answer in <a class="link" href="https://hexo.io/docs/troubleshooting.html">troubleshooting<i class="fas fa-external-link-alt"></i></a> or you can ask me on <a class="link" href="https://github.com/hexojs/hexo/issues">GitHub<i class="fas fa-external-link-alt"></i></a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a class="link" href="https://hexo.io/docs/writing.html">Writing<i class="fas fa-external-link-alt"></i></a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a class="link" href="https://hexo.io/docs/server.html">Server<i class="fas fa-external-link-alt"></i></a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a class="link" href="https://hexo.io/docs/generating.html">Generating<i class="fas fa-external-link-alt"></i></a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a class="link" href="https://hexo.io/docs/one-command-deployment.html">Deployment<i class="fas fa-external-link-alt"></i></a></p>]]></content>
     
