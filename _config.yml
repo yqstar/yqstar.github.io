@@ -40,7 +40,11 @@ external_link:
   exclude: ''
 filename_case: 0
 render_drafts: false
-post_asset_folder: false
+
+# Image
+## ttps://github.com/xcodebuild/hexo-asset-image
+## npm install hexo-asset-image --save
+post_asset_folder: true
 relative_link: false
 future: true
 highlight:
@@ -101,19 +105,15 @@ theme: keep
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
+## npm install hexo-deployer-git --save
 deploy:
   type: git
   repo: git@github.com:yqstar/yqstar.github.io.git
   branch: master
 
-# search:
-#   path: search.xml
-#   field: post
-#   format: html
-#   limit: 10000
-
 # Search
 ## See: https://github.com/theme-next/hexo-generator-searchdb
+## npm install hexo-generator-searchdb --save
 search:
   path: search.json
   field: post
@@ -121,7 +121,7 @@ search:
   format: striptags
 
 # Feed Atom
-# npm install hexo-generator-feed
+## npm install hexo-generator-feed --save
 feed:
   type: atom
   path: atom.xml

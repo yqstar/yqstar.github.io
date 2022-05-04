@@ -7,7 +7,7 @@ tags: Pytorch
 数据加载的重要性，在Pytorch中主要使用DataSet和DataLoader两类。其中DataSet是作为DataLoader实例化类的参数，首先讲解Dataset。在讲解之前简单梳理下数据。DataSize --> BatchSize --> Iteration --> Epoch 的关系。
 
 
-### DataSet
+# DataSet
 
 ``` python
 import torch
@@ -15,4 +15,8 @@ import torch
 print("hello world!")
 ```
 
-### DataLoader
+# DataLoader
+
+
+# 参考
+https://blog.csdn.net/guyuealian/article/details/88343924
