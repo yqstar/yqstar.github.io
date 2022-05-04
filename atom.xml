@@ -6,7 +6,7 @@
   <link href="https://yqstar.github.io/atom.xml" rel="self"/>
   
   <link href="https://yqstar.github.io/"/>
-  <updated>2022-05-04T08:45:16.495Z</updated>
+  <updated>2022-05-04T15:58:55.165Z</updated>
   <id>https://yqstar.github.io/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>snippets</title>
+    <link href="https://yqstar.github.io/2022/05/04/snippets/"/>
+    <id>https://yqstar.github.io/2022/05/04/snippets/</id>
+    <published>2022-05-04T14:45:18.000Z</published>
+    <updated>2022-05-04T15:58:55.165Z</updated>
+    
+    <content type="html"><![CDATA[<p>Sklearn的dataset转为dataframe<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> datasets</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">sklearn_to_df</span>(<span class="params">sklearn_dataset</span>):</span><br><span class="line">    df = pd.DataFrame(sklearn_dataset.data, columns=sklearn_dataset.feature_names)</span><br><span class="line">    df[<span class="string">&#x27;TARGET&#x27;</span>] = pd.Series(sklearn_dataset.target)</span><br><span class="line">    <span class="keyword">return</span> df</span><br><span class="line"></span><br><span class="line">df_boston = sklearn_to_df(datasets.load_boston())</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(df_boston.head())</span><br></pre></td></tr></table></figure></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;Sklearn的dataset转为dataframe&lt;br&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span cl</summary>
+      
+    
+    
+    
+    <category term="Snippet" scheme="https://yqstar.github.io/categories/Snippet/"/>
+    
+    
+    <category term="Snippet" scheme="https://yqstar.github.io/tags/Snippet/"/>
+    
+    <category term="Python" scheme="https://yqstar.github.io/tags/Python/"/>
+    
+  </entry>
   
   <entry>
     <title>如何使用Github Pages搭建个人博客</title>
