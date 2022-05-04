@@ -6,7 +6,7 @@
   <link href="https://yqstar.github.io/atom.xml" rel="self"/>
   
   <link href="https://yqstar.github.io/"/>
-  <updated>2022-05-03T17:47:57.166Z</updated>
+  <updated>2022-05-04T03:50:57.366Z</updated>
   <id>https://yqstar.github.io/</id>
   
   <author>
@@ -17,11 +17,31 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>如何使用Github Pages搭建个人博客</title>
+    <link href="https://yqstar.github.io/2022/05/04/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Github-Pages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/"/>
+    <id>https://yqstar.github.io/2022/05/04/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8Github-Pages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</id>
+    <published>2022-05-04T02:12:54.000Z</published>
+    <updated>2022-05-04T03:50:57.366Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="技术原理"><a href="#技术原理" class="headerlink" title="技术原理"></a>技术原理</h1><p>GitHub Pages 是直接从 GitHub 存储库托管的静态网站。 但它们不仅仅是静态文件的集合。 通过利用 Jekyll 和 Liquid 等网站生成技术，开发人员可定义被处理为完整静态网站的动态模板。 每次将更改提交到与网站关联的源分支时，都会使用最新更新重新生成该更改，并自动将其发布到目标 URL。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;技术原理&quot;&gt;&lt;a href=&quot;#技术原理&quot; class=&quot;headerlink&quot; title=&quot;技术原理&quot;&gt;&lt;/a&gt;技术原理&lt;/h1&gt;&lt;p&gt;GitHub Pages 是直接从 GitHub 存储库托管的静态网站。 但它们不仅仅是静态文件的集合。 通过利用 Jeky</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
     <title>Pytorch教程（1）:数据加载</title>
-    <link href="https://yqstar.github.io/2022/05/05/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/"/>
-    <id>https://yqstar.github.io/2022/05/05/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/</id>
-    <published>2022-05-04T17:41:07.000Z</published>
-    <updated>2022-05-03T17:47:57.166Z</updated>
+    <link href="https://yqstar.github.io/2022/05/04/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/"/>
+    <id>https://yqstar.github.io/2022/05/04/Pytorch%E6%95%99%E7%A8%8B%EF%BC%881%EF%BC%89-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD/</id>
+    <published>2022-05-03T17:41:07.000Z</published>
+    <updated>2022-05-04T03:51:00.166Z</updated>
     
     <content type="html"><![CDATA[<p>数据加载的重要性，在Pytorch中主要使用DataSet和DataLoader两类。其中DataSet是作为DataLoader实例化类的参数，首先讲解Dataset。在讲解之前简单梳理下数据。DataSize —&gt; BatchSize —&gt; Iteration —&gt; Epoch 的关系。</p><h3 id="DataSet"><a href="#DataSet" class="headerlink" title="DataSet"></a>DataSet</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello world!&quot;</span>)</span><br></pre></td></tr></table></figure><h3 id="DataLoader"><a href="#DataLoader" class="headerlink" title="DataLoader"></a>DataLoader</h3>]]></content>
     
