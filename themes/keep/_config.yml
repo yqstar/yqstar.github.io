@@ -102,9 +102,9 @@ post:
   # Author label
   author_label:
     enable: true
-    auto: true # if true, show Lv1, Lv2, Lv3... , If false, show custom label
+    auto: false # if true, show Lv1, Lv2, Lv3... , If false, show custom label
     # label array item can be one or more
-    custom_label_list: ["Trainee", "Engineer", "Architect", "CTO", "BOSS"]
+    custom_label_list: ["AI调参师", "AI炼丹师", "AI大师"]
 
 # ---------------------------------------------------------------------------------------
 # Code copy
