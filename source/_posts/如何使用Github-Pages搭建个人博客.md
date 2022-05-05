@@ -11,3 +11,8 @@ GitHub Pages 是直接从 GitHub 存储库托管的静态网站。 但它们不�
 GitHub Pages 是直接从 GitHub 存储库托管的免费静态网站。 使用 YAML 和 Markdown 等标准技术，任何人都可以在几分钟内生成和维护网站。
 
 # 使用环境
+
+参考
+如何使用本地插入图片
+https://github.com/xcodebuild/hexo-asset-image
+https://blog.csdn.net/fitnig/article/details/106522811
