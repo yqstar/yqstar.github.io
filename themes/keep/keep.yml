@@ -2,24 +2,24 @@
 #  Your basic info
 # ---------------------------------------------------------------------------------------
 base_info:
-  title: AndrewYq
-  author: AndrewYq
-  url: https://yqstar.github.io/
-  # Logo image (You can use local image, image external link or don’t fill)
-  logo_img:
+  title: XPoet's Blog
+  author: XPoet
+  url: https://xpoet.cn/
+  logo_img: https://cdn.jsdelivr.net/gh/XPoet/image-hosting@master/common-use/avatar.jpg
+
 
 # ---------------------------------------------------------------------------------------
 # Theme style settings
 # ---------------------------------------------------------------------------------------
 style:
   # Theme primary color
-  primary_color: "#0066CC"
+  primary_color: '#0066CC'
 
   # Avatar (You can use local image or image external link)
-  avatar: /images/ai.svg
+  avatar: https://cdn.jsdelivr.net/gh/XPoet/image-hosting@master/common-use/avatar.jpg
 
   # Favicon (You can use local image or image external link)
-  favicon: /images/ai.svg
+  favicon: https://cdn.jsdelivr.net/gh/XPoet/image-hosting@master/common-use/avatar.jpg
 
   # Article image align position, value: left | center
   article_img_align: left
@@ -32,14 +32,14 @@ style:
 
   # Mouse hover
   hover:
-    shadow: false # shadow effect when the mouse hover
-    scale: false # scale effect when the mouse hover
+    shadow: true   # shadow effect when the mouse hover
+    scale: false    # scale effect when the mouse hover
 
   # First screen
   first_screen:
     enable: true
-    background_img: /images/bg.svg # You can use local image or image external link
-    description: 人往往会对未知的事情产生恐惧，因为结局是未知的。
+    background_img: /images/bg.svg
+    description: 黄色的森林分出两条路，我选择了人迹更少的那一条，从此决定我一生的道路。
 
   # Scroll style settings
   scroll:
@@ -48,20 +48,22 @@ style:
     percent:
       enable: true
 
+
 # ---------------------------------------------------------------------------------------
 # Social contact link
 # ---------------------------------------------------------------------------------------
 social_contact:
   enable: true
   links:
-    github: https://github.com/yqstar/ # your GitHub URL
-    weixin: # your WeChat QR-Code URL
-    qq: # your QQ QR-Code URL
-    weibo: # your WeiBo URL
-    zhihu: # your ZhiHu URL
-    twitter: # your twitter URL
-    facebook: # your facebook URL
-    email: hfyqstar@163.com # your email
+    github: https://github.com/XPoet
+    weixin: https://cdn.jsdelivr.net/gh/XPoet/image-hosting@master/FE-Cheerleaders/前端鼓励师-宣传横图.otruparjd8g.png
+    qq:
+    weibo:
+    zhihu:
+    twitter:
+    facebook:
+    email: i@xpoet.cn
+
 
 # ---------------------------------------------------------------------------------------
 # Navigation menu
@@ -69,23 +71,25 @@ social_contact:
 menu:
   Home: /
   Archives: /archives
-  Categories: /categories
-  Tags: /tags
+  # Categories: /categories
+  # Tags: /tags
   Links: /links
   About: /about
   # Changelog: /changelog
   # ......
+
 
 # ---------------------------------------------------------------------------------------
 # Home page article block display settings
 # ---------------------------------------------------------------------------------------
 home_article:
   category:
-    enable: true # show category in home page article block
-    limit: 3 # max number of categories shown in home page article block
+    enable: true     # show category in home page article block
+    limit: 3          # max number of categories shown in home page article block
   tag:
-    enable: true # show tags in home page article block
-    limit: 5 # max number of tags shown in home page article block
+    enable: true     # show tags in home page article block
+    limit: 5          # max number of tags shown in home page article block
+
 
 # ---------------------------------------------------------------------------------------
 # Post page Settings
@@ -96,22 +100,24 @@ post:
   # See: https://github.com/willin/hexo-wordcount
   word_count:
     enable: true
-    wordcount: true # word count, one article
-    min2read: true # time to read, one article
+    wordcount: true  # word count, one article
+    min2read: true   # time to read, one article
 
   # Author label
   author_label:
     enable: true
-    auto: false # if true, show Lv1, Lv2, Lv3... , If false, show custom label
+    auto: false  # if true, show Lv1, Lv2, Lv3... , If false, show custom label
     # label array item can be one or more
-    custom_label_list: ["AI调参师", "AI炼丹师", "AI大师"]
+    custom_label_list: [ "前端鼓励师" ]
+
 
 # ---------------------------------------------------------------------------------------
 # Code copy
 # ---------------------------------------------------------------------------------------
 code_copy:
   enable: true
-  style: mac # values: default | mac
+  style: default        # values: default | mac
+
 
 # ---------------------------------------------------------------------------------------
 # Table of Contents in the Sidebar
@@ -128,11 +134,13 @@ toc:
   # If true, open TOC every time when you enter the article page
   init_open: true
 
+
 # ---------------------------------------------------------------------------------------
 # Post copyright info
 # ---------------------------------------------------------------------------------------
 copyright_info:
   enable: true
+
 
 # ---------------------------------------------------------------------------------------
 # Website count
@@ -146,6 +154,7 @@ website_count:
     site_pv: true
     page_pv: true
 
+
 # ---------------------------------------------------------------------------------------
 # Local Search
 # Dependencies: hexo-generator-searchdb
@@ -153,35 +162,37 @@ website_count:
 # ---------------------------------------------------------------------------------------
 local_search:
   enable: true
-  preload: false # Preload the search data when the page loads
+  preload: true     # Preload the search data when the page loads
+
 
 # ---------------------------------------------------------------------------------------
 # Comment plugin
 # ---------------------------------------------------------------------------------------
 comment:
-  enable: false
-  use: valine # values: valine | gitalk | twikoo
+  enable: true
+  use: twikoo
 
   # Valine
   # See: https://github.com/xCss/Valine
   valine:
-    appid: # your leancloud application appid
-    appkey: # your leancloud application appkey
-    placeholder: # your placeholder
+    appid: ixxxxxxxxxxxxxxx
+    appkey: gxxxxxxxxxxxxxxxxxxx
+    placeholder: 😜 来吐槽吧~
 
   # Gitalk
   # See: https://github.com/gitalk/gitalk
   gitalk:
-    github_id: # GitHub repo owner
-    repository: # Repository name to store issues
-    client_id: # GitHub Application Client ID
-    client_secret: # GitHub Application Client Secret
+    github_id:             # GitHub repo owner
+    repository:            # Repository name to store issues
+    client_id:             # GitHub Application Client ID
+    client_secret:         # GitHub Application Client Secret
 
   # Twikoo
   # See: https://github.com/imaegoo/twikoo
   twikoo:
-    env_id: # Tencent Cloud environment id
-    region: # environment region. If select Guangzhou, fill in "ap-guangzhou".
+    env_id: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # Tencent Cloud environment id
+    region:                                  # environment region If select Guangzhou, fill in "ap-guangzhou"
+
 
 # ---------------------------------------------------------------------------------------
 # RSS
@@ -189,19 +200,22 @@ comment:
 # See: https://github.com/hexojs/hexo-generator-feed
 # ---------------------------------------------------------------------------------------
 rss:
-  enable: true
+  enable: false
+
 
 # ---------------------------------------------------------------------------------------
 # Lazyload image
 # ---------------------------------------------------------------------------------------
 lazyload:
-  enable: false
+  enable: true
+
 
 # ---------------------------------------------------------------------------------------
 # CDN
 # ---------------------------------------------------------------------------------------
 cdn:
-  enable: true
+  enable: false
+
 
 # ---------------------------------------------------------------------------------------
 # PJAX
@@ -209,13 +223,14 @@ cdn:
 pjax:
   enable: true
 
+
 # ---------------------------------------------------------------------------------------
 # Footer settings
 # ---------------------------------------------------------------------------------------
 footer:
-  since: 2020 # the starting year of your website, Can be null
-  icp: # ICP record number of your website, Can be null
-  upyun: # url
+  since: 2017
+  icp:
+
 
 # ---------------------------------------------------------------------------------------
 # Keep version (Please don't modify)

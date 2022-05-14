@@ -101,9 +101,9 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: keep
+# theme: keep
 # theme: next
-# theme: matery
+theme: keep_org
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment

@@ -257,3 +257,10 @@ def combime_save_image(orig_image, dest_image, out_dir,name,prefix):
     save_image(os.path.join(out_dir, "{}_src_{}.jpg".format(name,prefix)), dest_image)
 
 ```
+
+ColName1 | ColName2 | ColName3
+---------|----------|---------
+ColValue | ColValue | ColValue
+ColValue | ColValue | ColValue
+ColValue | ColValue | ColValue
+ColValue | ColValue | ColValue
