@@ -5,9 +5,9 @@ tags:
 categories:
 ---
 
-使用 PyTorch 训练好了模型，如何部署到生产环境提供服务呢？
+使用 PyTorch 训练好 Demo 模型，如何部署到生产环境提供用于提供服务呢？
 
-
+未完待续 ！！！
 
 ## 参考
 More info: [Chenglu：如何部署PyTorch模型](https://zhuanlan.zhihu.com/p/344364948)

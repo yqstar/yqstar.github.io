@@ -14,7 +14,7 @@ Mnist数据集是手写数字0~9的MNIST数据集，包含60,000个用于训练�
 环境配置主要包括：操作系统，显卡，深度学习Pytorch等配置如下。
 
 ``` python
-系统：Windows 11
+系统：Windows 11 - WSL2 系统
 显卡：NVIDIA GeForce RTX 3060
 python: 3.6.13
 pytorch: 1.7.1
@@ -36,6 +36,7 @@ import torch.nn.functional as F
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+from torchinfo import summary
 ```
 
 构建baseline模型核心是快速跑通完整链路，同时在Baseline的基础上迭代更新有合适的对比标准，方便验证算法模型的稳定性和正确性。为保证训练模型的可重复性，我们需要进行一些配置。全部配置主要分为三部分，具体如下：
@@ -105,7 +106,7 @@ def plot_image(image,batch_size=32):
         # Debug, plot figure
         sub_size = int(np.math.sqrt(32))+1
         f.add_subplot(sub_size,sub_size, i + 1)
-        plt.subplot_mosaic
+        # plt.subplot_mosaic
         plt.imshow(image_tx[0], cmap='gray')
     plt.show()
 
@@ -146,11 +147,9 @@ class MnistNet(nn.Module):
         return x
 ```
 
-在进行模型训练过程中，我们可以使用以下代码，查看构建的模型特征
+在进行模型训练过程中，我们可以使用以下代码，查看构建的模型结构，目前torchinfo仅能展示 *torch.nn* 模块下的模型结构，采用 *torch.nn.functional* 构造的函数是无法显示的。
 
 ``` python
-
-from torchinfo import summary
 summary(model, input_size=(batch_size, 1, 28, 28),depth=4)
 
 ```
@@ -230,8 +229,7 @@ for epoch in range(1, 20):
 
 ![样本图片](Pytorch系列自学教程-2-深度学习“Hello-World”之Mnist图像分类/train_eval_vis.png)
 
-
-```python
+``` python
 plt.plot(range(1,len(train_losses)+1),train_losses,'bo',label = 'training loss')
 plt.plot(range(1,len(val_losses)+1),val_losses,'r',label = 'validation loss')
 plt.legend()
@@ -241,22 +239,21 @@ plt.show()
 
 ![样本图片](Pytorch系列自学教程-2-深度学习“Hello-World”之Mnist图像分类/loss_vis.png)
 
-```python
+``` python
 plt.plot(range(1,len(train_accuracy)+1),train_accuracy,'bo',label = 'train accuracy')
 plt.plot(range(1,len(val_accuracy)+1),val_accuracy,'r',label = 'val accuracy')
 plt.legend()
 plt.show()
-
 ```
 
 ![样本图片](Pytorch系列自学教程-2-深度学习“Hello-World”之Mnist图像分类/accuracy_vis.png)
 
-## 未来探索
+## 探索
 
-写完了这一部分，我们基本上可以使用自己的数据，快乐地进行自己的炼丹之路了，但是道路阻且长,行则将至,但行好事莫问前程。总会有一些更好的解决方案。
+到此为止，已经可以使用自己数据玩耍各种Demo，快（苦）乐（逼）地进行炼丹之路。道路阻且长，行则将至，但行好事莫问前程。
 
-* 模型结构还有哪些神奇的结构？包括Loss函数，优化函数，模型结构？
-* 如何使用Tensorboard进行模型结构展示？
-* 如何上线部署模型呢？如何实现从Mysql数据读取，到线上模型的完整的调用呢？
-* 目前的模型仅仅是Demo模型，离生产上的使用还是有很大的距离？我们该不该记性完整链路的学习呢？
-* 正如，人往往会对未知的事情产生恐惧，因为结局是未知的。所以当一切不再未知的时候，那么是不是就不会产生恐惧呢？
+* Demo模型还可以修改Loss函数，优化函数和模型结构？
+* 除了Torchinfo，是否可以使用Tensorboard等可视化工具管理模型数据的可视化数据呢？
+* Demo模型离生产上线还有多远距离？如何上线部署模型呢？如何实现从Mysql等数据库到线上模型调用呢？任何的代码是否都应该以能够终端使用为目的？
+
+正如，人往往会对未知的事情产生恐惧，因为结局是未知的。所以当一切不再未知的时候，那么是不是就不会产生恐惧呢？

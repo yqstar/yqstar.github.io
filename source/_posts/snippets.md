@@ -5,7 +5,10 @@ tags: [Snippet,Python]
 categories: Snippet
 ---
 
+本博客的目的主要是为了收集一些常用代码，或者一些有意思的代码，方便后续的工作学习使用。
+
 Sklearn的dataset转为dataframe
+
 ``` python
 import pandas as pd
 from sklearn import datasets
