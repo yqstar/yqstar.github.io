@@ -199,8 +199,8 @@
                         <div class="article-meta-info">
     <span class="article-date article-meta-item">
         <i class="fas fa-edit"></i>&nbsp;
-        <span class="pc">2022-05-06 19:48:46</span>
-        <span class="mobile">2022-05-06 19:48</span>
+        <span class="pc">2022-05-01 19:48:46</span>
+        <span class="mobile">2022-05-01 19:48</span>
     </span>
     
         <span class="article-categories article-meta-item">
@@ -261,19 +261,19 @@
 <h2 id="配置镜像"><a href="#配置镜像" class="headerlink" title="配置镜像"></a>配置镜像</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"># 显示目前的channels </span><br><span class="line">conda config --show channels </span><br><span class="line"># 切换默认镜像源 </span><br><span class="line">conda config --remove-key channels</span><br><span class="line"></span><br><span class="line"># 删除指定channel </span><br><span class="line">conda config --remove channels_URL </span><br><span class="line"></span><br><span class="line"># Windows 用户无法直接创建名为 .condarc 的文件，使用以下命令 C:\Users\用户名\.condarc</span><br><span class="line">conda config --set show_channel_urls yes</span><br><span class="line"></span><br><span class="line"># 中科大镜像源 </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/</span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/ </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/bioconda/ </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/ </span><br><span class="line">conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/ </span><br><span class="line"> </span><br><span class="line"># 北京外国语大学源 </span><br><span class="line">conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/main </span><br><span class="line">conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/free </span><br><span class="line">conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/r </span><br><span class="line">conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/pro </span><br><span class="line">conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/msys2</span><br><span class="line"></span><br><span class="line"># 清华源 </span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main</span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free </span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r </span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/pro </span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2 </span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <h1 id="Tensorflow环境安装"><a href="#Tensorflow环境安装" class="headerlink" title="Tensorflow环境安装"></a>Tensorflow环境安装</h1><p>查看Tensorflow版本和安装指定版本。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 查询tensorflow-gpu的版本</span><br><span class="line">conda search tensorflow-gpu</span><br><span class="line"># 指定版本进行安装</span><br><span class="line">conda install tensorflow-gpu==1.13.1</span><br></pre></td></tr></table></figure>
-<p><img src="/2022/05/06/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_install.jpg" alt="tf_install"></p>
+<p><img src="/2022/05/01/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_install.jpg" alt="tf_install"></p>
 <p>安装过程中会安装cudatoolkit-10.0.130和cudnn-7.6.5。 </p>
-<p><img src="/2022/05/06/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_install_info.jpg" alt="tf_install"></p>
+<p><img src="/2022/05/01/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_install_info.jpg" alt="tf_install"></p>
 <p>执行下述命令查看tf版本和GPU是否生效。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">查看是否安装成功</span><br><span class="line">import tensorflow as tf</span><br><span class="line"></span><br><span class="line"># 打印Tensorflow版本</span><br><span class="line">print(tf.__version__)</span><br><span class="line"></span><br><span class="line"># 打印是否支持GPU</span><br><span class="line">print(tf.test.is_gpu_available())</span><br></pre></td></tr></table></figure>
 <p>根据图片打印结果，成功安装tf 1.13.1 版本，同时GPU安装生效。</p>
-<p><img src="/2022/05/06/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_version.jpg" alt="tf_version"></p>
+<p><img src="/2022/05/01/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/tf_version.jpg" alt="tf_version"></p>
 <h1 id="Pytorch环境安装"><a href="#Pytorch环境安装" class="headerlink" title="Pytorch环境安装"></a>Pytorch环境安装</h1><p>执行下述命令安装Pytorch。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install pytorch==1.7.0 torchvision==0.8.0 torchaudio==0.7.0 cudatoolkit=10.1 -c pytorch</span><br></pre></td></tr></table></figure>
 <p>执行下述命令查看torch版本和GPU是否生效。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(torch.__version__)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(torch.cuda.is_available())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>根据图片打印结果，成功安装Pytorch 1.7.0 版本，同时GPU安装生效。</p>
-<p><img src="/2022/05/06/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/torch_version.jpg" alt="torch_version"></p>
+<p><img src="/2022/05/01/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/torch_version.jpg" alt="torch_version"></p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
 <li><p>More info: <a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/zhayushui/article/details/80433768?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&amp;depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase">阿尔发go：conda常用命令<i class="fas fa-external-link-alt"></i></a></p>
 </li>
@@ -291,9 +291,9 @@
     <ul>
         <li>本文标题：Windows系统使用Conda配置深度学习环境</li>
         <li>本文作者：AiLab123</li>
-        <li>创建时间：2022-05-06 19:48:46</li>
+        <li>创建时间：2022-05-01 19:48:46</li>
         <li>
-            本文链接：https://yqstar.github.io/2022/05/06/Windows系统使用Conda配置深度学习环境/
+            本文链接：https://yqstar.github.io/2022/05/01/Windows系统使用Conda配置深度学习环境/
         </li>
         <li>
             版权声明：本博客所有文章除特别声明外，均采用 <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -320,13 +320,13 @@
                     <div class="article-prev">
                         <a class="prev"
                            rel="prev"
-                           href="/2022/05/07/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/"
+                           href="/2022/05/01/snippets/"
                         >
                             <span class="left arrow-icon flex-center">
                               <i class="fas fa-chevron-left"></i>
                             </span>
                             <span class="title flex-center">
-                                <span class="post-nav-title-item">使用GithubPages搭建个人静态博客</span>
+                                <span class="post-nav-title-item">snippets</span>
                                 <span class="post-nav-item">上一篇</span>
                             </span>
                         </a>
@@ -336,10 +336,10 @@
                     <div class="article-next">
                         <a class="next"
                            rel="next"
-                           href="/2022/05/05/Pytorch%E7%B3%BB%E5%88%97%E8%87%AA%E5%AD%A6%E6%95%99%E7%A8%8B-1-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B9%8BDataset%E5%92%8CDataLoader%E4%BD%BF%E7%94%A8/"
+                           href="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/"
                         >
                             <span class="title flex-center">
-                                <span class="post-nav-title-item">Pytorch系列自学教程(1):数据加载之Dataset和DataLoader使用</span>
+                                <span class="post-nav-title-item">使用GithubPages搭建个人静态博客</span>
                                 <span class="post-nav-item">下一篇</span>
                             </span>
                             <span class="right arrow-icon flex-center">

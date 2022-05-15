@@ -251,9 +251,9 @@
         
 
         <div class="article-content markdown-body">
-            <p>本章节主要通过深度学习“Hello World”之Mnist图像分类，学会深度学习的基本链路，快速搭建个人的Baseline模型，包括数据加载、数据可视化、模型构建、模型训练评估和模型结果指标的展示。</p>
-<p>Mnist数据集是手写数字的MNIST数据库，包含60,000个用于训练的0~9的训练集和10,000个用于测试的测试集。这些数字已被大小归一化，并以固定尺寸的图像为中心。对于尝试学习深度学习技术的人来说，这是一个非常棒的数据集，同时花费最少时间来进行预处理和格式化。详细：<a class="link" target="_blank" rel="noopener" href="http://yann.lecun.com/exdb/mnist/">Mnist官网<i class="fas fa-external-link-alt"></i></a></p>
-<h2 id="版本环境"><a href="#版本环境" class="headerlink" title="版本环境"></a>版本环境</h2><p>版本环境主要包括：操作系统，显卡版本，深度学习Pytorch框架版本如下。</p>
+            <p>本章节主要通过深度学习“Hello World”之Mnist图像分类，学会深度学习的基本链路，快速搭建个人的Baseline模型，包括数据加载、数据可视化、模型构建、模型训练评估和模型结果指标展示。</p>
+<p>Mnist数据集是手写数字0~9的MNIST数据集，包含60,000个用于训练的训练集和10,000个用于测试的测试集。这些数字已被大小归一化，并以固定尺寸的图像为中心。对于尝试学习深度学习技术的人来说，这是一个非常棒的数据集，同时可以花费最少时间来进行预处理和格式化。详细：<a class="link" target="_blank" rel="noopener" href="http://yann.lecun.com/exdb/mnist/">Mnist官网<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>环境配置主要包括：操作系统，显卡，深度学习Pytorch等配置如下。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">系统：Windows <span class="number">11</span></span><br><span class="line">显卡：NVIDIA GeForce RTX <span class="number">3060</span></span><br><span class="line">python: <span class="number">3.6</span><span class="number">.13</span></span><br><span class="line">pytorch: <span class="number">1.7</span><span class="number">.1</span></span><br><span class="line">cudatoolkit: <span class="number">11.0</span><span class="number">.221</span></span><br><span class="line">torchvision: <span class="number">0.8</span><span class="number">.2</span></span><br></pre></td></tr></table></figure>
 <h3 id="导入包环境"><a href="#导入包环境" class="headerlink" title="导入包环境"></a>导入包环境</h3><p>本文使用的Python Package 主要有Pytorch的深度学习框架，torchvision用于加载Mnist数据集，matplotlib用于可视化展示数据集和展示训练结果等。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> datasets, transforms</span><br><span class="line"><span class="keyword">from</span> torch.utils.data <span class="keyword">import</span> DataLoader</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.optim <span class="keyword">as</span> optim</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br></pre></td></tr></table></figure>
@@ -328,14 +328,29 @@
         
             <div class="article-nav">
                 
+                    <div class="article-prev">
+                        <a class="prev"
+                           rel="prev"
+                           href="/2022/05/15/Pytorch%E7%B3%BB%E5%88%97%E8%87%AA%E5%AD%A6%E6%95%99%E7%A8%8B-3-%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E4%B9%8BMnist%E5%9B%BE%E5%83%8F%E5%88%86%E7%B1%BBTorchServe%E9%83%A8%E7%BD%B2/"
+                        >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Pytorch系列自学教程(3):深度学习之Mnist图像分类TorchServe部署</span>
+                                <span class="post-nav-item">上一篇</span>
+                            </span>
+                        </a>
+                    </div>
+                
                 
                     <div class="article-next">
                         <a class="next"
                            rel="next"
-                           href="/2022/05/07/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/"
+                           href="/2022/05/05/Pytorch%E7%B3%BB%E5%88%97%E8%87%AA%E5%AD%A6%E6%95%99%E7%A8%8B-1-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B9%8BDataset%E5%92%8CDataLoader%E4%BD%BF%E7%94%A8/"
                         >
                             <span class="title flex-center">
-                                <span class="post-nav-title-item">使用GithubPages搭建个人静态博客</span>
+                                <span class="post-nav-title-item">Pytorch系列自学教程(1):数据加载之Dataset和DataLoader使用</span>
                                 <span class="post-nav-item">下一篇</span>
                             </span>
                             <span class="right arrow-icon flex-center">
@@ -470,7 +485,7 @@
         <aside class="page-aside">
             <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E7%8E%AF%E5%A2%83"><span class="nav-number">1.</span> <span class="nav-text">版本环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E5%8C%85%E7%8E%AF%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">导入包环境</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">模型数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">模型构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-number">4.</span> <span class="nav-text">模型训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%87%BD%E6%95%B0"><span class="nav-number">4.1.</span> <span class="nav-text">模型训练函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0"><span class="nav-number">5.</span> <span class="nav-text">模型评估</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E6%8E%A2%E7%B4%A2"><span class="nav-number">6.</span> <span class="nav-text">未来探索</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">1.</span> <span class="nav-text">环境配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E5%8C%85%E7%8E%AF%E5%A2%83"><span class="nav-number">1.1.</span> <span class="nav-text">导入包环境</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">模型数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E6%9E%84%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">模型构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="nav-number">4.</span> <span class="nav-text">模型训练</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%87%BD%E6%95%B0"><span class="nav-number">4.1.</span> <span class="nav-text">模型训练函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0"><span class="nav-number">5.</span> <span class="nav-text">模型评估</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E6%8E%A2%E7%B4%A2"><span class="nav-number">6.</span> <span class="nav-text">未来探索</span></a></li></ol>
     </div>
 </div>
         </aside>
