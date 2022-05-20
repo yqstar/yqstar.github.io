@@ -208,12 +208,12 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>192 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>904 字</span>
         </span>
     
     
         <span class="article-min2read article-meta-item">
-            <i class="fas fa-clock"></i>&nbsp;<span>1 分钟</span>
+            <i class="fas fa-clock"></i>&nbsp;<span>3 分钟</span>
         </span>
     
     
@@ -229,10 +229,50 @@
         
 
         <div class="article-content markdown-body">
-            <h1 id="技术原理"><a href="#技术原理" class="headerlink" title="技术原理"></a>技术原理</h1><p>GitHub Pages 是直接从 GitHub 存储库托管的静态网站。 但它们不仅仅是静态文件的集合。 通过利用 Jekyll 和 Liquid 等网站生成技术，开发人员可定义被处理为完整静态网站的动态模板。 每次将更改提交到与网站关联的源分支时，都会使用最新更新重新生成该更改，并自动将其发布到目标 URL。</p>
-<span id="more"></span>
-<p>GitHub Pages 是直接从 GitHub 存储库托管的免费静态网站。 使用 YAML 和 Markdown 等标准技术，任何人都可以在几分钟内生成和维护网站。</p>
-<h1 id="使用环境"><a href="#使用环境" class="headerlink" title="使用环境"></a>使用环境</h1><p>参考<br>如何使用本地插入图片<br><a class="link" target="_blank" rel="noopener" href="https://github.com/xcodebuild/hexo-asset-image">https://github.com/xcodebuild/hexo-asset-image<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/fitnig/article/details/106522811">https://blog.csdn.net/fitnig/article/details/106522811<i class="fas fa-external-link-alt"></i></a></p>
+            <h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p><strong>GitHub Pages</strong> 是使用 GitHub 存储仓库托管静态网站，使用 YAML 和 Markdown 等标准技术，任何人都可以在几分钟内生成和维护网站，但它不仅仅是静态文件的集合。通过利用 Jekyll 和 Liquid 等网站生成技术，开发人员可定义完整静态网站的动态模板。每次将更改提交到与网站关联的源代码分支时，都会使用源代码分支的最新代码配置重新生成静态网页，Github 自动将其发布到目标 URL。欢迎关注：<a href="https://yqstar.github.io/">我的博客</a>。</p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">操作系统：Windows11 -&gt; WSL2 -&gt; Ubuntu 22.04 LTS</span><br><span class="line">Node.js: v16.15.0</span><br><span class="line">Npm: 8.5.5</span><br></pre></td></tr></table></figure>
+<h2 id="操作部署"><a href="#操作部署" class="headerlink" title="操作部署"></a>操作部署</h2><h3 id="安装NVM"><a href="#安装NVM" class="headerlink" title="安装NVM"></a>安装NVM</h3><p>在安装nvm之前简单介绍下nvm，nodejs和npm之间的关系。</p>
+<ul>
+<li>nvm：<em>nodejs</em> 的版本管理工具。</li>
+<li>nodejs：项目开发所需要的代码库。</li>
+<li>npm：<em>nodejs</em> 包管理工具，<em>npm</em> 管理<em>nodejs</em>中的第三方插件。</li>
+</ul>
+<p>参考 <a class="link" target="_blank" rel="noopener" href="https://github.com/nvm-sh/nvm">NPM-GITHUB<i class="fas fa-external-link-alt"></i></a>，使用以下命令安装nvm。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash</span><br></pre></td></tr></table></figure>
+<p>安装过程Info截图如下：</p>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/nvm_install.png" alt="NVM安装截图"></p>
+<p>判断nvm安装是否成功,可以使用以下命令查看nvm的版本信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm -v</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/nvm_version.png" alt="NVM版本截图"></p>
+<h3 id="安装NODEJS"><a href="#安装NODEJS" class="headerlink" title="安装NODEJS"></a>安装NODEJS</h3><p>使用 <em>nvm install</em> 命令可以安装指定版本的NodeJs，本次安装v16版本，执行以下命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm install 16</span><br></pre></td></tr></table></figure>
+<p>通过下述命令查看node和npm的版本。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+<p>可查看到Node和npm的版本。</p>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/npm_node_version.png" alt="NVM版本截图"></p>
+<h2 id="安装Hexo和配置"><a href="#安装Hexo和配置" class="headerlink" title="安装Hexo和配置"></a>安装Hexo和配置</h2><h3 id="安装Hexo命令行"><a href="#安装Hexo命令行" class="headerlink" title="安装Hexo命令行"></a>安装Hexo命令行</h3><p>Hexo是一个快速、简洁且高效的博客框架，官方提供一个命令行工具，用于快速创建项目、页面、编译、部署Hexo博客，安装命令行工具。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli</span><br></pre></td></tr></table></figure>
+<h3 id="初始化本地运行"><a href="#初始化本地运行" class="headerlink" title="初始化本地运行"></a>初始化本地运行</h3><p>接下来我们使用 Hexo 命令行创建一个项目，并将其在本地跑起来，整体跑通看看。</p>
+<p>首先使用如下命令创建项目：<strong>hexo init {blog_name}</strong>，这里的 blog_name 就是博客名，我这里要创建 <em>hexo_blog</em> 的博客，我就把项目取名为 hexo_blog ，命令如下：hexo init hexo_blog。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hexo init &#123;blog_name&#125;</span><br><span class="line"><span class="built_in">cd</span> &#123;blog_name&#125;</span><br><span class="line">npm install</span><br><span class="line">hexo server</span><br></pre></td></tr></table></figure>
+<p>hexo_blog 文件夹下就会出现 Hexo 的初始化文件，包括 themes、scaffolds、source 等文件夹。</p>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/hexo_init.png" alt="Hexo初始化"></p>
+<p>接下来我们首先进入新生成的文件夹里面，然后调用 Hexo 的 generate 命令，将 Hexo 编译生成 HTML 代码，命令如下：hexo generate可以看到输出结果里面包含了 js、css、font 等内容，并发现他们都处在了项目根目录下的 public 文件夹下面了。</p>
+<p>然后使用 Hexo 提供的 server 命令把博客在本地运行起来，命令如下：hexo server 运行之后命令行输出如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">INFO  Start processing</span><br><span class="line">INFO  Hexois running at http://localhost:4000 . Press Ctrl+C to stop.</span><br></pre></td></tr></table></figure>
+<p>本地 4000 端口上就可以查看博客站点，如图所示：</p>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/hexo_server.png" alt="Hexo初始化"></p>
+<h3 id="主题配置"><a href="#主题配置" class="headerlink" title="主题配置"></a>主题配置</h3><p>登录官网<a class="link" target="_blank" rel="noopener" href="https://hexo.io/zh-cn/">Hexo官网<i class="fas fa-external-link-alt"></i></a>,然后点击主题页面<a class="link" target="_blank" rel="noopener" href="https://hexo.io/themes/">Theme主题<i class="fas fa-external-link-alt"></i></a>，选择一个喜欢主题，我这边选择的主题是<br><a class="link" target="_blank" rel="noopener" href="https://keep-docs.xpoet.cn/usage-tutorial/configuration-guide.html#base-info">keep主题<i class="fas fa-external-link-alt"></i></a>。<br>执行安装命令，会将主题文件安装在node_modules文件夹中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-theme-keep --save</span><br></pre></td></tr></table></figure>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/keep_theme_path.png" alt="主题存放路径"></p>
+<p>执行hexo server命令执行本地查看。</p>
+<p>可以看出此时数据已经更新成keep主题。</p>
+<h2 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h2><p>执行部署到Github需要使用hexo-deployer-git插件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
+<p>安装好hexo-deployer-git后可以进行文件的配置。<br>具体配置如下：</p>
+<p><img src="/2022/05/01/%E4%BD%BF%E7%94%A8GithubPages%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E9%9D%99%E6%80%81%E5%8D%9A%E5%AE%A2/deploy_settings.png" alt="主题存放路径"></p>
+<p>在这之前需要github配置相应的仓库，我配置的仓库名为：yqstar.github.io.</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>如何使用本地插入图片<br><a class="link" target="_blank" rel="noopener" href="https://github.com/xcodebuild/hexo-asset-image">https://github.com/xcodebuild/hexo-asset-image<i class="fas fa-external-link-alt"></i></a><br><a class="link" target="_blank" rel="noopener" href="https://blog.csdn.net/fitnig/article/details/106522811">https://blog.csdn.net/fitnig/article/details/106522811<i class="fas fa-external-link-alt"></i></a></p>
 
         </div>
 
@@ -402,7 +442,7 @@
         <aside class="page-aside">
             <div class="post-toc-wrap">
     <div class="post-toc">
-        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">技术原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">使用环境</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">环境配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">操作部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NVM"><span class="nav-number">3.1.</span> <span class="nav-text">安装NVM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85NODEJS"><span class="nav-number">3.2.</span> <span class="nav-text">安装NODEJS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hexo%E5%92%8C%E9%85%8D%E7%BD%AE"><span class="nav-number">4.</span> <span class="nav-text">安装Hexo和配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hexo%E5%91%BD%E4%BB%A4%E8%A1%8C"><span class="nav-number">4.1.</span> <span class="nav-text">安装Hexo命令行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%AC%E5%9C%B0%E8%BF%90%E8%A1%8C"><span class="nav-number">4.2.</span> <span class="nav-text">初始化本地运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E9%A2%98%E9%85%8D%E7%BD%AE"><span class="nav-number">4.3.</span> <span class="nav-text">主题配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E5%88%B0Github"><span class="nav-number">5.</span> <span class="nav-text">部署到Github</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol>
     </div>
 </div>
         </aside>
