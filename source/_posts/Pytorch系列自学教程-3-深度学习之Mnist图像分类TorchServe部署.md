@@ -13,3 +13,4 @@ categories:
 More info: [Chenglu：如何部署PyTorch模型](https://zhuanlan.zhihu.com/p/344364948)
 More info: [TorchServe](https://github.com/pytorch/serve)
 More info: [TorchServe_Mnist Example](https://github.com/pytorch/serve/tree/master/examples/image_classifier/mnist)
+More info: [随便写点笔记](https://blog.csdn.net/weixin_41977938/article/details/122258595)
