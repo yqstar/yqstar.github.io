@@ -2,7 +2,7 @@
 title: Windows系统使用Conda配置深度学习环境
 date: 2022-05-01 19:48:46
 tags: Conda
-categories: 深度学习
+categories: 
 ---
 
 # Conda环境管理
@@ -11,13 +11,14 @@ Conda是一个开源的软件包管理系统和环境管理系统，可以管理
 
 ## 查看环境
 
-``` 
+``` bash
 # 查看当前环境
 conda info --env
 ```
 
 ## 克隆环境
-```
+
+``` bash
 # 假设已有环境名为A，需要生成的环境名为B：
 conda create -n B --clone A
 
@@ -33,7 +34,8 @@ conda create --name <my_env> --file spec-file.txt
 ```
 
 ## 创建环境
-```
+
+``` bash
  # 创建一个环境名为py34，指定Python版本是3.4 
  #（不用管是3.4.x，conda会为我们自动寻找3.4.x中的最新版本） 
  conda create --name py34 python=3.4 
@@ -43,7 +45,8 @@ conda create --name <my_env> --file spec-file.txt
 ```
  
 ## 激活环境
-```
+
+``` bash
 # 在windows环境下使用activate激活 
 activate py34
 
@@ -52,7 +55,8 @@ source activate py34
 ```
 
 ## 退出环境
-```
+
+``` bash
 # 在windows环境下使用
 deactivate <my_env>
 
@@ -61,7 +65,8 @@ source deactivate <my_env>
 ```
 
 ## 删除环境
-```
+
+``` bash
 # 如果你不想要这个名为py34的环境，可以通过以下命令删除这个环境。 
 conda remove -n py34 --all 
 
@@ -70,7 +75,8 @@ conda info -e
 ```
 
 ## 配置镜像
-```
+
+``` bash
 # 显示目前的channels 
 conda config --show channels 
 # 切换默认镜像源 
@@ -111,12 +117,13 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/m
 
 查看Tensorflow版本和安装指定版本。
 
-```
+``` bash
 # 查询tensorflow-gpu的版本
 conda search tensorflow-gpu
 # 指定版本进行安装
 conda install tensorflow-gpu==1.13.1
 ```
+
 ![tf_install](Windows系统使用Conda配置深度学习环境/tf_install.jpg)
 
 安装过程中会安装cudatoolkit-10.0.130和cudnn-7.6.5。 
@@ -125,7 +132,7 @@ conda install tensorflow-gpu==1.13.1
 
 执行下述命令查看tf版本和GPU是否生效。
 
-```
+``` python
 查看是否安装成功
 import tensorflow as tf
 
@@ -140,14 +147,14 @@ print(tf.test.is_gpu_available())
 
 ![tf_version](Windows系统使用Conda配置深度学习环境/tf_version.jpg)
 
-
 # Pytorch环境安装
 
 执行下述命令安装Pytorch。
 
-```
+``` bash
 conda install pytorch==1.7.0 torchvision==0.8.0 torchaudio==0.7.0 cudatoolkit=10.1 -c pytorch
 ```
+
 执行下述命令查看torch版本和GPU是否生效。
 
 ``` python
@@ -162,7 +169,6 @@ print(torch.cuda.is_available())
 根据图片打印结果，成功安装Pytorch 1.7.0 版本，同时GPU安装生效。
 
 ![torch_version](Windows系统使用Conda配置深度学习环境/torch_version.jpg)
-
 
 # 参考
 

@@ -135,8 +135,11 @@ npm install hexo-deployer-git --save
 
 在这之前需要github配置相应的仓库，我配置的仓库名为：yqstar.github.io.
 
+![线上部署](使用GithubPages搭建个人静态博客/deploy_online.png)
+
+![线上部署](使用GithubPages搭建个人静态博客/deploy_github.png)
+
 ## 参考
 
-如何使用本地插入图片
-https://github.com/xcodebuild/hexo-asset-image
-https://blog.csdn.net/fitnig/article/details/106522811
+MoreInfo:[hexo-asset-image插件](https://github.com/xcodebuild/hexo-asset-image)
+MoreInfo:[如何使用本地插入图片](https://blog.csdn.net/fitnig/article/details/106522811)
