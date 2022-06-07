@@ -27,7 +27,7 @@ TorchServe是由AWS和Facebook合作开发的PyTorch模型服务库，是 [PyTor
 
 TorchServe框架主要分为四个部分：Frontend是TorchServe的请求和响应的处理部分；Worker Process 指的是一组运行的模型实例，可以由管理API设定运行的数量；Model Store是模型存储加载的地方；Backend用于管理Worker Process。
 
-![ts_frame](../_posts/Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_frame.png)
+![ts_frame](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_frame.png)
 
 ## 环境安装
 
@@ -263,7 +263,7 @@ torchserve --start --ncs --model-store model_store --models mnist.mar
 
 模型启动日志如下截图：
 
-![ts_start](../_posts/Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_start.png)
+![ts_start](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_start.png)
 
 ### 推理健康检查API
 
@@ -273,7 +273,7 @@ curl http://localhost:8080/ping
 
 如果server正常运行, 响应会如截图所示：
 
-![ts_ping](../_posts/Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_ping.png)
+![ts_ping](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_ping.png)
 
 ### 推理
 
@@ -283,7 +283,7 @@ curl http://127.0.0.1:8080/predictions/mnist -T ./data/test.png
 
 test.png为数字为0的图片，通过上述的调用推理，可以看出结果是能正常返回的，是可以作为下游应用调用。
 
-![ts_infer](../_posts/Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_infer.png)
+![ts_infer](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_infer.png)
 
 ### 停止torchserve服务
 
@@ -300,7 +300,7 @@ torchserve --start
 * 除了使用TorchServe部署模型，还有其他的解决方案吗？
 * 除了使用提供这种Web API的形式，是否可以构建一个GUI的形式提供呢？例如 PYQT5 ？这里放一张PYQT5的图，后面会填坑。
 
-![pyqt_demo](../_posts/Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/pyqt_demo.png)
+![pyqt_demo](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/pyqt_demo.png)
 
 正如，人往往会对未知的事情产生恐惧，因为结局是未知的。所以当一切不再未知的时候，那么是不是就不会产生恐惧呢？
 
