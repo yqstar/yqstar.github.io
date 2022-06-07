@@ -5,18 +5,18 @@ tags: Conda
 categories: 
 ---
 
-# Conda环境管理
+## Conda环境管理
 
 Conda是一个开源的软件包管理系统和环境管理系统，可以管理不同的Python版本环境，不同的环境之间是互相隔离，互不影响的。
 
-## 查看环境
+### 查看环境
 
 ``` bash
 # 查看当前环境
 conda info --env
 ```
 
-## 克隆环境
+### 克隆环境
 
 ``` bash
 # 假设已有环境名为A，需要生成的环境名为B：
@@ -33,7 +33,7 @@ conda list --explicit > spec-file.txt
 conda create --name <my_env> --file spec-file.txt
 ```
 
-## 创建环境
+### 创建环境
 
 ``` bash
  # 创建一个环境名为py34，指定Python版本是3.4 
@@ -43,8 +43,8 @@ conda create --name <my_env> --file spec-file.txt
  # 通过创建环境，我们可以使用不同版本的Python 
  conda create --name py27 python=2.7
 ```
- 
-## 激活环境
+
+### 激活环境
 
 ``` bash
 # 在windows环境下使用activate激活 
@@ -54,7 +54,7 @@ activate py34
 source activate py34 
 ```
 
-## 退出环境
+### 退出环境
 
 ``` bash
 # 在windows环境下使用
@@ -64,7 +64,7 @@ deactivate <my_env>
 source deactivate <my_env>
 ```
 
-## 删除环境
+### 删除环境
 
 ``` bash
 # 如果你不想要这个名为py34的环境，可以通过以下命令删除这个环境。 
@@ -74,7 +74,7 @@ conda remove -n py34 --all
 conda info -e
 ```
 
-## 配置镜像
+### 配置镜像
 
 ``` bash
 # 显示目前的channels 
@@ -110,10 +110,9 @@ conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/f
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r 
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/pro 
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2 
-
 ```
 
-# Tensorflow环境安装
+## Tensorflow环境安装
 
 查看Tensorflow版本和安装指定版本。
 
@@ -126,7 +125,7 @@ conda install tensorflow-gpu==1.13.1
 
 ![tf_install](Windows系统使用Conda配置深度学习环境/tf_install.jpg)
 
-安装过程中会安装cudatoolkit-10.0.130和cudnn-7.6.5。 
+安装过程中会安装cudatoolkit-10.0.130和cudnn-7.6.5。
 
 ![tf_install](Windows系统使用Conda配置深度学习环境/tf_install_info.jpg)
 
@@ -147,7 +146,7 @@ print(tf.test.is_gpu_available())
 
 ![tf_version](Windows系统使用Conda配置深度学习环境/tf_version.jpg)
 
-# Pytorch环境安装
+## Pytorch环境安装
 
 执行下述命令安装Pytorch。
 
@@ -170,7 +169,7 @@ print(torch.cuda.is_available())
 
 ![torch_version](Windows系统使用Conda配置深度学习环境/torch_version.jpg)
 
-# 参考
+## 参考
 
 * More info: [阿尔发go：conda常用命令](https://blog.csdn.net/zhayushui/article/details/80433768?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase)
 
