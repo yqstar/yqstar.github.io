@@ -313,3 +313,4 @@ More info: [随便写点笔记](https://blog.csdn.net/weixin_41977938/article/de
 More info: [PyTorch Eager mode and Script mode](https://blog.csdn.net/Chris_zhangrx/article/details/117380516)
 More info: [Self-host your 🤗HuggingFace Transformer NER model with Torchserve + Streamlit](https://cceyda.github.io/blog/huggingface/torchserve/streamlit/ner/2020/10/09/huggingface_streamlit_serve.html)
 More info: [TorchServe搭建codeBERT分类模型服务](https://ceshiren.com/t/topic/20770)
+More info: [torchserver模型本地部署和docker部署](https://blog.csdn.net/qq_15821487/article/details/122684773)
