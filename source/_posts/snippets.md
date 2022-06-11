@@ -7,7 +7,7 @@ categories: Snippet
 
 本博客的目的主要是为了收集一些常用代码，或者一些有意思的代码，方便后续的工作学习使用。
 
-Sklearn的dataset转为dataframe
+## Sklearn的dataset转为dataframe
 
 ``` python
 import pandas as pd
@@ -23,7 +23,7 @@ df_boston = sklearn_to_df(datasets.load_boston())
 print(df_boston.head())
 ```
 
-pymysql读取mysql数据转化为dataframe
+## pymysql读取mysql数据转化为dataframe
 
 ``` python
 import pymysql
@@ -42,7 +42,7 @@ pdata = load_data_frame_from_mysql()
 print(pdata.head())
 ```
 
-Image处理代码
+## Image处理代码
 
 ``` python
 # -*-coding: utf-8 -*-
@@ -260,4 +260,15 @@ def combime_save_image(orig_image, dest_image, out_dir,name,prefix):
     dest_image = np.hstack((orig_image, dest_image))
     save_image(os.path.join(out_dir, "{}_src_{}.jpg".format(name,prefix)), dest_image)
 
+```
+
+## apt-get卸载软件
+
+``` bash
+# 删除软件及其配置文件
+apt-get --purge remove openjdk-11-jdk
+# 删除没用的依赖包
+sudo apt-get autoremove openjdk-11-jdk
+# 此时dpkg的列表中有“rc”状态的软件包，可以执行如下命令做最后清理：
+dpkg -l |grep ^rc|awk '{print $2}' |sudo xargs dpkg -P
 ```

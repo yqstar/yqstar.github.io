@@ -5,48 +5,46 @@ tags: Pytorch_Tutorial
 categories:
 ---
 
-## 部署简介
+## 简介
 
-学习应该能够终端落地，这样对于个人带来的满足才是巨大的，才会是有价值的。所以单纯地跑了Demo模型，对自己的技术提升还是很大的，但是如何把技术输出也是必要的。
+经过前 [两篇博客](https://yqstar.github.io/tags/Pytorch-Tutorial/) 学习，我们已可使用CNN模型完成Mnist手写数字分类模型，对于算法从数据处理、模型构建、模型训练和评估链路有初步认知。但工业可能需要部署离线在线模型用于提供模型推理服务，所谓模型推理服务是指在系统配置训练完成机器学习模型，以便其可接受新的输入并将推理结果返回给系统。
 
-那么使用 *PyTorch* 训练好 Demo 模型，如何部署到生产环境提供用于提供模型服务呢？部署形式是非常多样的，本章内容主要介绍的是是大厂出品的TorchServe用于部署Pytorch的模型。
+其次，虽然很多大厂都会有封装好部署平台供算法人员便捷配置，但是学习中对于完整的工程链路开发对于个人能力建设也是非常重要的，而不是仅仅作为一颗螺丝钉，如何实现从Demo模型转换成线上模型推理服务部署，对于个人的正向反馈也是非常有意义的。
 
-模型服务是在系统中放置经过训练的机器学习模型的过程，以便它可以接受新的输入并将推理返回给系统。
+那么针对 *PyTorch* 训练好 Demo 模型，如何部署到生产环境用于提供模型推理服务呢？部署形式非常多样，其中 TorchServe 是 [PyTorch开源项目](https://pytorch.org/serve/index.html) 部分，是AWS和Facebook合作开发的用于部署Pytorch的模型，对于算法工程师是相当友好的。本章介绍如何使用TorchServe完成PyTorch模型的部署和调用。
 
 ## TorchServe简介
 
-Torchserve 是 PyTorch 的首选模型服务解决方案。它允许您为您的模型公开一个 Web API，可以直接访问或通过您的应用程序访问。
+Torchserve是PyTorch的首选模型部署解决方案。它允许为模型公开一个可供直接访问或者应用程序访问的WebAPI，借助TorchServe，PyTorch用户可以更快地将其模型应用于生产，而无需编写自定义代码，此外，TorchServe将工程开发和算法开发进行解耦，算法工程师主要完成数据Process和模型构建这一擅长领域，其他的多模型服务、A/B测试的版本控制、监视指标以及应用程序集成RESTful都已封装好。
 
 > TorchServe is a performant, flexible and easy to use tool for serving PyTorch eager mode and torschripted models.
 
-从上面的官网介绍的内容可以看出：TorchServe的特点是性能好、灵活性好、易使用的工具，其次面向部署的模型是Pytorch的Eager模式和Script模式的模型。
+官网介绍可看出：TorchServe是一款性能好、灵活性好、易使用的工具，其次可部署模型类型是Pytorch的Eager模式和Script模式模型。
 
-TorchServe是由AWS和Facebook合作开发的PyTorch模型服务库，是 [PyTorch开源项目](https://pytorch.org/serve/index.html) 部分。
-
-借助TorchServe，PyTorch用户可以更快地将其模型应用于生产，而无需编写自定义代码：除了提供低延迟预测API之外，TorchServe还为一些最常见的应用程序嵌入了默认处理程序，例如目标检测和文本分类。此外，TorchServe包括多模型服务、用于A/B 测试的模型版本控制、监视指标以及用于应用程序集成的RESTful端点。如你所料，TorchServe支持任何机器学习环境，包括Amazon SageMaker、容器服务和Amazon Elastic Compute Cloud。
-
-TorchServe框架主要分为四个部分：Frontend是TorchServe的请求和响应的处理部分；Worker Process 指的是一组运行的模型实例，可以由管理API设定运行的数量；Model Store是模型存储加载的地方；Backend用于管理Worker Process。
+TorchServe框架主要分为四个部分：Frontend是TorchServe的请求和响应的处理部分；WorkerProcess 指的是一组运行的模型实例，可以由管理API设定运行的数量；Model Store是模型存储加载的地方；Backend用于管理Worker Process，具体可参考下图里。
 
 ![ts_frame](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/ts_frame.png)
 
 ## 环境安装
 
-我这边使用的是Windows11，WSL2环境系统进行部署作业。
+本人使用 Windows11+WSL2+Ubuntu 环境进行部署。
 
-* 安装 JDK11
-  
+### Conda配置
+
+[官网要求](https://github.com/pytorch/serve)：Python Version >= 3.8，本文使用Conda管理深度学习环境，具体使用可参考之前的博文：[深度学习管理配置](https://yqstar.github.io/2022/05/01/Windows%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8Conda%E9%85%8D%E7%BD%AE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E7%8E%AF%E5%A2%83/)。
+
+![python_version](Pytorch系列自学教程-3-深度学习之Mnist图像分类TorchServe部署/python_version.png)
+
+可使用下述命令创建Conda的Python环境（python版本为3.8，环境名为ts_ENV）和激活指定环境(ts_env)。
+
 ``` bash
-sudo apt-get install openjdk-11-jdk
+conda create --name ts_env python=3.8
+conda activate ts_env
 ```
 
-* 安装依赖
+### TS源码安装
 
-``` bash
-pip install torch torchtext torchvision sentencepiece psutil future
-pip install torchserve torch-model-archiver
-```
-
-TorchServe源安装
+可参考官网TS安装[文档](https://pytorch.org/serve/torchserve_on_wsl.html)。
 
 ``` bash
 git clone https://github.com/pytorch/serve.git
@@ -65,7 +63,7 @@ TorchServe 的一个关键特性是能够将所有模型工件打包到单个模
 
 torch-model-archiver 命令来打包模型，需要提供以下三个文件。
 
-第 1 步：创建一个新的模型架构文件，其中包含从 torch.nn.modules 扩展的模型类。 在这个例子中，我们创建了 mnist 模型文件 mnist_model.py 文件。
+第 1 步：创建一个新的模型架构文件，其中包含从 torch.nn.modules 扩展的模型类。在这个例子中，我们创建了mnist模型文件mnist_model.py文件。
 
 ``` python
 import torch

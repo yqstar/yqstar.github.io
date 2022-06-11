@@ -5,6 +5,8 @@ tags: Pytorch_Tutorial
 categories: 深度学习
 ---
 
+## 简介
+
 本章节主要通过深度学习“Hello World”之Mnist图像分类，学会深度学习的基本链路，快速搭建个人的Baseline模型，包括数据加载、数据可视化、模型构建、模型训练评估和模型结果指标展示。
 
 Mnist数据集是手写数字0~9的MNIST数据集，包含60,000个用于训练的训练集和10,000个用于测试的测试集。这些数字已被大小归一化，并以固定尺寸的图像为中心。对于尝试学习深度学习技术的人来说，这是一个非常棒的数据集，同时可以花费最少时间来进行预处理和格式化。详细：[Mnist官网](http://yann.lecun.com/exdb/mnist/)
@@ -68,7 +70,7 @@ num_epochs = 2
 
 ## 模型数据
 
-本章节就不详细讲解，大家可以查看前一章的讲解。More Info: [数据加载](https://yqstar.github.io/2022/05/05/Pytorch%E7%B3%BB%E5%88%97%E8%87%AA%E5%AD%A6%E6%95%99%E7%A8%8B-1-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B9%8BDataset%E5%92%8CDataLoader%E4%BD%BF%E7%94%A8/)
+本章节就不详细讲解，大家可以查看前一章[博客](https://yqstar.github.io/2022/05/05/Pytorch%E7%B3%BB%E5%88%97%E8%87%AA%E5%AD%A6%E6%95%99%E7%A8%8B-1-%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E4%B9%8BDataset%E5%92%8CDataLoader%E4%BD%BF%E7%94%A8/)讲解。
 
 ```python
 # 构建Dataset
@@ -250,7 +252,7 @@ plt.show()
 
 ## 探索
 
-![完整代码](https://github.com/yqstar/Awesome_Pytorch_Tutorial/tree/master/Pytorch_Lesson2)已上传Github，有需要的可以自行下载代码，如果对你有帮助，请Star，哈哈哈哈！
+[完整代码](https://github.com/yqstar/Awesome_Pytorch_Tutorial/tree/master/Pytorch_Lesson2)已上传Github，有需要的可以自行下载代码，如果对你有帮助，请Star，哈哈哈哈！
 
 到此为止，已经可以使用自己数据玩耍各种Demo，快（苦）乐（逼）地进行炼丹之路。道路阻且长，行则将至，但行好事莫问前程。
 
