@@ -219,7 +219,7 @@
     
     
         <span class="article-wordcount article-meta-item">
-            <i class="fas fa-file-word"></i>&nbsp;<span>915 字</span>
+            <i class="fas fa-file-word"></i>&nbsp;<span>913 字</span>
         </span>
     
     
@@ -240,7 +240,7 @@
         
 
         <div class="article-content markdown-body">
-            <h2 id="Conda环境管理"><a href="#Conda环境管理" class="headerlink" title="Conda环境管理"></a>Conda环境管理</h2><p>Conda是一个开源的软件包管理系统和环境管理系统，可以管理不同的Python版本环境，不同的环境之间是互相隔离，互不影响的。</p>
+            <h2 id="Conda环境管理"><a href="#Conda环境管理" class="headerlink" title="Conda环境管理"></a>Conda环境管理</h2><p>Conda是一个开源软件包管理系统和环境管理系统，可以管理不同Python版本环境，不同的环境之间是互相隔离，互不影响的。</p>
 <h3 id="查看环境"><a href="#查看环境" class="headerlink" title="查看环境"></a>查看环境</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看当前环境</span></span><br><span class="line">conda info --<span class="built_in">env</span></span><br></pre></td></tr></table></figure>
 <h3 id="克隆环境"><a href="#克隆环境" class="headerlink" title="克隆环境"></a>克隆环境</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设已有环境名为A，需要生成的环境名为B：</span></span><br><span class="line">conda create -n B --<span class="built_in">clone</span> A</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果特殊环境为Base，需要采用以下方式</span></span><br><span class="line">conda update conda</span><br><span class="line">conda create -n &lt;my_env&gt; --<span class="built_in">clone</span> root</span><br><span class="line">conda create -n torch_env --<span class="built_in">clone</span> root</span><br><span class="line">conda install pytorch=0.4.0 cuda90 -c pytorch</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用于复制环境到新的机器</span></span><br><span class="line">conda list --explicit &gt; spec-file.txt</span><br><span class="line">conda create --name &lt;my_env&gt; --file spec-file.txt</span><br></pre></td></tr></table></figure>
 <h3 id="创建环境"><a href="#创建环境" class="headerlink" title="创建环境"></a>创建环境</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个环境名为py34，指定Python版本是3.4 </span></span><br><span class="line"><span class="comment">#（不用管是3.4.x，conda会为我们自动寻找3.4.x中的最新版本） </span></span><br><span class="line">conda create --name py34 python=3.4 </span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过创建环境，我们可以使用不同版本的Python </span></span><br><span class="line">conda create --name py27 python=2.7</span><br></pre></td></tr></table></figure>
