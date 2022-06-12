@@ -1,5 +1,5 @@
 ---
-title: Pytorch系列自学教程(2):深度学习“Hello World”之Mnist图像分类
+title: Pytorch深度学习教程(2):“Hello World”之Mnist图像分类
 date: 2022-05-29 23:37:29
 tags: Pytorch_Tutorial
 categories: 深度学习
