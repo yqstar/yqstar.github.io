@@ -1,6 +1,6 @@
 ---
 title: snippets
-date: 2022-05-01 22:45:18
+date: 2022-05-08 22:45:18
 tags: [Snippet,Python]
 categories: Snippet
 ---

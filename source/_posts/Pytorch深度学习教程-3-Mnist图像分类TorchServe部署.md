@@ -1,6 +1,6 @@
 ---
 title: Pytorch系列自学教程(3):深度学习之Mnist图像分类TorchServe部署
-date: 2022-05-15 18:05:23
+date: 2022-06-06 18:05:23
 tags: Pytorch_Tutorial
 categories:
 ---
