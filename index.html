@@ -1,0 +1,2574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LeetCode Hot 100 · 刷题练习器</title>
+<style>
+  /* ========= Apple-style design tokens ========= */
+  :root {
+    --bg: #f5f5f7;
+    --panel: rgba(255, 255, 255, 0.78);
+    --panel-solid: #ffffff;
+    --panel-2: rgba(0, 0, 0, 0.04);
+    --panel-3: rgba(0, 0, 0, 0.07);
+    --border: rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --text: #1d1d1f;
+    --text-2: #424245;
+    --muted: #86868b;
+    --accent: #007aff;
+    --accent-hover: #0064d2;
+    --accent-2: #5e5ce6;
+    --accent-soft: rgba(0, 122, 255, 0.12);
+    --easy: #34c759;
+    --medium: #ff9500;
+    --hard: #ff3b30;
+    --done: #34c759;
+    --star: #ffcc00;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.03);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --t: 200ms var(--ease);
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #000000;
+    --panel: rgba(28, 28, 30, 0.78);
+    --panel-solid: #1c1c1e;
+    --panel-2: rgba(255, 255, 255, 0.06);
+    --panel-3: rgba(255, 255, 255, 0.10);
+    --border: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --text: #f5f5f7;
+    --text-2: #d1d1d6;
+    --muted: #98989d;
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --accent-2: #5e5ce6;
+    --accent-soft: rgba(10, 132, 255, 0.18);
+    --easy: #30d158;
+    --medium: #ff9f0a;
+    --hard: #ff453a;
+    --done: #30d158;
+    --star: #ffd60a;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.5);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,0.7);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ========= Header ========= */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  header .stats {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  header .stats b {
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  header .spacer { flex: 1; }
+
+  /* ========= Buttons ========= */
+  .btn {
+    background: var(--panel-2);
+    color: var(--text);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    transition: background var(--t), transform var(--t), opacity var(--t);
+    user-select: none;
+  }
+  .btn:hover { background: var(--panel-3); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn:disabled:hover { background: var(--panel-2); transform: none; }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,122,255,0.25);
+  }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.danger { color: var(--hard); }
+  .btn.danger:hover { background: rgba(255,59,48,0.12); }
+  .btn.run-btn {
+    background: var(--easy);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(52,199,89,0.25);
+  }
+  .btn.run-btn:hover { background: #28b048; }
+  .btn.run-btn:disabled { background: var(--panel-2); color: var(--muted); box-shadow: none; }
+
+  /* ========= Main layout ========= */
+  main { flex: 1; display: flex; overflow: hidden; }
+  aside {
+    width: 320px;
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  /* ========= Search ========= */
+  .search-box { padding: 12px 14px 8px; }
+  .search-box input {
+    width: 100%;
+    background: var(--panel-2);
+    color: var(--text);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: background var(--t);
+  }
+  .search-box input:focus { background: var(--panel-3); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  /* ========= Filters / Chips ========= */
+  .filters { padding: 4px 14px 12px; font-size: 12px; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .filter-row:last-child { margin-bottom: 0; }
+  .chip {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    user-select: none;
+    transition: background var(--t), color var(--t);
+  }
+  .chip:hover { color: var(--text); background: var(--panel-2); }
+  .chip.active { background: var(--accent); color: #fff; }
+
+  /* ========= Progress ========= */
+  .progress-bar {
+    height: 3px;
+    background: var(--panel-2);
+    margin: 0 14px 6px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: width 0.4s var(--ease);
+    border-radius: 2px;
+  }
+
+  /* ========= Problem list ========= */
+  .problem-list { flex: 1; overflow-y: auto; padding: 6px 8px 12px; }
+  .problem-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 1px;
+    transition: background var(--t);
+  }
+  .problem-item:hover { background: var(--panel-2); }
+  .problem-item.active { background: var(--accent-soft); }
+  .problem-item .pid {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    width: 38px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .problem-item .ptitle {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .problem-item .pdiff { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .problem-item .pcheck {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+    transition: all var(--t);
+  }
+  .problem-item.done .pcheck { border-color: var(--done); background: var(--done); }
+  .problem-item.done .ptitle { color: var(--muted); }
+  .problem-item .pstar { font-size: 12px; color: var(--star); width: 12px; }
+  .diff-easy { background: var(--easy); }
+  .diff-medium { background: var(--medium); }
+  .diff-hard { background: var(--hard); }
+
+  /* ========= Workspace ========= */
+  section.workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .workspace-header {
+    padding: 14px 24px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--panel);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .workspace-header h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .badge {
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0;
+  }
+  .tag {
+    background: var(--panel-2);
+    color: var(--text-2);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .workspace-header .actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* ========= Tabs ========= */
+  .tabs {
+    display: flex;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--panel-solid);
+    padding: 0 16px;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.5px;
+    transition: color var(--t);
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { flex: 1; overflow: hidden; display: none; flex-direction: column; }
+  .tab-content.active { display: flex; }
+
+  /* ========= Editor ========= */
+  .editor-toolbar {
+    padding: 8px 14px;
+    background: var(--panel);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .editor-toolbar select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: none;
+    padding: 5px 26px 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M4 6l4 4 4-4' stroke='%2386868b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+  }
+  .editor-toolbar .save-status { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .code-editor, .notes-editor {
+    flex: 1;
+    background: var(--panel-solid);
+    color: var(--text);
+    border: none;
+    outline: none;
+    padding: 18px 24px;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+    resize: none;
+    white-space: pre;
+    overflow: auto;
+    tab-size: 4;
+    letter-spacing: 0;
+  }
+  .notes-editor {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+  }
+
+  /* ========= Runner ========= */
+  .runner {
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    height: 220px;
+    flex-shrink: 0;
+    background: var(--panel-solid);
+  }
+  .runner.collapsed { height: 36px; }
+  .runner-pane { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .runner-pane + .runner-pane { border-left: 0.5px solid var(--border); }
+  .runner-label {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 8px 14px;
+    background: var(--panel);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .runner-label .copy-btn {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+    transition: color var(--t);
+  }
+  .runner-label .copy-btn:hover { color: var(--accent); }
+  .runner.collapsed .runner-body { display: none; }
+  .runner-body { flex: 1; overflow: hidden; display: flex; }
+  .runner-input {
+    flex: 1;
+    background: var(--panel-solid);
+    color: var(--text);
+    border: none;
+    outline: none;
+    padding: 12px 14px;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    resize: none;
+    white-space: pre;
+    tab-size: 4;
+  }
+  .runner-output {
+    flex: 1;
+    overflow: auto;
+    padding: 12px 14px;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text);
+    background: var(--panel-solid);
+  }
+  .runner-output .err { color: var(--hard); }
+  .runner-output .ok { color: var(--done); }
+  .runner-output .info { color: var(--muted); }
+  .pyodide-status { color: var(--muted); font-size: 11px; }
+  .pyodide-status.ready { color: var(--done); }
+  .pyodide-status.loading { color: var(--medium); }
+  .pyodide-status.error { color: var(--hard); }
+
+  /* ========= Problem view ========= */
+  .problem-view {
+    flex: 1;
+    padding: 32px 40px 48px;
+    overflow-y: auto;
+    line-height: 1.7;
+    max-width: 920px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .problem-view h3 {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .problem-view h4 {
+    margin: 28px 0 12px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .problem-view p { color: var(--text-2); }
+  .problem-view a { color: var(--accent); text-decoration: none; }
+  .problem-view a:hover { text-decoration: underline; }
+  .problem-view .meta { color: var(--muted); margin-bottom: 14px; font-size: 13px; }
+  .problem-view .meta-tip { color: var(--muted); margin: 20px 0 8px; font-size: 12.5px; }
+  .problem-view .meta-tip code { background: var(--panel-2); padding: 2px 6px; border-radius: 4px; }
+  .problem-view code { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+  .problem-view .problem-desc {
+    background: var(--panel-solid);
+    border: 0.5px solid var(--border);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    margin: 16px 0;
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    line-height: 1.7;
+  }
+  .problem-view .problem-tip {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 32px;
+    padding: 12px 16px;
+    background: var(--panel-2);
+    border-radius: var(--radius-md);
+    line-height: 1.7;
+  }
+  .problem-view .problem-tip code { background: var(--panel-3); padding: 1px 6px; border-radius: 4px; }
+
+  /* ========= Flags ========= */
+  .flag-row { margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .flag-inplace { color: var(--medium); background: rgba(255,149,0,0.14); }
+  .flag-design { color: var(--accent-2); background: rgba(94,92,230,0.14); }
+  .flag-skip { color: var(--hard); background: rgba(255,59,48,0.14); }
+  .flag-unordered { color: var(--accent); background: var(--accent-soft); }
+
+  /* ========= Examples ========= */
+  .example {
+    background: var(--panel-solid);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .example-title {
+    color: var(--accent);
+    font-size: 10.5px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .example-row { font-size: 13px; line-height: 1.85; }
+  .example-label { color: var(--muted); display: inline-block; min-width: 70px; font-weight: 500; }
+  .example-row code {
+    background: var(--panel-2);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 12.5px;
+  }
+  .example-note { color: var(--muted); font-size: 12px; font-style: italic; margin-top: 4px; }
+  .design-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .design-table th, .design-table td {
+    padding: 7px 12px;
+    border-bottom: 0.5px solid var(--border);
+    text-align: left;
+  }
+  .design-table th {
+    background: var(--panel-2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .design-table tbody tr:last-child td { border-bottom: none; }
+  .design-table code {
+    background: var(--panel-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11.5px;
+  }
+
+  /* ========= Check results ========= */
+  .check-result {
+    padding: 10px 14px;
+    margin: 6px 0;
+    border-radius: var(--radius-md);
+    background: var(--panel-solid);
+    border-left: 3px solid var(--border);
+  }
+  .check-result.pass { border-left-color: var(--done); background: rgba(52,199,89,0.06); }
+  .check-result.fail { border-left-color: var(--hard); background: rgba(255,59,48,0.06); }
+  .check-result-title { font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+  .check-result.pass .check-result-title { color: var(--done); }
+  .check-result.fail .check-result-title { color: var(--hard); }
+  .check-result-detail {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  .check-summary {
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .check-summary.all-pass { background: rgba(52,199,89,0.14); color: var(--done); }
+  .check-summary.has-fail { background: rgba(255,59,48,0.14); color: var(--hard); }
+
+  /* ========= Empty state ========= */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ========= Icon button ========= */
+  .icon-btn {
+    background: var(--panel-2);
+    border: none;
+    color: var(--muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: background var(--t), color var(--t), transform var(--t);
+  }
+  .icon-btn:hover { background: var(--panel-3); color: var(--text); }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn.active { color: var(--star); background: rgba(255,204,0,0.14); }
+  .icon-btn.done { color: var(--done); background: rgba(52,199,89,0.14); }
+
+  /* ========= Modal ========= */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.32);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 180ms ease-out;
+  }
+  .modal-backdrop.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal {
+    background: var(--panel-solid);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 540px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: popIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .modal.modal-lg { width: 760px; }
+  .modal h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .modal h4 {
+    margin: 12px 0 8px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .modal p { color: var(--text-2); }
+  .modal textarea {
+    width: 100%;
+    min-height: 180px;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color var(--t);
+  }
+  .modal input[type=text], .modal input[type=number], .modal select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color var(--t);
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--accent); }
+  .modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
+  }
+
+  /* ========= Problems modal ========= */
+  .pb-section {
+    margin: 12px 0;
+    padding: 14px 16px;
+    background: var(--panel-2);
+    border-radius: var(--radius-md);
+  }
+  .pb-section h4 { margin-top: 0; margin-bottom: 10px; }
+  .pb-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pb-radio {
+    font-size: 12px;
+    color: var(--text-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .pb-stats {
+    font-size: 12px;
+    color: var(--text-2);
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+  }
+  .pb-status { font-size: 12px; color: var(--muted); }
+  .pb-status.ok { color: var(--done); }
+  .pb-status.err { color: var(--hard); }
+  .pb-validation {
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 12px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .pb-validation:empty { display: none; }
+  .pb-validation .pv-item {
+    padding: 6px 10px;
+    margin-bottom: 3px;
+    border-radius: 6px;
+  }
+  .pb-validation .pv-item.ok { background: rgba(52,199,89,0.12); color: var(--done); }
+  .pb-validation .pv-item.err { background: rgba(255,59,48,0.12); color: var(--hard); }
+
+  /* ========= Edit problem modal ========= */
+  .ep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .ep-grid label {
+    font-size: 10.5px;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .ep-grid .ep-full { grid-column: 1 / -1; }
+  .ep-fieldset {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    margin: 0;
+  }
+  .ep-fieldset legend {
+    font-size: 10.5px;
+    color: var(--muted);
+    padding: 0 6px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .ep-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+    align-items: end;
+  }
+  .ep-row label { flex: 1; min-width: 140px; }
+  .ep-row label:has(input[type=checkbox]) {
+    flex-direction: row;
+    align-items: center;
+    flex: 0 0 auto;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .ep-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+  /* ========= Scrollbar ========= */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); border: 2px solid transparent; background-clip: content-box; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔥 LeetCode Hot 100</h1>
+  <span class="stats">已完成 <b id="stat-done">0</b> / 100 · 星标 <b id="stat-star">0</b></span>
+  <div class="spacer"></div>
+  <button class="btn" id="btn-theme">🌓 主题</button>
+  <button class="btn" id="btn-problems">📚 题库</button>
+  <button class="btn" id="btn-export" title="把当前做题进度保存为 JSON 文件">导出进度</button>
+  <button class="btn" id="btn-import" title="从 JSON 恢复做题进度">导入进度</button>
+  <button class="btn danger" id="btn-reset">重置进度</button>
+</header>
+
+<main>
+  <aside>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="搜索题号或标题..." />
+    </div>
+    <div class="filters">
+      <div class="filter-row" id="filter-status">
+        <span class="chip active" data-filter="status" data-value="all">全部</span>
+        <span class="chip" data-filter="status" data-value="todo">待办</span>
+        <span class="chip" data-filter="status" data-value="done">完成</span>
+        <span class="chip" data-filter="status" data-value="star">星标</span>
+      </div>
+      <div class="filter-row" id="filter-difficulty">
+        <span class="chip active" data-filter="difficulty" data-value="all">难度</span>
+        <span class="chip" data-filter="difficulty" data-value="easy">简单</span>
+        <span class="chip" data-filter="difficulty" data-value="medium">中等</span>
+        <span class="chip" data-filter="difficulty" data-value="hard">困难</span>
+      </div>
+      <div class="filter-row" id="filter-tag"></div>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+    <div class="problem-list" id="problem-list"></div>
+  </aside>
+
+  <section class="workspace" id="workspace">
+    <div class="empty-state" id="empty-state">← 从左侧选择一道题目开始</div>
+    <div id="workspace-content" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="workspace-header">
+        <h2 id="wh-title"></h2>
+        <span class="badge" id="wh-difficulty"></span>
+        <div id="wh-tags"></div>
+        <div class="actions">
+          <button class="icon-btn" id="btn-star" title="星标">☆</button>
+          <button class="icon-btn" id="btn-done" title="标记完成">✓</button>
+          <button class="btn" id="btn-edit-problem" title="编辑当前题目">✎ 编辑</button>
+          <a class="btn" id="wh-link" target="_blank" rel="noopener">LeetCode ↗</a>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-tab="problem">题目</div>
+        <div class="tab" data-tab="code">代码</div>
+        <div class="tab" data-tab="notes">笔记</div>
+      </div>
+      <div class="tab-content active" data-tab="problem">
+        <div class="problem-view" id="problem-view"></div>
+      </div>
+      <div class="tab-content" data-tab="code">
+        <div class="editor-toolbar">
+          <span style="color: var(--muted);">语言:</span>
+          <select id="lang-select">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+          </select>
+          <button class="btn" id="btn-load-template">加载模板</button>
+          <button class="btn" id="btn-clear-code">清空</button>
+          <button class="btn run-btn" id="btn-run">▶ 运行</button>
+          <button class="btn" id="btn-check" style="background:var(--accent);color:#fff;border-color:var(--accent);">✓ 校验示例</button>
+          <span class="pyodide-status" id="pyodide-status"></span>
+          <span class="save-status" id="save-status"></span>
+        </div>
+        <textarea class="code-editor" id="code-editor" spellcheck="false" placeholder="// 在这里写你的代码..."></textarea>
+        <div class="runner" id="runner">
+          <div class="runner-pane">
+            <div class="runner-label">
+              测试代码 (调用你的解,例:print(Solution().twoSum([2,7,11,15], 9)))
+              <button class="copy-btn" id="btn-toggle-runner" title="折叠/展开">⇕</button>
+            </div>
+            <div class="runner-body" style="flex-direction:column;">
+              <textarea class="runner-input" id="test-input" spellcheck="false" placeholder="# 调用代码写在这里,Ctrl+Enter 快捷运行"></textarea>
+            </div>
+          </div>
+          <div class="runner-pane">
+            <div class="runner-label">
+              输出
+              <button class="copy-btn" id="btn-clear-output">清空</button>
+            </div>
+            <div class="runner-body" style="flex-direction:column;">
+              <div class="runner-output" id="run-output"><span class="info">▶ 运行:用「测试代码」框里的调用跑你的解 (Cmd/Ctrl+Enter)。
+✓ 校验示例:自动用所有内置示例验证 (Cmd/Ctrl+Shift+Enter)。
+首次运行/校验会下载 Pyodide (~10MB),之后缓存复用。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" data-tab="notes">
+        <textarea class="notes-editor" id="notes-editor" placeholder="记录你的解题思路、复杂度分析、易错点..."></textarea>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-backdrop" id="modal-import">
+  <div class="modal">
+    <h3>导入进度数据</h3>
+    <p style="color: var(--muted); font-size: 12px;">粘贴之前导出的 JSON 进度数据,将覆盖当前进度(代码、笔记、状态)。</p>
+    <textarea id="import-text" placeholder='{"problems":{"1":{"status":"done",...}}}'></textarea>
+    <div class="modal-actions">
+      <button class="btn" id="import-cancel">取消</button>
+      <button class="btn primary" id="import-confirm">导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-problems">
+  <div class="modal modal-lg">
+    <h3>📚 题库管理</h3>
+    <p style="color: var(--muted); font-size: 12px;">导出/导入题目库(题面、示例、方法签名等)。导入后会保存到 localStorage,下次打开仍然生效。</p>
+    <div class="pb-stats" id="pb-stats"></div>
+    <div class="pb-section">
+      <h4>导出</h4>
+      <div class="pb-row">
+        <button class="btn primary" id="pb-export-file">导出为文件</button>
+        <button class="btn" id="pb-export-clipboard">复制到剪贴板</button>
+        <button class="btn" id="pb-export-show">在下方显示</button>
+      </div>
+    </div>
+    <div class="pb-section">
+      <h4>导入</h4>
+      <div class="pb-row" style="margin-bottom: 6px;">
+        <label class="pb-radio"><input type="radio" name="pb-mode" value="replace" checked> 全量替换</label>
+        <label class="pb-radio"><input type="radio" name="pb-mode" value="merge"> 按 id 合并(保留未覆盖的题)</label>
+      </div>
+      <textarea id="pb-import-text" placeholder='粘贴题库 JSON,或选择文件...&#10;格式: [{"id":1,"lc":1,"title":"...","method":"...","examples":[...]}, ...]'></textarea>
+      <div class="pb-row" style="margin-top: 6px;">
+        <input type="file" id="pb-import-file" accept=".json,application/json" style="display:none;">
+        <button class="btn" id="pb-pick-file">选择文件...</button>
+        <button class="btn primary" id="pb-import-confirm">校验并导入</button>
+        <span class="pb-status" id="pb-import-status"></span>
+      </div>
+      <div class="pb-validation" id="pb-validation"></div>
+    </div>
+    <div class="pb-section">
+      <h4>其他</h4>
+      <div class="pb-row">
+        <button class="btn" id="pb-add-new">+ 新增题目</button>
+        <button class="btn danger" id="pb-restore">🔄 还原内置 Hot 100</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="pb-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-edit-problem">
+  <div class="modal modal-lg">
+    <h3 id="ep-title">编辑题目</h3>
+    <div class="ep-grid">
+      <label>题目 ID(内部) <input id="ep-id" type="number" /></label>
+      <label>LC 题号 <input id="ep-lc" type="number" /></label>
+      <label>难度
+        <select id="ep-difficulty">
+          <option value="easy">简单</option>
+          <option value="medium">中等</option>
+          <option value="hard">困难</option>
+        </select>
+      </label>
+      <label>方法名(类设计题填类名) <input id="ep-method" type="text" /></label>
+      <label class="ep-full">标题 <input id="ep-title-input" type="text" /></label>
+      <label class="ep-full">Slug(leetcode.cn/problems/<slug>/) <input id="ep-slug" type="text" /></label>
+      <label class="ep-full">标签(逗号分隔) <input id="ep-tags" type="text" placeholder="哈希, 双指针" /></label>
+      <label class="ep-full">描述 <textarea id="ep-desc" rows="3"></textarea></label>
+      <fieldset class="ep-full ep-fieldset">
+        <legend>校验设置</legend>
+        <div class="ep-row">
+          <label><input type="checkbox" id="ep-inplace"> 原地修改第一个参数</label>
+          <label><input type="checkbox" id="ep-design"> 类设计题</label>
+          <label><input type="checkbox" id="ep-skip"> 跳过自动校验</label>
+        </div>
+        <div class="ep-row">
+          <label>compare
+            <select id="ep-compare">
+              <option value="equal">equal(默认)</option>
+              <option value="unordered">unordered(平铺无序)</option>
+              <option value="outer_unordered">outer_unordered(外层无序)</option>
+              <option value="nested_unordered">nested_unordered(嵌套无序)</option>
+              <option value="close">close(浮点近似)</option>
+            </select>
+          </label>
+          <label>argTypes(逗号分隔)
+            <input id="ep-argtypes" type="text" placeholder="value, listnode, treenode, listnode_list" />
+          </label>
+          <label>returnType
+            <select id="ep-returntype">
+              <option value="value">value(默认)</option>
+              <option value="listnode">listnode</option>
+              <option value="treenode">treenode</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+      <label class="ep-full">
+        Examples(JSON 数组)
+        <textarea id="ep-examples" rows="8" placeholder='[{"args":[[2,7,11,15],9],"expected":[0,1]}]'></textarea>
+      </label>
+    </div>
+    <div class="pb-validation" id="ep-validation"></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="ep-delete">删除题目</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="ep-cancel">取消</button>
+      <button class="btn primary" id="ep-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== LeetCode Hot 100 题目数据 =====
+// 字段说明:
+//   method: Solution 类的方法名(或类设计题的类名)
+//   examples: 普通题 {args:[...],expected:...};设计题 {ops:[...],values:[...],expected:[...]}
+//   argTypes: 每个参数的类型, "value"(默认) | "listnode" | "treenode" | "listnode_list"
+//   returnType: "value"(默认) | "listnode" | "treenode"
+//   inplace: 原地修改第一个参数,以参数为结果
+//   compare: "equal"(默认) | "unordered"(平铺无序) | "nested_unordered"(嵌套无序) | "close"(浮点)
+//   design: 类设计题
+//   skip: 跳过自动校验(只显示描述与示例)
+const BUILTIN_PROBLEMS = [
+  { id:1, lc:1, title:"两数之和", slug:"two-sum", difficulty:"easy", tags:["哈希"], method:"twoSum", compare:"unordered",
+    desc:"给定整数数组 nums 和目标值 target,返回数组中和等于 target 的两个数的下标。假设每种输入只对应一个答案,数组元素不可重复使用。",
+    examples:[{args:[[2,7,11,15],9],expected:[0,1]},{args:[[3,2,4],6],expected:[1,2]}]},
+  { id:2, lc:49, title:"字母异位词分组", slug:"group-anagrams", difficulty:"medium", tags:["哈希"], method:"groupAnagrams", compare:"nested_unordered",
+    desc:"给定字符串数组,将字母异位词组合在一起(即由相同字母重排组成的单词)。返回结果中组的顺序及组内顺序均可任意。",
+    examples:[{args:[["eat","tea","tan","ate","nat","bat"]],expected:[["bat"],["nat","tan"],["ate","eat","tea"]]}]},
+  { id:3, lc:128, title:"最长连续序列", slug:"longest-consecutive-sequence", difficulty:"medium", tags:["哈希"], method:"longestConsecutive",
+    desc:"给定未排序整数数组,找出数字连续的最长序列(不要求序列元素在原数组中连续),返回其长度。要求 O(n) 时间复杂度。",
+    examples:[{args:[[100,4,200,1,3,2]],expected:4},{args:[[0,3,7,2,5,8,4,6,0,1]],expected:9}]},
+  { id:4, lc:283, title:"移动零", slug:"move-zeroes", difficulty:"easy", tags:["双指针"], method:"moveZeroes", inplace:true,
+    desc:"原地把数组中所有 0 移到末尾,同时保持非零元素相对顺序。必须在不复制数组的情况下完成。",
+    examples:[{args:[[0,1,0,3,12]],expected:[1,3,12,0,0]},{args:[[0]],expected:[0]}]},
+  { id:5, lc:11, title:"盛最多水的容器", slug:"container-with-most-water", difficulty:"medium", tags:["双指针"], method:"maxArea",
+    desc:"长度为 n 的整数数组 height,第 i 条线垂直于 x 轴。找出两条线使其与 x 轴构成容器,容纳水量最多,返回最大水量。",
+    examples:[{args:[[1,8,6,2,5,4,8,3,7]],expected:49},{args:[[1,1]],expected:1}]},
+  { id:6, lc:15, title:"三数之和", slug:"3sum", difficulty:"medium", tags:["双指针"], method:"threeSum", compare:"nested_unordered",
+    desc:"给定整数数组 nums,判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足 i ≠ j ≠ k 且三数之和为 0。返回所有不重复的三元组。",
+    examples:[{args:[[-1,0,1,2,-1,-4]],expected:[[-1,-1,2],[-1,0,1]]},{args:[[0,1,1]],expected:[]}]},
+  { id:7, lc:42, title:"接雨水", slug:"trapping-rain-water", difficulty:"hard", tags:["双指针"], method:"trap",
+    desc:"给定 n 个非负整数表示每个宽度为 1 的柱子的高度图,计算下雨之后能接住多少雨水。",
+    examples:[{args:[[0,1,0,2,1,0,1,3,2,1,2,1]],expected:6},{args:[[4,2,0,3,2,5]],expected:9}]},
+  { id:8, lc:3, title:"无重复字符的最长子串", slug:"longest-substring-without-repeating-characters", difficulty:"medium", tags:["滑动窗口"], method:"lengthOfLongestSubstring",
+    desc:"给定字符串 s,找出其中不含重复字符的最长子串的长度。",
+    examples:[{args:["abcabcbb"],expected:3},{args:["bbbbb"],expected:1},{args:["pwwkew"],expected:3}]},
+  { id:9, lc:438, title:"找到字符串中所有字母异位词", slug:"find-all-anagrams-in-a-string", difficulty:"medium", tags:["滑动窗口"], method:"findAnagrams",
+    desc:"给定字符串 s 和 p,找到 s 中所有 p 的字母异位词的子串,返回这些子串的起始索引(任意顺序)。",
+    examples:[{args:["cbaebabacd","abc"],expected:[0,6]},{args:["abab","ab"],expected:[0,1,2]}], compare:"unordered"},
+  { id:10, lc:560, title:"和为 K 的子数组", slug:"subarray-sum-equals-k", difficulty:"medium", tags:["子串"], method:"subarraySum",
+    desc:"给定整数数组 nums 和整数 k,统计并返回数组中和为 k 的连续子数组的个数。",
+    examples:[{args:[[1,1,1],2],expected:2},{args:[[1,2,3],3],expected:2}]},
+  { id:11, lc:239, title:"滑动窗口最大值", slug:"sliding-window-maximum", difficulty:"hard", tags:["子串"], method:"maxSlidingWindow",
+    desc:"给定数组 nums 和滑动窗口大小 k,窗口从最左滑到最右,每次只向右移一位。返回每个窗口中的最大值。",
+    examples:[{args:[[1,3,-1,-3,5,3,6,7],3],expected:[3,3,5,5,6,7]},{args:[[1],1],expected:[1]}]},
+  { id:12, lc:76, title:"最小覆盖子串", slug:"minimum-window-substring", difficulty:"hard", tags:["子串"], method:"minWindow",
+    desc:"给定字符串 s 和 t,返回 s 中涵盖 t 所有字符(包括出现次数)的最小子串。若 s 中不存在则返回空字符串。",
+    examples:[{args:["ADOBECODEBANC","ABC"],expected:"BANC"},{args:["a","a"],expected:"a"},{args:["a","aa"],expected:""}]},
+  { id:13, lc:53, title:"最大子数组和", slug:"maximum-subarray", difficulty:"medium", tags:["普通数组"], method:"maxSubArray",
+    desc:"给定整数数组 nums,找出一个具有最大和的连续子数组(至少包含一个元素),返回其最大和。",
+    examples:[{args:[[-2,1,-3,4,-1,2,1,-5,4]],expected:6},{args:[[1]],expected:1},{args:[[5,4,-1,7,8]],expected:23}]},
+  { id:14, lc:56, title:"合并区间", slug:"merge-intervals", difficulty:"medium", tags:["普通数组"], method:"merge",
+    desc:"以数组 intervals 表示若干区间,合并所有重叠的区间,并返回一个不重叠的区间数组,要求恰好覆盖输入中的所有区间。",
+    examples:[{args:[[[1,3],[2,6],[8,10],[15,18]]],expected:[[1,6],[8,10],[15,18]]},{args:[[[1,4],[4,5]]],expected:[[1,5]]}]},
+  { id:15, lc:189, title:"轮转数组", slug:"rotate-array", difficulty:"medium", tags:["普通数组"], method:"rotate", inplace:true,
+    desc:"给定整数数组 nums,将数组中的元素向右轮转 k 个位置,k 为非负数。要求原地修改。",
+    examples:[{args:[[1,2,3,4,5,6,7],3],expected:[5,6,7,1,2,3,4]},{args:[[-1,-100,3,99],2],expected:[3,99,-1,-100]}]},
+  { id:16, lc:238, title:"除自身以外数组的乘积", slug:"product-of-array-except-self", difficulty:"medium", tags:["普通数组"], method:"productExceptSelf",
+    desc:"给定整数数组 nums,返回数组 answer,其中 answer[i] 等于 nums 中除 nums[i] 之外其余各元素的乘积。要求 O(n) 且不使用除法。",
+    examples:[{args:[[1,2,3,4]],expected:[24,12,8,6]},{args:[[-1,1,0,-3,3]],expected:[0,0,9,0,0]}]},
+  { id:17, lc:41, title:"缺失的第一个正数", slug:"first-missing-positive", difficulty:"hard", tags:["普通数组"], method:"firstMissingPositive",
+    desc:"给定未排序整数数组 nums,找出其中没有出现的最小正整数。要求 O(n) 时间复杂度且使用 O(1) 额外空间。",
+    examples:[{args:[[1,2,0]],expected:3},{args:[[3,4,-1,1]],expected:2},{args:[[7,8,9,11,12]],expected:1}]},
+  { id:18, lc:73, title:"矩阵置零", slug:"set-matrix-zeroes", difficulty:"medium", tags:["矩阵"], method:"setZeroes", inplace:true,
+    desc:"给定 m x n 矩阵,若某元素为 0,则将其所在行和列的所有元素都设为 0。要求原地修改。",
+    examples:[{args:[[[1,1,1],[1,0,1],[1,1,1]]],expected:[[1,0,1],[0,0,0],[1,0,1]]}]},
+  { id:19, lc:54, title:"螺旋矩阵", slug:"spiral-matrix", difficulty:"medium", tags:["矩阵"], method:"spiralOrder",
+    desc:"给定 m x n 矩阵,按顺时针螺旋顺序返回矩阵中的所有元素。",
+    examples:[{args:[[[1,2,3],[4,5,6],[7,8,9]]],expected:[1,2,3,6,9,8,7,4,5]},{args:[[[1,2,3,4],[5,6,7,8],[9,10,11,12]]],expected:[1,2,3,4,8,12,11,10,9,5,6,7]}]},
+  { id:20, lc:48, title:"旋转图像", slug:"rotate-image", difficulty:"medium", tags:["矩阵"], method:"rotate", inplace:true,
+    desc:"将 n x n 二维矩阵表示的图像顺时针旋转 90 度。必须原地旋转,不能使用另一个矩阵。",
+    examples:[{args:[[[1,2,3],[4,5,6],[7,8,9]]],expected:[[7,4,1],[8,5,2],[9,6,3]]}]},
+  { id:21, lc:240, title:"搜索二维矩阵 II", slug:"search-a-2d-matrix-ii", difficulty:"medium", tags:["矩阵"], method:"searchMatrix",
+    desc:"搜索 m x n 矩阵中的目标值。矩阵每行从左到右升序,每列从上到下升序。",
+    examples:[{args:[[[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]],5],expected:true},{args:[[[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]],20],expected:false}]},
+  { id:22, lc:160, title:"相交链表", slug:"intersection-of-two-linked-lists", difficulty:"easy", tags:["链表"], method:"getIntersectionNode", skip:true,
+    desc:"找出并返回两个单链表相交的起始节点。若不相交返回 null。要求 O(m+n) 时间。(自动校验需要构造共享节点,此题跳过自动校验)",
+    examples:[{args:[[4,1,8,4,5],[5,6,1,8,4,5],2,3],expected:8,note:"在节点 8 处相交"}]},
+  { id:23, lc:206, title:"反转链表", slug:"reverse-linked-list", difficulty:"easy", tags:["链表"], method:"reverseList", argTypes:["listnode"], returnType:"listnode",
+    desc:"给定单链表的头节点 head,反转链表并返回反转后的头节点。",
+    examples:[{args:[[1,2,3,4,5]],expected:[5,4,3,2,1]},{args:[[1,2]],expected:[2,1]},{args:[[]],expected:[]}]},
+  { id:24, lc:234, title:"回文链表", slug:"palindrome-linked-list", difficulty:"easy", tags:["链表"], method:"isPalindrome", argTypes:["listnode"],
+    desc:"给定单链表头节点 head,判断该链表是否为回文链表。",
+    examples:[{args:[[1,2,2,1]],expected:true},{args:[[1,2]],expected:false}]},
+  { id:25, lc:141, title:"环形链表", slug:"linked-list-cycle", difficulty:"easy", tags:["链表"], method:"hasCycle", skip:true,
+    desc:"给定链表头节点 head,判断链表是否有环。(自动校验需要构造环,此题跳过自动校验)",
+    examples:[{args:[[3,2,0,-4],1],expected:true,note:"尾节点指向第 1 个节点"}]},
+  { id:26, lc:142, title:"环形链表 II", slug:"linked-list-cycle-ii", difficulty:"medium", tags:["链表"], method:"detectCycle", skip:true,
+    desc:"给定链表头节点 head,返回链表开始入环的第一个节点。若不存在环返回 null。(自动校验需要构造环,此题跳过自动校验)",
+    examples:[{args:[[3,2,0,-4],1],expected:2,note:"返回索引 1 的节点(值为 2)"}]},
+  { id:27, lc:21, title:"合并两个有序链表", slug:"merge-two-sorted-lists", difficulty:"easy", tags:["链表"], method:"mergeTwoLists", argTypes:["listnode","listnode"], returnType:"listnode",
+    desc:"将两个升序链表合并为一个新的升序链表并返回。新链表由两个链表的所有节点组成。",
+    examples:[{args:[[1,2,4],[1,3,4]],expected:[1,1,2,3,4,4]},{args:[[],[]],expected:[]},{args:[[],[0]],expected:[0]}]},
+  { id:28, lc:2, title:"两数相加", slug:"add-two-numbers", difficulty:"medium", tags:["链表"], method:"addTwoNumbers", argTypes:["listnode","listnode"], returnType:"listnode",
+    desc:"给定两个非空链表,每个节点存一个数字,逆序存储,每节点只能存一位。两数相加返回新的链表,同样逆序存储结果。",
+    examples:[{args:[[2,4,3],[5,6,4]],expected:[7,0,8],note:"342+465=807"},{args:[[0],[0]],expected:[0]}]},
+  { id:29, lc:19, title:"删除链表的倒数第 N 个结点", slug:"remove-nth-node-from-end-of-list", difficulty:"medium", tags:["链表"], method:"removeNthFromEnd", argTypes:["listnode","value"], returnType:"listnode",
+    desc:"给定链表头节点,删除链表的倒数第 n 个节点,返回链表的头节点。",
+    examples:[{args:[[1,2,3,4,5],2],expected:[1,2,3,5]},{args:[[1],1],expected:[]}]},
+  { id:30, lc:24, title:"两两交换链表中的节点", slug:"swap-nodes-in-pairs", difficulty:"medium", tags:["链表"], method:"swapPairs", argTypes:["listnode"], returnType:"listnode",
+    desc:"两两交换链表中相邻的节点,并返回交换后链表的头节点。要求不能修改节点内部的值。",
+    examples:[{args:[[1,2,3,4]],expected:[2,1,4,3]},{args:[[]],expected:[]}]},
+  { id:31, lc:25, title:"K 个一组翻转链表", slug:"reverse-nodes-in-k-group", difficulty:"hard", tags:["链表"], method:"reverseKGroup", argTypes:["listnode","value"], returnType:"listnode",
+    desc:"给定链表头节点,每 k 个节点为一组翻转链表,返回修改后的链表。剩余节点不足 k 个则保持原样。",
+    examples:[{args:[[1,2,3,4,5],2],expected:[2,1,4,3,5]},{args:[[1,2,3,4,5],3],expected:[3,2,1,4,5]}]},
+  { id:32, lc:138, title:"随机链表的复制", slug:"copy-list-with-random-pointer", difficulty:"medium", tags:["链表"], method:"copyRandomList", skip:true,
+    desc:"给定包含 random 指针的链表,返回深拷贝。(涉及随机指针,自动校验跳过)",
+    examples:[{args:[[[7,null],[13,0],[11,4],[10,2],[1,0]]],expected:"深拷贝后结构相同"}]},
+  { id:33, lc:148, title:"排序链表", slug:"sort-list", difficulty:"medium", tags:["链表"], method:"sortList", argTypes:["listnode"], returnType:"listnode",
+    desc:"给定链表头节点,将链表按升序排列并返回排序后的链表。",
+    examples:[{args:[[4,2,1,3]],expected:[1,2,3,4]},{args:[[-1,5,3,4,0]],expected:[-1,0,3,4,5]}]},
+  { id:34, lc:23, title:"合并 K 个升序链表", slug:"merge-k-sorted-lists", difficulty:"hard", tags:["链表"], method:"mergeKLists", argTypes:["listnode_list"], returnType:"listnode",
+    desc:"给定一个链表数组,每个链表都已按升序排列。合并所有链表到一个升序链表中并返回。",
+    examples:[{args:[[[1,4,5],[1,3,4],[2,6]]],expected:[1,1,2,3,4,4,5,6]}]},
+  { id:35, lc:146, title:"LRU 缓存", slug:"lru-cache", difficulty:"medium", tags:["链表"], method:"LRUCache", design:true,
+    desc:"设计满足 LRU(最近最少使用)约束的数据结构。实现 get(key) 和 put(key,value),要求 O(1) 时间。",
+    examples:[{ops:["LRUCache","put","put","get","put","get","put","get","get","get"],values:[[2],[1,1],[2,2],[1],[3,3],[2],[4,4],[1],[3],[4]],expected:[null,null,null,1,null,-1,null,-1,3,4]}]},
+  { id:36, lc:94, title:"二叉树的中序遍历", slug:"binary-tree-inorder-traversal", difficulty:"easy", tags:["二叉树"], method:"inorderTraversal", argTypes:["treenode"],
+    desc:"给定二叉树根节点,返回它的中序遍历。",
+    examples:[{args:[[1,null,2,3]],expected:[1,3,2]},{args:[[]],expected:[]},{args:[[1]],expected:[1]}]},
+  { id:37, lc:104, title:"二叉树的最大深度", slug:"maximum-depth-of-binary-tree", difficulty:"easy", tags:["二叉树"], method:"maxDepth", argTypes:["treenode"],
+    desc:"给定二叉树根节点,返回其最大深度(从根到最远叶子节点的最长路径上的节点数)。",
+    examples:[{args:[[3,9,20,null,null,15,7]],expected:3},{args:[[1,null,2]],expected:2}]},
+  { id:38, lc:226, title:"翻转二叉树", slug:"invert-binary-tree", difficulty:"easy", tags:["二叉树"], method:"invertTree", argTypes:["treenode"], returnType:"treenode",
+    desc:"给定二叉树根节点,翻转这棵树并返回根节点。",
+    examples:[{args:[[4,2,7,1,3,6,9]],expected:[4,7,2,9,6,3,1]},{args:[[2,1,3]],expected:[2,3,1]}]},
+  { id:39, lc:101, title:"对称二叉树", slug:"symmetric-tree", difficulty:"easy", tags:["二叉树"], method:"isSymmetric", argTypes:["treenode"],
+    desc:"给定二叉树根节点,判断它是否轴对称。",
+    examples:[{args:[[1,2,2,3,4,4,3]],expected:true},{args:[[1,2,2,null,3,null,3]],expected:false}]},
+  { id:40, lc:543, title:"二叉树的直径", slug:"diameter-of-binary-tree", difficulty:"easy", tags:["二叉树"], method:"diameterOfBinaryTree", argTypes:["treenode"],
+    desc:"给定二叉树根节点,返回它的直径(任意两节点之间最长路径的长度,不一定经过根节点)。",
+    examples:[{args:[[1,2,3,4,5]],expected:3},{args:[[1,2]],expected:1}]},
+  { id:41, lc:102, title:"二叉树的层序遍历", slug:"binary-tree-level-order-traversal", difficulty:"medium", tags:["二叉树"], method:"levelOrder", argTypes:["treenode"],
+    desc:"给定二叉树根节点,返回其按层序遍历得到的节点值(即逐层从左到右访问)。",
+    examples:[{args:[[3,9,20,null,null,15,7]],expected:[[3],[9,20],[15,7]]},{args:[[1]],expected:[[1]]}]},
+  { id:42, lc:108, title:"将有序数组转换为二叉搜索树", slug:"convert-sorted-array-to-binary-search-tree", difficulty:"easy", tags:["二叉树"], method:"sortedArrayToBST", skip:true,
+    desc:"给定升序整数数组,转换为一棵高度平衡的 BST 并返回根节点。(答案不唯一,跳过自动校验)",
+    examples:[{args:[[-10,-3,0,5,9]],expected:"任一高度平衡 BST"}]},
+  { id:43, lc:98, title:"验证二叉搜索树", slug:"validate-binary-search-tree", difficulty:"medium", tags:["二叉树"], method:"isValidBST", argTypes:["treenode"],
+    desc:"给定二叉树根节点,判断它是否为有效 BST(左子树所有节点 < 根节点 < 右子树所有节点)。",
+    examples:[{args:[[2,1,3]],expected:true},{args:[[5,1,4,null,null,3,6]],expected:false}]},
+  { id:44, lc:230, title:"二叉搜索树中第 K 小的元素", slug:"kth-smallest-element-in-a-bst", difficulty:"medium", tags:["二叉树"], method:"kthSmallest", argTypes:["treenode","value"],
+    desc:"给定 BST 的根节点和整数 k,返回所有节点值中第 k 小的元素(从 1 开始计数)。",
+    examples:[{args:[[3,1,4,null,2],1],expected:1},{args:[[5,3,6,2,4,null,null,1],3],expected:3}]},
+  { id:45, lc:199, title:"二叉树的右视图", slug:"binary-tree-right-side-view", difficulty:"medium", tags:["二叉树"], method:"rightSideView", argTypes:["treenode"],
+    desc:"给定二叉树根节点,返回从右侧所能看到的节点值(每层最右边的节点)。",
+    examples:[{args:[[1,2,3,null,5,null,4]],expected:[1,3,4]},{args:[[1,null,3]],expected:[1,3]}]},
+  { id:46, lc:114, title:"二叉树展开为链表", slug:"flatten-binary-tree-to-linked-list", difficulty:"medium", tags:["二叉树"], method:"flatten", skip:true,
+    desc:"给定二叉树根节点,原地把树展开为单链表(顺序与前序遍历相同,通过 right 指针相连)。(原地修改,跳过自动校验)",
+    examples:[{args:[[1,2,5,3,4,null,6]],expected:"右链:1->2->3->4->5->6"}]},
+  { id:47, lc:105, title:"从前序与中序构造二叉树", slug:"construct-binary-tree-from-preorder-and-inorder-traversal", difficulty:"medium", tags:["二叉树"], method:"buildTree", returnType:"treenode",
+    desc:"给定二叉树的前序遍历 preorder 和中序遍历 inorder,构造并返回二叉树。",
+    examples:[{args:[[3,9,20,15,7],[9,3,15,20,7]],expected:[3,9,20,null,null,15,7]},{args:[[-1],[-1]],expected:[-1]}]},
+  { id:48, lc:437, title:"路径总和 III", slug:"path-sum-iii", difficulty:"medium", tags:["二叉树"], method:"pathSum", argTypes:["treenode","value"],
+    desc:"给定二叉树根节点和整数 targetSum,返回路径和等于 targetSum 的路径数(路径方向必须向下,不需从根开始)。",
+    examples:[{args:[[10,5,-3,3,2,null,11,3,-2,null,1],8],expected:3},{args:[[5,4,8,11,null,13,4,7,2,null,null,5,1],22],expected:3}]},
+  { id:49, lc:236, title:"二叉树的最近公共祖先", slug:"lowest-common-ancestor-of-a-binary-tree", difficulty:"medium", tags:["二叉树"], method:"lowestCommonAncestor", skip:true,
+    desc:"给定二叉树根节点和两个节点 p、q,找到它们的最近公共祖先。(需要节点引用比对,跳过自动校验)",
+    examples:[{args:[[3,5,1,6,2,0,8,null,null,7,4],5,1],expected:3}]},
+  { id:50, lc:124, title:"二叉树中的最大路径和", slug:"binary-tree-maximum-path-sum", difficulty:"hard", tags:["二叉树"], method:"maxPathSum", argTypes:["treenode"],
+    desc:"给定非空二叉树根节点,返回任意路径(至少一个节点)的最大节点值和。路径不一定经过根。",
+    examples:[{args:[[1,2,3]],expected:6},{args:[[-10,9,20,null,null,15,7]],expected:42}]},
+  { id:51, lc:200, title:"岛屿数量", slug:"number-of-islands", difficulty:"medium", tags:["图论"], method:"numIslands",
+    desc:"给定二维字符网格,'1' 表示陆地,'0' 表示水。岛屿被水包围,水平/垂直相邻的陆地组成岛屿。返回岛屿数量。",
+    examples:[{args:[[["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]],expected:1},{args:[[["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]],expected:3}]},
+  { id:52, lc:994, title:"腐烂的橘子", slug:"rotting-oranges", difficulty:"medium", tags:["图论"], method:"orangesRotting",
+    desc:"网格中 0 空,1 新鲜,2 腐烂。每分钟,腐烂橘子周围 4 格的新鲜橘子会腐烂。返回所有橘子都腐烂的最少分钟数,无法实现返回 -1。",
+    examples:[{args:[[[2,1,1],[1,1,0],[0,1,1]]],expected:4},{args:[[[2,1,1],[0,1,1],[1,0,1]]],expected:-1},{args:[[[0,2]]],expected:0}]},
+  { id:53, lc:207, title:"课程表", slug:"course-schedule", difficulty:"medium", tags:["图论"], method:"canFinish",
+    desc:"你必须修 numCourses 门课。prerequisites[i] = [a,b] 表示修 a 前必须先修 b。判断是否能完成所有课程。",
+    examples:[{args:[2,[[1,0]]],expected:true},{args:[2,[[1,0],[0,1]]],expected:false}]},
+  { id:54, lc:208, title:"实现 Trie (前缀树)", slug:"implement-trie-prefix-tree", difficulty:"medium", tags:["图论"], method:"Trie", design:true,
+    desc:"实现 Trie 类:insert(word) 插入单词;search(word) 查询完整单词是否存在;startsWith(prefix) 查询是否有以 prefix 开头的单词。",
+    examples:[{ops:["Trie","insert","search","search","startsWith","insert","search"],values:[[],["apple"],["apple"],["app"],["app"],["app"],["app"]],expected:[null,null,true,false,true,null,true]}]},
+  { id:55, lc:46, title:"全排列", slug:"permutations", difficulty:"medium", tags:["回溯"], method:"permute", compare:"outer_unordered",
+    desc:"给定不含重复数字的数组 nums,返回所有可能的全排列。可按任意顺序返回。",
+    examples:[{args:[[1,2,3]],expected:[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]},{args:[[0,1]],expected:[[0,1],[1,0]]}]},
+  { id:56, lc:78, title:"子集", slug:"subsets", difficulty:"medium", tags:["回溯"], method:"subsets", compare:"nested_unordered",
+    desc:"给定不含重复元素的整数数组 nums,返回该数组的所有可能子集(幂集)。结果集中不能包含重复子集。",
+    examples:[{args:[[1,2,3]],expected:[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]},{args:[[0]],expected:[[],[0]]}]},
+  { id:57, lc:17, title:"电话号码的字母组合", slug:"letter-combinations-of-a-phone-number", difficulty:"medium", tags:["回溯"], method:"letterCombinations", compare:"unordered",
+    desc:"给定 2-9 的数字字符串,返回所有它能表示的字母组合。数字到字母的映射与电话按键相同(不含 1)。",
+    examples:[{args:["23"],expected:["ad","ae","af","bd","be","bf","cd","ce","cf"]},{args:[""],expected:[]},{args:["2"],expected:["a","b","c"]}]},
+  { id:58, lc:39, title:"组合总和", slug:"combination-sum", difficulty:"medium", tags:["回溯"], method:"combinationSum", compare:"nested_unordered",
+    desc:"给定无重复元素的整数数组 candidates 和目标 target,找出所有可使数字和为 target 的不同组合(每个数字可重复使用)。",
+    examples:[{args:[[2,3,6,7],7],expected:[[2,2,3],[7]]},{args:[[2,3,5],8],expected:[[2,2,2,2],[2,3,3],[3,5]]}]},
+  { id:59, lc:22, title:"括号生成", slug:"generate-parentheses", difficulty:"medium", tags:["回溯"], method:"generateParenthesis", compare:"unordered",
+    desc:"数字 n 代表生成括号的对数。请生成所有可能并且有效的括号组合。",
+    examples:[{args:[3],expected:["((()))","(()())","(())()","()(())","()()()"]},{args:[1],expected:["()"]}]},
+  { id:60, lc:79, title:"单词搜索", slug:"word-search", difficulty:"medium", tags:["回溯"], method:"exist",
+    desc:"二维字符网格 board 和字符串 word,判断 word 是否能由网格中相邻(水平或垂直)单元格的字母构成,同一单元格不能重复使用。",
+    examples:[{args:[[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCCED"],expected:true},{args:[[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"SEE"],expected:true},{args:[[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]],"ABCB"],expected:false}]},
+  { id:61, lc:131, title:"分割回文串", slug:"palindrome-partitioning", difficulty:"medium", tags:["回溯"], method:"partition", compare:"outer_unordered",
+    desc:"给定字符串 s,将其分割成若干子串,使每个子串都是回文串。返回所有可能的分割方案。",
+    examples:[{args:["aab"],expected:[["a","a","b"],["aa","b"]]},{args:["a"],expected:[["a"]]}]},
+  { id:62, lc:51, title:"N 皇后", slug:"n-queens", difficulty:"hard", tags:["回溯"], method:"solveNQueens", compare:"outer_unordered",
+    desc:"按任意顺序返回 n 皇后问题的所有不同解(每解为一个 n×n 棋盘,Q 表示皇后,. 表示空)。",
+    examples:[{args:[4],expected:[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]},{args:[1],expected:[["Q"]]}]},
+  { id:63, lc:35, title:"搜索插入位置", slug:"search-insert-position", difficulty:"easy", tags:["二分查找"], method:"searchInsert",
+    desc:"给定排序数组和目标值,在数组中找到目标值返回其索引;若不存在,返回它将被按顺序插入的位置。要求 O(log n)。",
+    examples:[{args:[[1,3,5,6],5],expected:2},{args:[[1,3,5,6],2],expected:1},{args:[[1,3,5,6],7],expected:4}]},
+  { id:64, lc:74, title:"搜索二维矩阵", slug:"search-a-2d-matrix", difficulty:"medium", tags:["二分查找"], method:"searchMatrix",
+    desc:"给定 m x n 矩阵,每行非降序排列,每行第一个数大于上一行最后一个数。判断 target 是否在矩阵中。",
+    examples:[{args:[[[1,3,5,7],[10,11,16,20],[23,30,34,60]],3],expected:true},{args:[[[1,3,5,7],[10,11,16,20],[23,30,34,60]],13],expected:false}]},
+  { id:65, lc:34, title:"在排序数组中查找元素的第一个和最后一个位置", slug:"find-first-and-last-position-of-element-in-sorted-array", difficulty:"medium", tags:["二分查找"], method:"searchRange",
+    desc:"给定升序整数数组和目标值 target,找出 target 的第一个和最后一个位置。不存在返回 [-1,-1]。要求 O(log n)。",
+    examples:[{args:[[5,7,7,8,8,10],8],expected:[3,4]},{args:[[5,7,7,8,8,10],6],expected:[-1,-1]},{args:[[],0],expected:[-1,-1]}]},
+  { id:66, lc:33, title:"搜索旋转排序数组", slug:"search-in-rotated-sorted-array", difficulty:"medium", tags:["二分查找"], method:"search",
+    desc:"升序整数数组在某个未知下标处旋转后给出。查找 target,存在返回索引,否则返回 -1。要求 O(log n)。",
+    examples:[{args:[[4,5,6,7,0,1,2],0],expected:4},{args:[[4,5,6,7,0,1,2],3],expected:-1},{args:[[1],0],expected:-1}]},
+  { id:67, lc:153, title:"寻找旋转排序数组中的最小值", slug:"find-minimum-in-rotated-sorted-array", difficulty:"medium", tags:["二分查找"], method:"findMin",
+    desc:"给定一个旋转过的升序无重复元素数组,找出并返回其中的最小元素。要求 O(log n)。",
+    examples:[{args:[[3,4,5,1,2]],expected:1},{args:[[4,5,6,7,0,1,2]],expected:0},{args:[[11,13,15,17]],expected:11}]},
+  { id:68, lc:4, title:"寻找两个正序数组的中位数", slug:"median-of-two-sorted-arrays", difficulty:"hard", tags:["二分查找"], method:"findMedianSortedArrays", compare:"close",
+    desc:"给定两个正序数组,找出并返回这两个数组合并后的中位数。要求 O(log (m+n))。",
+    examples:[{args:[[1,3],[2]],expected:2.0},{args:[[1,2],[3,4]],expected:2.5}]},
+  { id:69, lc:20, title:"有效的括号", slug:"valid-parentheses", difficulty:"easy", tags:["栈"], method:"isValid",
+    desc:"给定只包含 '(){}[]' 的字符串,判断字符串是否有效(左右括号必须以正确顺序匹配)。",
+    examples:[{args:["()"],expected:true},{args:["()[]{}"],expected:true},{args:["(]"],expected:false}]},
+  { id:70, lc:155, title:"最小栈", slug:"min-stack", difficulty:"medium", tags:["栈"], method:"MinStack", design:true,
+    desc:"设计支持 push, pop, top, 和常数时间检索最小元素的栈。",
+    examples:[{ops:["MinStack","push","push","push","getMin","pop","top","getMin"],values:[[],[-2],[0],[-3],[],[],[],[]],expected:[null,null,null,null,-3,null,0,-2]}]},
+  { id:71, lc:394, title:"字符串解码", slug:"decode-string", difficulty:"medium", tags:["栈"], method:"decodeString",
+    desc:"给定经过编码的字符串(k[encoded_string] 表示 encoded_string 重复 k 次),返回它解码后的字符串。",
+    examples:[{args:["3[a]2[bc]"],expected:"aaabcbc"},{args:["3[a2[c]]"],expected:"accaccacc"},{args:["2[abc]3[cd]ef"],expected:"abcabccdcdcdef"}]},
+  { id:72, lc:739, title:"每日温度", slug:"daily-temperatures", difficulty:"medium", tags:["栈"], method:"dailyTemperatures",
+    desc:"给定每日温度数组,对每一天返回需要等几天才能遇到更高温度;如果之后都不会更高则记 0。",
+    examples:[{args:[[73,74,75,71,69,72,76,73]],expected:[1,1,4,2,1,1,0,0]},{args:[[30,40,50,60]],expected:[1,1,1,0]}]},
+  { id:73, lc:84, title:"柱状图中最大的矩形", slug:"largest-rectangle-in-histogram", difficulty:"hard", tags:["栈"], method:"largestRectangleArea",
+    desc:"给定 n 个非负整数表示柱状图各柱高度,每柱宽度为 1。求柱状图中能勾勒出的最大矩形面积。",
+    examples:[{args:[[2,1,5,6,2,3]],expected:10},{args:[[2,4]],expected:4}]},
+  { id:74, lc:215, title:"数组中的第 K 个最大元素", slug:"kth-largest-element-in-an-array", difficulty:"medium", tags:["堆"], method:"findKthLargest",
+    desc:"给定整数数组和整数 k,返回数组中第 k 个最大的元素(排序后第 k 个最大,而非第 k 个不同元素)。",
+    examples:[{args:[[3,2,1,5,6,4],2],expected:5},{args:[[3,2,3,1,2,4,5,5,6],4],expected:4}]},
+  { id:75, lc:347, title:"前 K 个高频元素", slug:"top-k-frequent-elements", difficulty:"medium", tags:["堆"], method:"topKFrequent", compare:"unordered",
+    desc:"给定整数数组 nums 和整数 k,返回出现频率前 k 高的元素。可以按任意顺序返回答案。",
+    examples:[{args:[[1,1,1,2,2,3],2],expected:[1,2]},{args:[[1],1],expected:[1]}]},
+  { id:76, lc:295, title:"数据流的中位数", slug:"find-median-from-data-stream", difficulty:"hard", tags:["堆"], method:"MedianFinder", design:true, compare:"close",
+    desc:"设计支持以下操作的数据结构:addNum(num) 添加整数;findMedian() 返回所有元素的中位数。",
+    examples:[{ops:["MedianFinder","addNum","addNum","findMedian","addNum","findMedian"],values:[[],[1],[2],[],[3],[]],expected:[null,null,null,1.5,null,2.0]}]},
+  { id:77, lc:121, title:"买卖股票的最佳时机", slug:"best-time-to-buy-and-sell-stock", difficulty:"easy", tags:["贪心"], method:"maxProfit",
+    desc:"给定数组 prices,prices[i] 是第 i 天股票价格。只能买入一次后卖出一次,求最大利润;不能获利返回 0。",
+    examples:[{args:[[7,1,5,3,6,4]],expected:5},{args:[[7,6,4,3,1]],expected:0}]},
+  { id:78, lc:55, title:"跳跃游戏", slug:"jump-game", difficulty:"medium", tags:["贪心"], method:"canJump",
+    desc:"给定非负整数数组 nums,初始位于第一个下标,每个元素表示在该位置可以跳跃的最大长度。判断能否到达最后一个下标。",
+    examples:[{args:[[2,3,1,1,4]],expected:true},{args:[[3,2,1,0,4]],expected:false}]},
+  { id:79, lc:45, title:"跳跃游戏 II", slug:"jump-game-ii", difficulty:"medium", tags:["贪心"], method:"jump",
+    desc:"给定长度为 n 的整数数组 nums,初始位于 0。返回到达 n-1 的最小跳跃次数。题目保证可以到达。",
+    examples:[{args:[[2,3,1,1,4]],expected:2},{args:[[2,3,0,1,4]],expected:2}]},
+  { id:80, lc:763, title:"划分字母区间", slug:"partition-labels", difficulty:"medium", tags:["贪心"], method:"partitionLabels",
+    desc:"给定字符串 s,把它划分成尽可能多的片段,使每个字母最多出现在一个片段。返回每个片段长度的列表。",
+    examples:[{args:["ababcbacadefegdehijhklij"],expected:[9,7,8]},{args:["eccbbbbdec"],expected:[10]}]},
+  { id:81, lc:70, title:"爬楼梯", slug:"climbing-stairs", difficulty:"easy", tags:["动态规划"], method:"climbStairs",
+    desc:"有 n 阶楼梯,每次可爬 1 或 2 阶,有多少种不同的方法到达楼顶?",
+    examples:[{args:[2],expected:2},{args:[3],expected:3},{args:[5],expected:8}]},
+  { id:82, lc:118, title:"杨辉三角", slug:"pascals-triangle", difficulty:"easy", tags:["动态规划"], method:"generate",
+    desc:"给定整数 numRows,生成杨辉三角的前 numRows 行。",
+    examples:[{args:[5],expected:[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]},{args:[1],expected:[[1]]}]},
+  { id:83, lc:198, title:"打家劫舍", slug:"house-robber", difficulty:"medium", tags:["动态规划"], method:"rob",
+    desc:"每间房屋有一定现金,相邻房屋不能同时偷(否则报警)。给定每间房屋的金额数组,计算能偷到的最高金额。",
+    examples:[{args:[[1,2,3,1]],expected:4},{args:[[2,7,9,3,1]],expected:12}]},
+  { id:84, lc:279, title:"完全平方数", slug:"perfect-squares", difficulty:"medium", tags:["动态规划"], method:"numSquares",
+    desc:"给定正整数 n,返回和为 n 的完全平方数的最少数量。",
+    examples:[{args:[12],expected:3},{args:[13],expected:2}]},
+  { id:85, lc:322, title:"零钱兑换", slug:"coin-change", difficulty:"medium", tags:["动态规划"], method:"coinChange",
+    desc:"给定面额数组 coins 和金额 amount,返回凑成 amount 的最少硬币数;无法凑出返回 -1。每种硬币数量无限。",
+    examples:[{args:[[1,2,5],11],expected:3},{args:[[2],3],expected:-1},{args:[[1],0],expected:0}]},
+  { id:86, lc:139, title:"单词拆分", slug:"word-break", difficulty:"medium", tags:["动态规划"], method:"wordBreak",
+    desc:"给定字符串 s 和字典 wordDict,判断能否用字典中的单词拼出 s(单词可重复使用)。",
+    examples:[{args:["leetcode",["leet","code"]],expected:true},{args:["applepenapple",["apple","pen"]],expected:true},{args:["catsandog",["cats","dog","sand","and","cat"]],expected:false}]},
+  { id:87, lc:300, title:"最长递增子序列", slug:"longest-increasing-subsequence", difficulty:"medium", tags:["动态规划"], method:"lengthOfLIS",
+    desc:"给定整数数组 nums,找到最长严格递增子序列的长度(子序列由原数组中删除部分元素得到,不改变剩余元素相对顺序)。",
+    examples:[{args:[[10,9,2,5,3,7,101,18]],expected:4},{args:[[0,1,0,3,2,3]],expected:4}]},
+  { id:88, lc:152, title:"乘积最大子数组", slug:"maximum-product-subarray", difficulty:"medium", tags:["动态规划"], method:"maxProduct",
+    desc:"给定整数数组 nums,找出乘积最大的非空连续子数组,返回该子数组所对应的乘积。",
+    examples:[{args:[[2,3,-2,4]],expected:6},{args:[[-2,0,-1]],expected:0}]},
+  { id:89, lc:416, title:"分割等和子集", slug:"partition-equal-subset-sum", difficulty:"medium", tags:["动态规划"], method:"canPartition",
+    desc:"给定非空正整数数组,判断是否可以分成两个子集,使得两个子集的元素和相等。",
+    examples:[{args:[[1,5,11,5]],expected:true},{args:[[1,2,3,5]],expected:false}]},
+  { id:90, lc:32, title:"最长有效括号", slug:"longest-valid-parentheses", difficulty:"hard", tags:["动态规划"], method:"longestValidParentheses",
+    desc:"给定只包含 '(' 和 ')' 的字符串,找出最长有效(格式正确且连续)括号子串的长度。",
+    examples:[{args:["(()"],expected:2},{args:[")()())"],expected:4},{args:[""],expected:0}]},
+  { id:91, lc:62, title:"不同路径", slug:"unique-paths", difficulty:"medium", tags:["多维动态规划"], method:"uniquePaths",
+    desc:"m×n 网格,机器人位于左上角,只能向右或向下移动,问有多少条不同路径到达右下角?",
+    examples:[{args:[3,7],expected:28},{args:[3,2],expected:3}]},
+  { id:92, lc:64, title:"最小路径和", slug:"minimum-path-sum", difficulty:"medium", tags:["多维动态规划"], method:"minPathSum",
+    desc:"给定包含非负整数的 m×n 网格,找出从左上到右下使路径上数字总和最小的一条路径,返回最小总和。每次只能向下或向右。",
+    examples:[{args:[[[1,3,1],[1,5,1],[4,2,1]]],expected:7},{args:[[[1,2,3],[4,5,6]]],expected:12}]},
+  { id:93, lc:5, title:"最长回文子串", slug:"longest-palindromic-substring", difficulty:"medium", tags:["多维动态规划"], method:"longestPalindrome", skip:true,
+    desc:"给定字符串 s,返回 s 中最长的回文子串。(答案可能不唯一,跳过自动校验)",
+    examples:[{args:["babad"],expected:"bab 或 aba"},{args:["cbbd"],expected:"bb"}]},
+  { id:94, lc:1143, title:"最长公共子序列", slug:"longest-common-subsequence", difficulty:"medium", tags:["多维动态规划"], method:"longestCommonSubsequence",
+    desc:"给定两个字符串 text1 和 text2,返回它们的最长公共子序列长度;不存在公共子序列返回 0。",
+    examples:[{args:["abcde","ace"],expected:3},{args:["abc","abc"],expected:3},{args:["abc","def"],expected:0}]},
+  { id:95, lc:72, title:"编辑距离", slug:"edit-distance", difficulty:"medium", tags:["多维动态规划"], method:"minDistance",
+    desc:"给定两个字符串 word1 和 word2,返回将 word1 转换为 word2 所使用的最少操作数。可以插入、删除或替换一个字符。",
+    examples:[{args:["horse","ros"],expected:3},{args:["intention","execution"],expected:5}]},
+  { id:96, lc:136, title:"只出现一次的数字", slug:"single-number", difficulty:"easy", tags:["技巧"], method:"singleNumber",
+    desc:"给定非空整数数组,除了某个元素只出现一次外,其余每个元素都出现两次。找出那个只出现一次的元素。要求 O(n) 时间、O(1) 空间。",
+    examples:[{args:[[2,2,1]],expected:1},{args:[[4,1,2,1,2]],expected:4}]},
+  { id:97, lc:169, title:"多数元素", slug:"majority-element", difficulty:"easy", tags:["技巧"], method:"majorityElement",
+    desc:"给定大小为 n 的数组,找出其中的多数元素(出现次数大于 ⌊n/2⌋ 的元素)。假设数组非空且多数元素总是存在。",
+    examples:[{args:[[3,2,3]],expected:3},{args:[[2,2,1,1,1,2,2]],expected:2}]},
+  { id:98, lc:75, title:"颜色分类", slug:"sort-colors", difficulty:"medium", tags:["技巧"], method:"sortColors", inplace:true,
+    desc:"给定包含 0、1、2 的数组,原地排序使同色相邻并按 0→1→2 顺序排列。不能使用库的 sort。",
+    examples:[{args:[[2,0,2,1,1,0]],expected:[0,0,1,1,2,2]},{args:[[2,0,1]],expected:[0,1,2]}]},
+  { id:99, lc:31, title:"下一个排列", slug:"next-permutation", difficulty:"medium", tags:["技巧"], method:"nextPermutation", inplace:true,
+    desc:"原地将数组修改成它的下一个字典序更大的排列;若不存在(即当前为最大),则改成最小排列(升序)。仅允许 O(1) 额外空间。",
+    examples:[{args:[[1,2,3]],expected:[1,3,2]},{args:[[3,2,1]],expected:[1,2,3]},{args:[[1,1,5]],expected:[1,5,1]}]},
+  { id:100, lc:287, title:"寻找重复数", slug:"find-the-duplicate-number", difficulty:"medium", tags:["技巧"], method:"findDuplicate",
+    desc:"给定长度为 n+1 的整数数组 nums,其元素在 [1,n] 范围,只有一个重复元素(可能多次出现)。找出该重复元素,不能修改数组,O(1) 空间。",
+    examples:[{args:[[1,3,4,2,2]],expected:2},{args:[[3,1,3,4,2]],expected:3}]},
+];
+
+// ===== 代码模板 =====
+const TEMPLATES = {
+  python: "class Solution:\n    def solve(self):\n        pass\n",
+  javascript: "/**\n * @param {} \n * @return {}\n */\nvar solve = function() {\n    \n};\n",
+  java: "class Solution {\n    public void solve() {\n        \n    }\n}\n",
+  cpp: "class Solution {\npublic:\n    void solve() {\n        \n    }\n};\n",
+  go: "func solve() {\n    \n}\n",
+  rust: "impl Solution {\n    pub fn solve() {\n        \n    }\n}\n",
+};
+
+const DIFF_LABEL = { easy: "简单", medium: "中等", hard: "困难" };
+const STORAGE_KEY = "lc-hot-100-v1";
+const SETTINGS_KEY = "lc-hot-100-settings-v1";
+const PROBLEMS_KEY = "lc-hot-100-problems-v1";
+
+let PROBLEMS = loadProblems();
+
+function loadProblems() {
+  try {
+    const raw = localStorage.getItem(PROBLEMS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(BUILTIN_PROBLEMS));
+}
+
+function saveProblems() {
+  try {
+    localStorage.setItem(PROBLEMS_KEY, JSON.stringify(PROBLEMS));
+  } catch (e) {
+    alert("保存题库失败:" + e.message);
+  }
+}
+
+// 题目对象校验器。返回 {ok, errors[]}
+function validateProblem(p, opts = {}) {
+  const errs = [];
+  if (typeof p !== "object" || p === null) { errs.push("不是对象"); return { ok: false, errors: errs }; }
+  if (typeof p.id !== "number") errs.push("缺少 id (number)");
+  if (typeof p.lc !== "number") errs.push("缺少 lc (number,LeetCode 题号)");
+  if (typeof p.title !== "string" || !p.title) errs.push("缺少 title (string)");
+  if (typeof p.slug !== "string" || !p.slug) errs.push("缺少 slug (string)");
+  if (!["easy","medium","hard"].includes(p.difficulty)) errs.push("difficulty 必须是 easy/medium/hard");
+  if (!Array.isArray(p.tags)) errs.push("tags 必须是数组");
+  if (typeof p.method !== "string" || !p.method) errs.push("缺少 method (string)");
+  if (typeof p.desc !== "string") errs.push("缺少 desc (string)");
+  if (!Array.isArray(p.examples)) errs.push("examples 必须是数组");
+  else {
+    p.examples.forEach((ex, i) => {
+      if (typeof ex !== "object" || ex === null) { errs.push(`examples[${i}] 不是对象`); return; }
+      if (p.design) {
+        if (!Array.isArray(ex.ops)) errs.push(`examples[${i}] 缺少 ops 数组`);
+        if (!Array.isArray(ex.values)) errs.push(`examples[${i}] 缺少 values 数组`);
+        if (!Array.isArray(ex.expected)) errs.push(`examples[${i}] 缺少 expected 数组`);
+        if (Array.isArray(ex.ops) && Array.isArray(ex.values) && ex.ops.length !== ex.values.length)
+          errs.push(`examples[${i}] ops/values 长度不一致`);
+      } else if (!p.skip) {
+        if (!Array.isArray(ex.args)) errs.push(`examples[${i}] 缺少 args 数组`);
+        if (!("expected" in ex)) errs.push(`examples[${i}] 缺少 expected 字段`);
+      }
+    });
+  }
+  if (p.compare && !["equal","unordered","outer_unordered","nested_unordered","close"].includes(p.compare))
+    errs.push("compare 取值无效");
+  if (p.argTypes) {
+    if (!Array.isArray(p.argTypes)) errs.push("argTypes 必须是数组");
+    else p.argTypes.forEach((t, i) => {
+      if (!["value","listnode","treenode","listnode_list"].includes(t))
+        errs.push(`argTypes[${i}] 取值无效: ${t}`);
+    });
+  }
+  if (p.returnType && !["value","listnode","treenode"].includes(p.returnType))
+    errs.push("returnType 取值无效");
+  return { ok: errs.length === 0, errors: errs };
+}
+
+// 验证整个题库,返回 {ok, errors:[{index, problemId, msgs}]}
+function validateProblemSet(arr) {
+  if (!Array.isArray(arr)) return { ok: false, errors: [{ index: -1, msgs: ["不是数组"] }] };
+  const errors = [];
+  const ids = new Set();
+  arr.forEach((p, i) => {
+    const v = validateProblem(p);
+    if (!v.ok) errors.push({ index: i, problemId: p && p.id, msgs: v.errors });
+    if (p && typeof p.id === "number") {
+      if (ids.has(p.id)) errors.push({ index: i, problemId: p.id, msgs: [`id ${p.id} 重复`] });
+      ids.add(p.id);
+    }
+  });
+  return { ok: errors.length === 0, errors };
+}
+
+// ===== 状态管理 =====
+let state = loadState();
+let settings = loadSettings();
+let currentId = null;
+let currentTab = "problem";
+let filters = { status: "all", difficulty: "all", tag: "all", search: "" };
+let saveTimer = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { problems: {} };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  const preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return { theme: preferDark ? "dark" : "light", language: "python", lastProblemId: null };
+}
+
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function getProblemData(id) {
+  if (!state.problems[id]) {
+    state.problems[id] = { status: "todo", starred: false, notes: "", code: {}, testCode: "" };
+  }
+  if (state.problems[id].testCode === undefined) state.problems[id].testCode = "";
+  return state.problems[id];
+}
+
+// ===== 渲染 =====
+function renderTagFilter() {
+  const tags = [...new Set(PROBLEMS.flatMap(p => p.tags))];
+  const container = document.getElementById("filter-tag");
+  container.innerHTML =
+    '<span class="chip active" data-filter="tag" data-value="all">所有标签</span>' +
+    tags.map(t => `<span class="chip" data-filter="tag" data-value="${t}">${t}</span>`).join("");
+}
+
+function applyFilters() {
+  return PROBLEMS.filter(p => {
+    const d = getProblemData(p.id);
+    if (filters.status === "todo" && d.status === "done") return false;
+    if (filters.status === "done" && d.status !== "done") return false;
+    if (filters.status === "star" && !d.starred) return false;
+    if (filters.difficulty !== "all" && p.difficulty !== filters.difficulty) return false;
+    if (filters.tag !== "all" && !p.tags.includes(filters.tag)) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (!String(p.lc).includes(q) && !p.title.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderList() {
+  const container = document.getElementById("problem-list");
+  const list = applyFilters();
+  if (list.length === 0) {
+    container.innerHTML = '<div style="padding:20px; text-align:center; color: var(--muted); font-size:12px;">没有符合条件的题目</div>';
+    return;
+  }
+  container.innerHTML = list.map(p => {
+    const d = getProblemData(p.id);
+    return `
+      <div class="problem-item ${d.status === 'done' ? 'done' : ''} ${currentId === p.id ? 'active' : ''}" data-id="${p.id}">
+        <div class="pcheck">${d.status === 'done' ? '✓' : ''}</div>
+        <span class="pid">#${p.lc}</span>
+        <span class="pdiff diff-${p.difficulty}" title="${DIFF_LABEL[p.difficulty]}"></span>
+        <span class="ptitle">${p.title}</span>
+        <span class="pstar">${d.starred ? '★' : ''}</span>
+      </div>
+    `;
+  }).join("");
+  container.querySelectorAll(".problem-item").forEach(el => {
+    el.addEventListener("click", () => selectProblem(parseInt(el.dataset.id)));
+  });
+}
+
+function renderStats() {
+  const done = Object.values(state.problems).filter(p => p.status === "done").length;
+  const star = Object.values(state.problems).filter(p => p.starred).length;
+  document.getElementById("stat-done").textContent = done;
+  document.getElementById("stat-star").textContent = star;
+  document.getElementById("progress-fill").style.width = (done) + "%";
+}
+
+function selectProblem(id) {
+  if (currentId !== null) flushPendingSave();
+  currentId = id;
+  settings.lastProblemId = id;
+  saveSettings();
+  const p = PROBLEMS.find(x => x.id === id);
+  const d = getProblemData(id);
+
+  document.getElementById("empty-state").style.display = "none";
+  document.getElementById("workspace-content").style.display = "flex";
+
+  document.getElementById("wh-title").textContent = `${p.lc}. ${p.title}`;
+  const diffEl = document.getElementById("wh-difficulty");
+  diffEl.textContent = DIFF_LABEL[p.difficulty];
+  diffEl.className = "badge diff-" + p.difficulty;
+  document.getElementById("wh-tags").innerHTML = p.tags.map(t => `<span class="tag">${t}</span>`).join("");
+  document.getElementById("wh-link").href = `https://leetcode.cn/problems/${p.slug}/`;
+
+  // star / done buttons
+  const starBtn = document.getElementById("btn-star");
+  starBtn.textContent = d.starred ? "★" : "☆";
+  starBtn.classList.toggle("active", d.starred);
+  const doneBtn = document.getElementById("btn-done");
+  doneBtn.classList.toggle("done", d.status === "done");
+
+  // problem view
+  document.getElementById("problem-view").innerHTML = renderProblemView(p);
+
+  // code & notes
+  const codeEditor = document.getElementById("code-editor");
+  const notesEditor = document.getElementById("notes-editor");
+  document.getElementById("lang-select").value = settings.language;
+  codeEditor.value = d.code[settings.language] || "";
+  notesEditor.value = d.notes || "";
+  document.getElementById("test-input").value = d.testCode || "";
+  document.getElementById("save-status").textContent = "";
+  updateRunButtonState();
+
+  renderList();
+}
+
+function updateRunButtonState() {
+  const isPython = settings.language === "python";
+  const runBtn = document.getElementById("btn-run");
+  runBtn.disabled = !isPython;
+  runBtn.title = isPython ? "运行 Python 代码 (Ctrl/Cmd+Enter)" : "仅 Python 支持页面运行";
+  const checkBtn = document.getElementById("btn-check");
+  if (checkBtn) {
+    const p = currentId ? PROBLEMS.find(x => x.id === currentId) : null;
+    const hasExamples = p && p.examples && !p.skip;
+    checkBtn.disabled = !isPython || !hasExamples;
+    if (!isPython) checkBtn.title = "仅 Python 支持自动校验";
+    else if (!hasExamples) checkBtn.title = "该题暂不支持自动校验";
+    else checkBtn.title = "用所有示例校验你的解 (Cmd/Ctrl+Shift+Enter)";
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function fmtVal(v) {
+  return JSON.stringify(v);
+}
+
+function renderExample(p, ex, idx) {
+  if (p.design) {
+    const rows = ex.ops.map((op, i) => {
+      const val = ex.values[i];
+      const exp = ex.expected[i];
+      const valStr = Array.isArray(val) ? `(${val.map(fmtVal).join(", ")})` : fmtVal(val);
+      const expStr = exp === null ? "null" : fmtVal(exp);
+      return `<tr><td>${escapeHtml(op)}</td><td><code>${escapeHtml(valStr)}</code></td><td><code>${escapeHtml(expStr)}</code></td></tr>`;
+    }).join("");
+    return `<div class="example">
+      <div class="example-title">示例 ${idx + 1}</div>
+      <table class="design-table">
+        <thead><tr><th>操作</th><th>参数</th><th>预期返回</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+  const argsStr = ex.args.map(fmtVal).join(", ");
+  const expStr = ex.expected === undefined ? "" : fmtVal(ex.expected);
+  return `<div class="example">
+    <div class="example-title">示例 ${idx + 1}</div>
+    <div class="example-row"><span class="example-label">输入:</span><code>${escapeHtml(argsStr)}</code></div>
+    <div class="example-row"><span class="example-label">${p.inplace ? '修改后:' : '输出:'}</span><code>${escapeHtml(expStr)}</code></div>
+    ${ex.note ? `<div class="example-row example-note">说明: ${escapeHtml(ex.note)}</div>` : ''}
+  </div>`;
+}
+
+function renderProblemView(p) {
+  const examplesHtml = (p.examples || []).map((ex, i) => renderExample(p, ex, i)).join("");
+  const flags = [];
+  if (p.inplace) flags.push('<span class="flag flag-inplace">原地修改</span>');
+  if (p.design) flags.push('<span class="flag flag-design">类设计</span>');
+  if (p.skip) flags.push('<span class="flag flag-skip">不自动校验</span>');
+  if (p.compare === "unordered") flags.push('<span class="flag flag-unordered">顺序无关</span>');
+  if (p.compare === "outer_unordered") flags.push('<span class="flag flag-unordered">外层无序</span>');
+  if (p.compare === "nested_unordered") flags.push('<span class="flag flag-unordered">嵌套无序</span>');
+  if (p.compare === "close") flags.push('<span class="flag flag-unordered">浮点近似</span>');
+  return `
+    <h3>${p.lc}. ${p.title}</h3>
+    <div class="meta">
+      难度: <b style="color: var(--${p.difficulty})">${DIFF_LABEL[p.difficulty]}</b>
+      &nbsp;·&nbsp; 标签: ${p.tags.join(" / ")}
+      &nbsp;·&nbsp; <a href="https://leetcode.cn/problems/${p.slug}/" target="_blank" rel="noopener">查看 LC 原题 ↗</a>
+    </div>
+    ${flags.length ? `<div class="flag-row">${flags.join(" ")}</div>` : ''}
+    <p class="problem-desc">${escapeHtml(p.desc || "")}</p>
+    ${examplesHtml ? `<h4>示例</h4>${examplesHtml}` : ''}
+    ${p.method ? `<div class="meta-tip">
+      方法签名: <code>Solution().<b>${escapeHtml(p.method)}</b>(...)</code>
+      ${p.design ? ' &nbsp; (类设计题)' : ''}
+    </div>` : ''}
+    <p class="problem-tip">
+      💡 在「代码」标签写 <code>class Solution</code>(或类设计题的目标类),
+      然后点 <b>✓ 校验示例</b> 自动跑所有示例并比对结果。也可在「测试代码」框写自定义调用,点 <b>▶ 运行</b>。
+    </p>
+  `;
+}
+
+function flushPendingSave() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    saveState();
+  }
+}
+
+function scheduleSave() {
+  if (saveTimer) clearTimeout(saveTimer);
+  document.getElementById("save-status").textContent = "保存中...";
+  saveTimer = setTimeout(() => {
+    saveState();
+    saveTimer = null;
+    const now = new Date();
+    document.getElementById("save-status").textContent = `已保存 · ${now.toLocaleTimeString()}`;
+  }, 400);
+}
+
+// ===== 事件 =====
+document.getElementById("search").addEventListener("input", (e) => {
+  filters.search = e.target.value.trim();
+  renderList();
+});
+
+document.querySelectorAll(".filter-row").forEach(row => {
+  row.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    const f = chip.dataset.filter;
+    const v = chip.dataset.value;
+    filters[f] = v;
+    row.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === chip));
+    renderList();
+  });
+});
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    currentTab = tab.dataset.tab;
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".tab-content").forEach(c => {
+      c.classList.toggle("active", c.dataset.tab === currentTab);
+    });
+  });
+});
+
+document.getElementById("code-editor").addEventListener("input", (e) => {
+  if (currentId === null) return;
+  const d = getProblemData(currentId);
+  d.code[settings.language] = e.target.value;
+  scheduleSave();
+});
+
+document.getElementById("code-editor").addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + "    " + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 4;
+    ta.dispatchEvent(new Event("input"));
+  }
+});
+
+document.getElementById("notes-editor").addEventListener("input", (e) => {
+  if (currentId === null) return;
+  getProblemData(currentId).notes = e.target.value;
+  scheduleSave();
+});
+
+document.getElementById("lang-select").addEventListener("change", (e) => {
+  flushPendingSave();
+  settings.language = e.target.value;
+  saveSettings();
+  if (currentId !== null) {
+    const d = getProblemData(currentId);
+    document.getElementById("code-editor").value = d.code[settings.language] || "";
+  }
+  updateRunButtonState();
+});
+
+// ===== 测试代码 & 运行 =====
+document.getElementById("test-input").addEventListener("input", (e) => {
+  if (currentId === null) return;
+  getProblemData(currentId).testCode = e.target.value;
+  scheduleSave();
+});
+
+document.getElementById("test-input").addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const ta = e.target;
+    const s = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, s) + "    " + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = s + 4;
+    ta.dispatchEvent(new Event("input"));
+  } else if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    e.preventDefault();
+    runCode();
+  }
+});
+
+document.getElementById("code-editor").addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    e.preventDefault();
+    if (e.shiftKey) checkExamples();
+    else runCode();
+  }
+});
+
+document.getElementById("btn-run").addEventListener("click", runCode);
+document.getElementById("btn-check").addEventListener("click", checkExamples);
+
+document.getElementById("btn-clear-output").addEventListener("click", () => {
+  document.getElementById("run-output").innerHTML = '<span class="info">已清空。</span>';
+});
+
+document.getElementById("btn-toggle-runner").addEventListener("click", () => {
+  document.getElementById("runner").classList.toggle("collapsed");
+});
+
+// ===== Pyodide 集成 =====
+const PYODIDE_VERSION = "0.26.4";
+const PYODIDE_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+let pyodidePromise = null;
+
+function setPyStatus(text, cls) {
+  const el = document.getElementById("pyodide-status");
+  el.textContent = text;
+  el.className = "pyodide-status " + (cls || "");
+}
+
+function loadPyodideOnce() {
+  if (pyodidePromise) return pyodidePromise;
+  pyodidePromise = (async () => {
+    setPyStatus("加载 Pyodide...", "loading");
+    await new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = PYODIDE_URL + "pyodide.js";
+      s.onload = res;
+      s.onerror = () => rej(new Error("无法加载 Pyodide CDN,请检查网络"));
+      document.head.appendChild(s);
+    });
+    const py = await window.loadPyodide({ indexURL: PYODIDE_URL });
+    setPyStatus("Pyodide 就绪", "ready");
+    return py;
+  })().catch(err => {
+    setPyStatus("加载失败", "error");
+    pyodidePromise = null;
+    throw err;
+  });
+  return pyodidePromise;
+}
+
+const SETUP_PY = `
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def _list_to_listnode(arr):
+    if not arr: return None
+    dummy = ListNode(0)
+    cur = dummy
+    for v in arr:
+        cur.next = ListNode(v)
+        cur = cur.next
+    return dummy.next
+
+def _listnode_to_list(head):
+    res = []
+    seen = set()
+    while head and id(head) not in seen:
+        seen.add(id(head))
+        res.append(head.val)
+        head = head.next
+    return res
+
+def _list_to_treenode(arr):
+    if not arr or arr[0] is None: return None
+    root = TreeNode(arr[0])
+    q = [root]; i = 1; n = len(arr)
+    while q and i < n:
+        node = q.pop(0)
+        if i < n and arr[i] is not None:
+            node.left = TreeNode(arr[i]); q.append(node.left)
+        i += 1
+        if i < n and arr[i] is not None:
+            node.right = TreeNode(arr[i]); q.append(node.right)
+        i += 1
+    return root
+
+def _treenode_to_list(root):
+    if not root: return []
+    res = []; q = [root]
+    while q:
+        node = q.pop(0)
+        if node is None:
+            res.append(None)
+        else:
+            res.append(node.val); q.append(node.left); q.append(node.right)
+    while res and res[-1] is None:
+        res.pop()
+    return res
+
+def _cmp(a, b, mode):
+    if mode == "close":
+        try: return abs(float(a) - float(b)) < 1e-5
+        except: return False
+    if mode == "unordered":
+        try: return sorted(a) == sorted(b)
+        except:
+            try: return sorted(a, key=repr) == sorted(b, key=repr)
+            except: return a == b
+    if mode == "outer_unordered":
+        try: return sorted(a, key=repr) == sorted(b, key=repr)
+        except: return a == b
+    if mode == "nested_unordered":
+        def norm(x):
+            if isinstance(x, list):
+                inner = [norm(i) for i in x]
+                try: return sorted(inner)
+                except: return sorted(inner, key=repr)
+            return x
+        try: return norm(a) == norm(b)
+        except: return a == b
+    return a == b
+
+def _run_example(method, args, expected, arg_types, return_type, inplace, compare):
+    import copy
+    call_args = []
+    for i, a in enumerate(args):
+        t = arg_types[i] if i < len(arg_types) else "value"
+        if t == "listnode":
+            call_args.append(_list_to_listnode(a))
+        elif t == "treenode":
+            call_args.append(_list_to_treenode(a))
+        elif t == "listnode_list":
+            call_args.append([_list_to_listnode(x) for x in a])
+        else:
+            call_args.append(copy.deepcopy(a))
+    sol = Solution()
+    result = getattr(sol, method)(*call_args)
+    if inplace:
+        actual = call_args[0]
+        if arg_types and len(arg_types) > 0 and arg_types[0] == "treenode":
+            actual = _treenode_to_list(actual)
+        elif arg_types and len(arg_types) > 0 and arg_types[0] == "listnode":
+            actual = _listnode_to_list(actual)
+    else:
+        if return_type == "listnode":
+            actual = _listnode_to_list(result)
+        elif return_type == "treenode":
+            actual = _treenode_to_list(result)
+        else:
+            actual = result
+    return {"ok": _cmp(actual, expected, compare), "actual": actual, "expected": expected}
+
+def _run_design_example(class_name, ops, values, expected, compare):
+    cls = globals().get(class_name)
+    if cls is None:
+        return {"ok": False, "actual": None, "expected": expected, "error": "未找到类 " + class_name}
+    results = []; instance = None
+    for i, (op, val) in enumerate(zip(ops, values)):
+        if i == 0:
+            instance = cls(*val); results.append(None)
+        else:
+            results.append(getattr(instance, op)(*val))
+    ok = True
+    for r, e in zip(results, expected):
+        if r is None and e is None: continue
+        if not _cmp(r, e, compare): ok = False; break
+    return {"ok": ok, "actual": results, "expected": expected}
+`;
+
+async function ensurePyodideWithHelpers() {
+  const py = await loadPyodideOnce();
+  if (!py._lcHelpersLoaded) {
+    py.runPython(SETUP_PY);
+    py._lcHelpersLoaded = true;
+  }
+  return py;
+}
+
+async function checkExamples() {
+  if (currentId === null) return;
+  const p = PROBLEMS.find(x => x.id === currentId);
+  if (!p || !p.examples || p.skip) {
+    clearOutput();
+    appendOutput("该题不支持自动校验(可能涉及环形链表/随机指针/多解等)。手动在「测试代码」框写调用,点「运行」即可。\n", "info");
+    return;
+  }
+  if (settings.language !== "python") {
+    clearOutput();
+    appendOutput("自动校验仅支持 Python。\n", "err");
+    return;
+  }
+  const userCode = document.getElementById("code-editor").value;
+  if (!userCode.trim()) {
+    clearOutput();
+    appendOutput("代码为空,请先在「代码」编辑器写解。\n", "err");
+    return;
+  }
+  const checkBtn = document.getElementById("btn-check");
+  const orig = checkBtn.textContent;
+  checkBtn.disabled = true;
+  checkBtn.textContent = "校验中...";
+  clearOutput();
+  appendOutput("准备校验...\n", "info");
+  const t0 = performance.now();
+  try {
+    const py = await ensurePyodideWithHelpers();
+    py.runPython("import sys; _lc_sout = __import__('io').StringIO(); sys.stdout = _lc_sout");
+    try {
+      py.runPython(userCode);
+    } catch (e) {
+      py.runPython("sys.stdout = sys.__stdout__");
+      clearOutput();
+      appendOutput("解代码加载失败:\n" + e.message + "\n", "err");
+      return;
+    }
+    py.runPython("sys.stdout = sys.__stdout__");
+    const results = [];
+    for (let i = 0; i < p.examples.length; i++) {
+      const ex = p.examples[i];
+      const cfg = {
+        method: p.method,
+        argTypes: p.argTypes || [],
+        returnType: p.returnType || "value",
+        inplace: !!p.inplace,
+        compare: p.compare || "equal",
+        design: !!p.design,
+      };
+      const payload = JSON.stringify({ ex, cfg });
+      py.globals.set("_lc_payload_js", payload);
+      try {
+        const resJson = py.runPython(`
+import json, traceback
+_p = json.loads(_lc_payload_js)
+_ex = _p['ex']
+_cfg = _p['cfg']
+try:
+    if _cfg['design']:
+        _r = _run_design_example(_cfg['method'], _ex['ops'], _ex['values'], _ex['expected'], _cfg['compare'])
+    else:
+        _r = _run_example(_cfg['method'], _ex['args'], _ex['expected'], _cfg['argTypes'], _cfg['returnType'], _cfg['inplace'], _cfg['compare'])
+except Exception as _e:
+    _r = {"ok": False, "actual": None, "expected": _ex.get('expected'), "error": str(_e) + "\\n" + traceback.format_exc()}
+json.dumps(_r, default=str)
+`);
+        results.push(JSON.parse(resJson));
+      } catch (e) {
+        results.push({ ok: false, error: e.message, expected: ex.expected, actual: null });
+      }
+    }
+    const elapsed = (performance.now() - t0).toFixed(0);
+    renderCheckResults(p, results, elapsed);
+  } catch (e) {
+    clearOutput();
+    appendOutput("校验失败: " + e.message + "\n", "err");
+  } finally {
+    checkBtn.textContent = orig;
+    updateRunButtonState();
+  }
+}
+
+function renderCheckResults(p, results, elapsed) {
+  const out = document.getElementById("run-output");
+  out.innerHTML = "";
+  const pass = results.filter(r => r.ok).length;
+  const total = results.length;
+  const summary = document.createElement("div");
+  summary.className = "check-summary " + (pass === total ? "all-pass" : "has-fail");
+  summary.textContent = pass === total
+    ? `✓ 全部 ${total} 个示例通过 · ${elapsed}ms`
+    : `✗ ${pass} / ${total} 通过, ${total - pass} 个失败 · ${elapsed}ms`;
+  out.appendChild(summary);
+  results.forEach((r, i) => {
+    const div = document.createElement("div");
+    div.className = "check-result " + (r.ok ? "pass" : "fail");
+    const title = document.createElement("div");
+    title.className = "check-result-title";
+    title.textContent = `示例 ${i + 1}: ${r.ok ? "✓ 通过" : "✗ 失败"}`;
+    div.appendChild(title);
+    const detail = document.createElement("div");
+    detail.className = "check-result-detail";
+    if (r.error) {
+      detail.textContent = "异常:\n" + r.error;
+    } else {
+      detail.textContent = `期望: ${JSON.stringify(r.expected)}\n实际: ${JSON.stringify(r.actual)}`;
+    }
+    div.appendChild(detail);
+    out.appendChild(div);
+  });
+}
+
+function appendOutput(text, cls) {
+  const out = document.getElementById("run-output");
+  const span = document.createElement("span");
+  if (cls) span.className = cls;
+  span.textContent = text;
+  out.appendChild(span);
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearOutput() {
+  document.getElementById("run-output").innerHTML = "";
+}
+
+async function runCode() {
+  if (currentId === null) {
+    appendOutput("请先选择一道题目\n", "err");
+    return;
+  }
+  if (settings.language !== "python") {
+    clearOutput();
+    appendOutput("当前页面仅支持运行 Python。请切换语言后再试。\n", "err");
+    return;
+  }
+  const userCode = document.getElementById("code-editor").value;
+  const testCode = document.getElementById("test-input").value;
+  if (!userCode.trim() && !testCode.trim()) {
+    clearOutput();
+    appendOutput("没有可运行的代码。\n", "info");
+    return;
+  }
+  const runBtn = document.getElementById("btn-run");
+  runBtn.disabled = true;
+  const origText = runBtn.textContent;
+  runBtn.textContent = "运行中...";
+  clearOutput();
+  const t0 = performance.now();
+  try {
+    const pyodide = await ensurePyodideWithHelpers();
+    pyodide.runPython(`
+import sys, io, traceback
+_lc_stdout = io.StringIO()
+_lc_stderr = io.StringIO()
+sys.stdout = _lc_stdout
+sys.stderr = _lc_stderr
+`);
+    let errMsg = null;
+    try {
+      pyodide.runPython(userCode + "\n" + testCode);
+    } catch (e) {
+      errMsg = e.message;
+    }
+    pyodide.runPython("sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__");
+    const stdout = pyodide.runPython("_lc_stdout.getvalue()");
+    const stderr = pyodide.runPython("_lc_stderr.getvalue()");
+    if (stdout) appendOutput(stdout);
+    if (stderr) appendOutput(stderr, "err");
+    const elapsed = (performance.now() - t0).toFixed(0);
+    if (errMsg) {
+      appendOutput("\n— 异常 —\n" + errMsg + "\n", "err");
+    } else {
+      appendOutput(`\n✓ 运行成功 · ${elapsed}ms\n`, "ok");
+    }
+  } catch (e) {
+    appendOutput("运行失败: " + e.message + "\n", "err");
+  } finally {
+    runBtn.textContent = origText;
+    updateRunButtonState();
+  }
+}
+
+document.getElementById("btn-load-template").addEventListener("click", () => {
+  if (currentId === null) return;
+  const editor = document.getElementById("code-editor");
+  if (editor.value.trim() && !confirm("当前代码不为空,确定覆盖为模板?")) return;
+  const p = PROBLEMS.find(x => x.id === currentId);
+  const tpl = buildTemplate(p, settings.language);
+  editor.value = tpl;
+  editor.dispatchEvent(new Event("input"));
+  // 同时给测试代码框填一个调用示例
+  if (settings.language === "python" && p && p.examples && p.examples.length && !p.design && !p.skip) {
+    const testEl = document.getElementById("test-input");
+    if (!testEl.value.trim()) {
+      const ex = p.examples[0];
+      const argsStr = (ex.args || []).map(a => JSON.stringify(a)).join(", ");
+      const sample = `# 示例调用(校验示例会自动跑全部示例)\nprint(Solution().${p.method}(${argsStr}))\n`;
+      testEl.value = sample;
+      testEl.dispatchEvent(new Event("input"));
+    }
+  }
+});
+
+function buildTemplate(p, lang) {
+  if (!p || !p.method) return TEMPLATES[lang] || "";
+  if (p.design) {
+    // 类设计题
+    if (lang === "python") {
+      return `class ${p.method}:\n    def __init__(self):\n        pass\n\n    # TODO: 添加题目要求的方法\n`;
+    }
+    return TEMPLATES[lang] || "";
+  }
+  if (lang === "python") {
+    // 从示例推断参数名占位
+    const argCount = (p.examples && p.examples[0] && p.examples[0].args) ? p.examples[0].args.length : 0;
+    const params = Array.from({length: argCount}, (_, i) => `arg${i+1}`).join(", ");
+    return `class Solution:\n    def ${p.method}(self${params ? ", " + params : ""}):\n        pass\n`;
+  }
+  return TEMPLATES[lang] || "";
+}
+
+document.getElementById("btn-clear-code").addEventListener("click", () => {
+  if (currentId === null) return;
+  if (!confirm("确定清空当前语言的代码?")) return;
+  const editor = document.getElementById("code-editor");
+  editor.value = "";
+  editor.dispatchEvent(new Event("input"));
+});
+
+document.getElementById("btn-star").addEventListener("click", () => {
+  if (currentId === null) return;
+  const d = getProblemData(currentId);
+  d.starred = !d.starred;
+  const btn = document.getElementById("btn-star");
+  btn.textContent = d.starred ? "★" : "☆";
+  btn.classList.toggle("active", d.starred);
+  saveState();
+  renderList();
+  renderStats();
+});
+
+document.getElementById("btn-done").addEventListener("click", () => {
+  if (currentId === null) return;
+  const d = getProblemData(currentId);
+  d.status = d.status === "done" ? "todo" : "done";
+  document.getElementById("btn-done").classList.toggle("done", d.status === "done");
+  saveState();
+  renderList();
+  renderStats();
+});
+
+document.getElementById("btn-theme").addEventListener("click", () => {
+  settings.theme = settings.theme === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", settings.theme);
+  saveSettings();
+});
+
+document.getElementById("btn-export").addEventListener("click", () => {
+  flushPendingSave();
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `lc-hot100-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("btn-import").addEventListener("click", () => {
+  document.getElementById("import-text").value = "";
+  document.getElementById("modal-import").classList.add("show");
+});
+
+document.getElementById("import-cancel").addEventListener("click", () => {
+  document.getElementById("modal-import").classList.remove("show");
+});
+
+document.getElementById("import-confirm").addEventListener("click", () => {
+  const text = document.getElementById("import-text").value.trim();
+  if (!text) return;
+  try {
+    const data = JSON.parse(text);
+    if (!data.problems) throw new Error("缺少 problems 字段");
+    state = data;
+    saveState();
+    document.getElementById("modal-import").classList.remove("show");
+    renderList();
+    renderStats();
+    if (currentId !== null) selectProblem(currentId);
+    alert("导入成功!");
+  } catch (e) {
+    alert("导入失败: " + e.message);
+  }
+});
+
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (!confirm("这会清空所有题目的代码、笔记和进度,确定?")) return;
+  if (!confirm("最后确认:真的全部重置?(建议先「⬆ 进度」备份)")) return;
+  state = { problems: {} };
+  saveState();
+  renderList();
+  renderStats();
+  if (currentId !== null) selectProblem(currentId);
+});
+
+// ===== 题库管理 =====
+function openProblemsModal() {
+  document.getElementById("modal-problems").classList.add("show");
+  refreshProblemsStats();
+  document.getElementById("pb-import-text").value = "";
+  document.getElementById("pb-validation").innerHTML = "";
+  document.getElementById("pb-import-status").textContent = "";
+  document.getElementById("pb-import-status").className = "pb-status";
+}
+
+function refreshProblemsStats() {
+  const el = document.getElementById("pb-stats");
+  const total = PROBLEMS.length;
+  const builtin = BUILTIN_PROBLEMS.length;
+  const diff = PROBLEMS.length !== builtin || PROBLEMS.some((p, i) => {
+    const b = BUILTIN_PROBLEMS[i];
+    return !b || JSON.stringify(p) !== JSON.stringify(b);
+  });
+  el.innerHTML = `当前题库:<b>${total}</b> 题。内置版:${builtin} 题。${diff ? '<span style="color: var(--medium)">已修改 / 与内置不同</span>' : '<span style="color: var(--done)">与内置一致</span>'}`;
+}
+
+function downloadProblemsJSON() {
+  const data = JSON.stringify(PROBLEMS, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `lc-hot100-problems-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function copyProblemsToClipboard() {
+  const data = JSON.stringify(PROBLEMS, null, 2);
+  try {
+    await navigator.clipboard.writeText(data);
+    const s = document.getElementById("pb-import-status");
+    s.textContent = "✓ 已复制 " + data.length + " 字符";
+    s.className = "pb-status ok";
+  } catch (e) {
+    alert("复制失败: " + e.message);
+  }
+}
+
+function showProblemsJSON() {
+  document.getElementById("pb-import-text").value = JSON.stringify(PROBLEMS, null, 2);
+}
+
+function validateAndImportProblems() {
+  const text = document.getElementById("pb-import-text").value.trim();
+  const validEl = document.getElementById("pb-validation");
+  const statusEl = document.getElementById("pb-import-status");
+  validEl.innerHTML = "";
+  if (!text) {
+    statusEl.textContent = "请先粘贴 JSON 或选择文件";
+    statusEl.className = "pb-status err";
+    return;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    statusEl.textContent = "JSON 解析失败: " + e.message;
+    statusEl.className = "pb-status err";
+    return;
+  }
+  if (!Array.isArray(parsed)) {
+    statusEl.textContent = "顶层必须是数组";
+    statusEl.className = "pb-status err";
+    return;
+  }
+  const v = validateProblemSet(parsed);
+  if (!v.ok) {
+    statusEl.textContent = `校验失败:${v.errors.length} 处问题`;
+    statusEl.className = "pb-status err";
+    validEl.innerHTML = v.errors.slice(0, 30).map(e =>
+      `<div class="pv-item err">[${e.index}] id=${e.problemId ?? '?'}: ${e.msgs.join('; ')}</div>`
+    ).join("") + (v.errors.length > 30 ? `<div class="pv-item err">… 还有 ${v.errors.length - 30} 处省略</div>` : "");
+    return;
+  }
+  const mode = document.querySelector('input[name="pb-mode"]:checked').value;
+  let newSet;
+  if (mode === "replace") {
+    if (!confirm(`将完全替换为新题库(${parsed.length} 题),覆盖当前 ${PROBLEMS.length} 题。继续?`)) return;
+    newSet = parsed;
+  } else {
+    const byId = new Map(PROBLEMS.map(p => [p.id, p]));
+    parsed.forEach(p => byId.set(p.id, p));
+    newSet = Array.from(byId.values()).sort((a, b) => a.id - b.id);
+    if (!confirm(`合并后题库共 ${newSet.length} 题(${parsed.length} 个被导入题覆盖了对应 id)。继续?`)) return;
+  }
+  PROBLEMS = newSet;
+  saveProblems();
+  statusEl.textContent = `✓ 导入成功,题库现有 ${PROBLEMS.length} 题`;
+  statusEl.className = "pb-status ok";
+  validEl.innerHTML = `<div class="pv-item ok">导入成功</div>`;
+  refreshProblemsStats();
+  renderTagFilter();
+  renderList();
+  renderStats();
+  if (currentId !== null) {
+    const stillExists = PROBLEMS.find(p => p.id === currentId);
+    if (stillExists) selectProblem(currentId);
+    else {
+      currentId = null;
+      document.getElementById("empty-state").style.display = "flex";
+      document.getElementById("workspace-content").style.display = "none";
+    }
+  }
+}
+
+function restoreBuiltinProblems() {
+  if (!confirm("将题库恢复为内置 Hot 100(覆盖当前题库),你的做题进度不受影响。继续?")) return;
+  PROBLEMS = JSON.parse(JSON.stringify(BUILTIN_PROBLEMS));
+  saveProblems();
+  refreshProblemsStats();
+  renderTagFilter();
+  renderList();
+  renderStats();
+  if (currentId !== null && PROBLEMS.find(p => p.id === currentId)) selectProblem(currentId);
+  const statusEl = document.getElementById("pb-import-status");
+  statusEl.textContent = "✓ 已还原内置 " + PROBLEMS.length + " 题";
+  statusEl.className = "pb-status ok";
+}
+
+function addNewProblem() {
+  const nextId = (PROBLEMS.length ? Math.max(...PROBLEMS.map(p => p.id)) : 0) + 1;
+  const blank = {
+    id: nextId, lc: 0, title: "新题目", slug: "", difficulty: "easy",
+    tags: [], method: "solve", desc: "",
+    examples: [],
+  };
+  document.getElementById("modal-problems").classList.remove("show");
+  openProblemEditor(blank, true);
+}
+
+document.getElementById("btn-problems").addEventListener("click", openProblemsModal);
+document.getElementById("pb-close").addEventListener("click", () => document.getElementById("modal-problems").classList.remove("show"));
+document.getElementById("pb-export-file").addEventListener("click", downloadProblemsJSON);
+document.getElementById("pb-export-clipboard").addEventListener("click", copyProblemsToClipboard);
+document.getElementById("pb-export-show").addEventListener("click", showProblemsJSON);
+document.getElementById("pb-import-confirm").addEventListener("click", validateAndImportProblems);
+document.getElementById("pb-restore").addEventListener("click", restoreBuiltinProblems);
+document.getElementById("pb-add-new").addEventListener("click", addNewProblem);
+document.getElementById("pb-pick-file").addEventListener("click", () => document.getElementById("pb-import-file").click());
+document.getElementById("pb-import-file").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById("pb-import-text").value = ev.target.result;
+    const s = document.getElementById("pb-import-status");
+    s.textContent = "已读入文件 " + file.name;
+    s.className = "pb-status";
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+// ===== 单题编辑 =====
+let editingProblemId = null;
+let editingIsNew = false;
+
+function openProblemEditor(p, isNew = false) {
+  editingProblemId = p.id;
+  editingIsNew = isNew;
+  document.getElementById("ep-title").textContent = isNew ? "新增题目" : `编辑题目 #${p.lc} ${p.title}`;
+  document.getElementById("ep-id").value = p.id;
+  document.getElementById("ep-lc").value = p.lc ?? 0;
+  document.getElementById("ep-title-input").value = p.title || "";
+  document.getElementById("ep-slug").value = p.slug || "";
+  document.getElementById("ep-difficulty").value = p.difficulty || "easy";
+  document.getElementById("ep-tags").value = (p.tags || []).join(", ");
+  document.getElementById("ep-method").value = p.method || "";
+  document.getElementById("ep-desc").value = p.desc || "";
+  document.getElementById("ep-inplace").checked = !!p.inplace;
+  document.getElementById("ep-design").checked = !!p.design;
+  document.getElementById("ep-skip").checked = !!p.skip;
+  document.getElementById("ep-compare").value = p.compare || "equal";
+  document.getElementById("ep-argtypes").value = (p.argTypes || []).join(", ");
+  document.getElementById("ep-returntype").value = p.returnType || "value";
+  document.getElementById("ep-examples").value = JSON.stringify(p.examples || [], null, 2);
+  document.getElementById("ep-validation").innerHTML = "";
+  document.getElementById("ep-delete").style.display = isNew ? "none" : "";
+  document.getElementById("modal-edit-problem").classList.add("show");
+}
+
+function readEditedProblem() {
+  const tagsRaw = document.getElementById("ep-tags").value.trim();
+  const argTypesRaw = document.getElementById("ep-argtypes").value.trim();
+  let examples;
+  try {
+    examples = JSON.parse(document.getElementById("ep-examples").value || "[]");
+  } catch (e) {
+    throw new Error("Examples JSON 解析失败: " + e.message);
+  }
+  const p = {
+    id: Number(document.getElementById("ep-id").value),
+    lc: Number(document.getElementById("ep-lc").value),
+    title: document.getElementById("ep-title-input").value.trim(),
+    slug: document.getElementById("ep-slug").value.trim(),
+    difficulty: document.getElementById("ep-difficulty").value,
+    tags: tagsRaw ? tagsRaw.split(",").map(s => s.trim()).filter(Boolean) : [],
+    method: document.getElementById("ep-method").value.trim(),
+    desc: document.getElementById("ep-desc").value,
+    examples,
+  };
+  if (document.getElementById("ep-inplace").checked) p.inplace = true;
+  if (document.getElementById("ep-design").checked) p.design = true;
+  if (document.getElementById("ep-skip").checked) p.skip = true;
+  const cmp = document.getElementById("ep-compare").value;
+  if (cmp && cmp !== "equal") p.compare = cmp;
+  if (argTypesRaw) p.argTypes = argTypesRaw.split(",").map(s => s.trim()).filter(Boolean);
+  const rt = document.getElementById("ep-returntype").value;
+  if (rt && rt !== "value") p.returnType = rt;
+  return p;
+}
+
+document.getElementById("btn-edit-problem").addEventListener("click", () => {
+  if (currentId === null) return;
+  const p = PROBLEMS.find(x => x.id === currentId);
+  if (!p) return;
+  openProblemEditor(p, false);
+});
+
+document.getElementById("ep-cancel").addEventListener("click", () => {
+  document.getElementById("modal-edit-problem").classList.remove("show");
+});
+
+document.getElementById("ep-save").addEventListener("click", () => {
+  const validEl = document.getElementById("ep-validation");
+  validEl.innerHTML = "";
+  let edited;
+  try {
+    edited = readEditedProblem();
+  } catch (e) {
+    validEl.innerHTML = `<div class="pv-item err">${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  const v = validateProblem(edited);
+  if (!v.ok) {
+    validEl.innerHTML = v.errors.map(m => `<div class="pv-item err">${escapeHtml(m)}</div>`).join("");
+    return;
+  }
+  // id 唯一性
+  const dup = PROBLEMS.find(p => p.id === edited.id && p.id !== editingProblemId);
+  if (dup) {
+    validEl.innerHTML = `<div class="pv-item err">id ${edited.id} 已被题目「${escapeHtml(dup.title)}」占用</div>`;
+    return;
+  }
+  if (editingIsNew) {
+    PROBLEMS.push(edited);
+  } else {
+    const idx = PROBLEMS.findIndex(p => p.id === editingProblemId);
+    if (idx === -1) {
+      PROBLEMS.push(edited);
+    } else {
+      PROBLEMS[idx] = edited;
+    }
+  }
+  PROBLEMS.sort((a, b) => a.id - b.id);
+  saveProblems();
+  document.getElementById("modal-edit-problem").classList.remove("show");
+  renderTagFilter();
+  renderList();
+  renderStats();
+  selectProblem(edited.id);
+});
+
+document.getElementById("ep-delete").addEventListener("click", () => {
+  if (editingProblemId === null) return;
+  const p = PROBLEMS.find(x => x.id === editingProblemId);
+  if (!p) return;
+  if (!confirm(`删除题目「${p.title}」?该题目的进度记录会保留(不会自动清除)。`)) return;
+  PROBLEMS = PROBLEMS.filter(x => x.id !== editingProblemId);
+  saveProblems();
+  document.getElementById("modal-edit-problem").classList.remove("show");
+  if (currentId === editingProblemId) {
+    currentId = null;
+    document.getElementById("empty-state").style.display = "flex";
+    document.getElementById("workspace-content").style.display = "none";
+  }
+  renderTagFilter();
+  renderList();
+  renderStats();
+});
+
+window.addEventListener("beforeunload", flushPendingSave);
+
+// ===== 初始化 =====
+document.documentElement.setAttribute("data-theme", settings.theme);
+renderTagFilter();
+renderList();
+renderStats();
+if (settings.lastProblemId && PROBLEMS.find(p => p.id === settings.lastProblemId)) {
+  selectProblem(settings.lastProblemId);
+}
+</script>
+</body>
+</html>
