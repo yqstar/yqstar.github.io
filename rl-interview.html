@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>强化学习面试题 — 从 MDP 到 RLHF</title>
+<style>
+:root {
+  --bg: #fafafa; --white: #ffffff; --border: #e2e2e2; --border-light: #eff0f0;
+  --text: #262626; --text2: #595959; --text3: #8c8c8c;
+  --accent: #30a14e; --accent-bg: rgba(48,161,78,0.06); --accent-glow: rgba(48,161,78,0.1);
+  --claude: #da7756; --claude-glow: rgba(218,119,86,0.08);
+  --radius: 10px; --radius-sm: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+  --mono: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+.page-header {
+  text-align: center; padding: 64px 20px 40px;
+  background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.page-header .icon { font-size: 3em; margin-bottom: 12px; display: block; }
+.page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.page-header h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #c4704a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.page-header .subtitle { font-size: 1em; color: var(--text3); margin-top: 8px; }
+.page-header .back-link { display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none; font-size: 0.88em; font-weight: 500; }
+.page-header .back-link:hover { text-decoration: underline; }
+
+.stats-bar { max-width: 900px; margin: 0 auto; padding: 24px 24px 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; text-align: center; min-width: 90px; }
+.stat-item .stat-num { font-size: 1.4em; font-weight: 700; color: var(--accent); }
+.stat-item .stat-label { font-size: 0.72em; color: var(--text3); margin-top: 2px; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 24px 80px; }
+
+.section { margin-bottom: 40px; }
+.section-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.section-title .s-icon { font-size: 1.2em; }
+.section-title .s-count { font-size: 0.72em; color: var(--text3); font-weight: 500; background: var(--border-light); padding: 2px 10px; border-radius: 12px; }
+
+.q-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: all 0.2s; }
+.q-card:hover { border-color: #d0d0cc; }
+.q-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.q-header { padding: 16px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; user-select: none; transition: background 0.12s; }
+.q-header:hover { background: #fafaf9; }
+.q-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.q-text { flex: 1; min-width: 0; }
+.q-text h4 { font-size: 1em; font-weight: 600; color: var(--text); line-height: 1.5; }
+.q-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.q-tag { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: #f0f0ee; color: var(--text3); }
+.q-tag.core { background: var(--accent-bg); color: var(--accent); }
+.q-tag.hot { background: var(--claude-glow); color: var(--claude); }
+.q-arrow { font-size: 0.8em; color: var(--text3); transition: transform 0.25s; flex-shrink: 0; margin-top: 4px; }
+.q-card.open .q-arrow { transform: rotate(90deg); }
+.q-body { display: none; padding: 0 20px 20px 60px; }
+.q-card.open .q-body { display: block; }
+.q-body .answer-section { margin-bottom: 16px; }
+.q-body .answer-section:last-child { margin-bottom: 0; }
+.q-body .answer-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
+.q-body p, .q-body li { font-size: 0.9em; color: var(--text2); line-height: 1.75; }
+.q-body ul, .q-body ol { padding-left: 20px; margin: 6px 0; }
+.q-body li { margin-bottom: 4px; }
+.q-body pre { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.82em; line-height: 1.65; overflow-x: auto; margin: 8px 0; }
+.q-body code { background: #f0f0ee; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
+.q-body pre code { background: none; padding: 0; color: inherit; }
+.q-body .highlight-box { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0; font-size: 0.88em; color: #92400e; line-height: 1.6; }
+.q-body table { width: 100%; border-collapse: collapse; font-size: 0.88em; color: var(--text2); margin: 8px 0; }
+.q-body table th { text-align: left; padding: 6px 8px; color: var(--text); border-bottom: 1px solid var(--border); }
+.q-body table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); }
+
+.toc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 32px; }
+.toc h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.toc-list li { font-size: 0.85em; }
+.toc-list a { color: var(--accent); text-decoration: none; }
+.toc-list a:hover { text-decoration: underline; }
+.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); }
+.footer a { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 640px) {
+  .page-header h1 { font-size: 1.6em; }
+  .q-body { padding: 0 16px 16px 16px; }
+  .q-header { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="icon">🎯</span>
+  <h1>强化学习 <span class="gradient-text">面试题精选</span></h1>
+  <p class="subtitle">MDP · Q-Learning · Policy Gradient · PPO · RLHF — 从经典算法到 LLM 对齐</p>
+  <a href="index.html" class="back-link">← 返回 Study Hub</a>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">精选题目</div></div>
+  <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">知识模块</div></div>
+  <div class="stat-item"><div class="stat-num">★★★★★</div><div class="stat-label">LLM 时代核心</div></div>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ul class="toc-list">
+    <li><a href="#s1">一、RL 基础与 MDP</a></li>
+    <li><a href="#s2">二、Value-Based 方法</a></li>
+    <li><a href="#s3">三、Policy-Based 方法</a></li>
+    <li><a href="#s4">四、Actor-Critic & PPO</a></li>
+    <li><a href="#s5">五、RLHF 与 LLM 对齐</a></li>
+    <li><a href="#s6">六、探索与工程实践</a></li>
+  </ul>
+</div>
+
+<!-- ====== SECTION 1 ====== -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="s-icon">📐</span> 一、RL 基础与 MDP<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q1"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">1</span><div class="q-text"><h4>什么是强化学习？它与监督学习、无监督学习的核心区别是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>强化学习（RL）</strong>是让智能体（Agent）在环境（Environment）中通过<strong>试错交互</strong>来学习最优策略的机器学习范式。Agent 执行动作 → 环境给出奖励和下一状态 → Agent 调整策略以最大化累积奖励。</p>
+    <table>
+      <tr><th>维度</th><th>监督学习</th><th>无监督学习</th><th>强化学习</th></tr>
+      <tr><td>信号</td><td>标签（正确答案）</td><td>无标签</td><td>奖励（评价好坏）</td></tr>
+      <tr><td>反馈时机</td><td>即时</td><td>无</td><td>可能延迟（Delayed Reward）</td></tr>
+      <tr><td>数据来源</td><td>静态数据集</td><td>静态数据集</td><td>Agent 与环境交互产生</td></tr>
+      <tr><td>目标</td><td>拟合输入→输出映射</td><td>发现数据内部结构</td><td>最大化累积奖励</td></tr>
+      <tr><td>核心挑战</td><td>过拟合</td><td>评估难</td><td>探索-利用权衡、信用分配</td></tr>
+    </table>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q2"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">2</span><div class="q-text"><h4>请详细解释 MDP（马尔可夫决策过程）的五个核心要素。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">理论基础</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>MDP 是 RL 的数学框架，由五元组 (S, A, P, R, γ) 定义：</p>
+    <ol>
+      <li><strong>S (State Space，状态空间)</strong>：所有可能状态的集合。状态必须满足马尔可夫性质——当前状态包含了预测未来所需的全部信息，与历史无关。</li>
+      <li><strong>A (Action Space，动作空间)</strong>：所有可能动作的集合。可以是离散的（上下左右）或连续的（力的大小方向）。</li>
+      <li><strong>P (Transition Probability，状态转移概率)</strong>：P(s'|s,a) — 在状态 s 执行动作 a 后转移到 s' 的概率。体现了环境的随机性。</li>
+      <li><strong>R (Reward Function，奖励函数)</strong>：R(s,a) 或 R(s,a,s') — Agent 在每个步骤获得的即时奖励信号。驱动 Agent 学习的核心信号。</li>
+      <li><strong>γ (Discount Factor，折扣因子)</strong>：γ ∈ [0,1]，用于权衡即时奖励 vs 未来奖励。γ 接近 0 → 短视；γ 接近 1 → 远见。</li>
+    </ol>
+    <p><strong>马尔可夫性质：</strong>"未来只取决于现在，与过去无关"——形式上 P(s_{t+1}|s_t,a_t,s_{t-1},a_{t-1},...) = P(s_{t+1}|s_t,a_t)。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q3"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">3</span><div class="q-text"><h4>状态价值函数 V(s) 和动作价值函数 Q(s,a) 的区别是什么？请写出 Bellman 方程。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心公式</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>V(s) — 状态价值函数：</strong>在状态 s 开始，遵循策略 π 时，能获得的<strong>期望累积折扣奖励</strong>。回答"在这个状态有多好？"</p>
+    <p><strong>Q(s,a) — 动作价值函数：</strong>在状态 s 执行动作 a，之后遵循策略 π 时，能获得的期望累积折扣奖励。回答"在这个状态做这个动作有多好？"</p>
+    <pre><code>V^π(s) = E_π[ Σ_{t=0}^∞ γ^t · R_{t+1} | S₀ = s ]
+
+Q^π(s,a) = E_π[ Σ_{t=0}^∞ γ^t · R_{t+1} | S₀ = s, A₀ = a ]
+
+关系：V^π(s) = Σ_a π(a|s) · Q^π(s,a)     (V 是 Q 的加权平均)</code></pre>
+    <p><strong>Bellman 期望方程：</strong></p>
+    <pre><code>V^π(s) = Σ_a π(a|s) · Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · V^π(s')]
+
+Q^π(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · Σ_{a'} π(a'|s') · Q^π(s',a')]</code></pre>
+    <p><strong>Bellman 最优方程：</strong></p>
+    <pre><code>V*(s) = max_a Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · V*(s')]
+
+Q*(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · max_{a'} Q*(s',a')]</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q4"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">4</span><div class="q-text"><h4>什么是"探索-利用困境"（Exploration-Exploitation Dilemma）？有哪些解决策略？</h4>
+    <div class="q-tags"><span class="q-tag hot">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>困境定义：</strong></p>
+    <ul>
+      <li><strong>利用（Exploitation）</strong>：选择当前认为最好的动作，获得已知的高奖励。短期最优。</li>
+      <li><strong>探索（Exploration）</strong>：尝试不确定的动作，可能发现更好的策略。长期最优但短期可能受损。</li>
+    </ul>
+    <p><strong>解决策略：</strong></p>
+    <ol>
+      <li><strong>ε-Greedy</strong>：以 1-ε 概率利用（选最优），ε 概率随机探索。可让 ε 随时间衰减。</li>
+      <li><strong>UCB (Upper Confidence Bound)</strong>：选 a_t = argmax [Q(a) + c·√(ln t / N(a))]。直觉：除了估计值，还考虑不确定性——少试过的动作加一个奖励探索的 bonus。</li>
+      <li><strong>Thompson Sampling</strong>：维护每个动作的奖励分布（Beta 分布），每次采样后选最好的。天然平衡探索与利用。</li>
+      <li><strong>Boltzmann Exploration (Softmax)</strong>：以 softmax(Q(s,a)/τ) 概率采样动作。温度 τ 控制探索程度。</li>
+      <li><strong>Entropy Regularization</strong>：在损失函数加熵项，鼓励策略保持一定随机性（PPO、SAC 都用这个）。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q5"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">5</span><div class="q-text"><h4>On-Policy 和 Off-Policy 学习的区别是什么？各自的优缺点？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>On-Policy</th><th>Off-Policy</th></tr>
+      <tr><td>数据来源</td><td>当前策略自己产生的数据</td><td>任何策略（包括历史策略）产生的数据</td></tr>
+      <tr><td>策略更新</td><td>采一次→学一次→丢弃数据</td><td>可以反复使用旧数据（Experience Replay）</td></tr>
+      <tr><td>样本效率</td><td>低（数据只能用一次）</td><td>高（数据可重用）</td></tr>
+      <tr><td>稳定性</td><td>较稳定</td><td>可能不稳定（分布偏移）</td></tr>
+      <tr><td>代表算法</td><td>SARSA, PPO, A2C/A3C, REINFORCE</td><td>Q-Learning, DQN, DDPG, SAC</td></tr>
+      <tr><td>适用场景</td><td>交互成本低、需要稳定训练</td><td>交互成本高（如真实机器人）、数据珍贵</td></tr>
+    </table>
+    <div class="highlight-box">💡 <strong>关键洞察：</strong>RLHF 中 PPO 是 On-Policy 的——每次策略更新后必须重新采样，这也是 RLHF 成本高昂的原因之一。最近也有 Off-Policy RLHF 的探索（如 DPO 直接回避了采样问题）。</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 2 ====== -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="s-icon">📊</span> 二、Value-Based 方法<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q6"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">6</span><div class="q-text"><h4>Q-Learning 和 SARSA 的区别是什么？请写出两者的更新公式。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">经典算法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># Q-Learning (Off-Policy) — 用 max 选择下一动作
+Q(s,a) ← Q(s,a) + α [ R + γ·max_{a'}Q(s',a') - Q(s,a) ]
+
+# SARSA (On-Policy) — 用实际执行的下一动作
+Q(s,a) ← Q(s,a) + α [ R + γ·Q(s',a') - Q(s,a) ]</code></pre>
+    <p><strong>核心区别：</strong></p>
+    <ul>
+      <li><strong>Q-Learning</strong> 是 Off-Policy——学习最优策略（target policy），即使当前在探索（behavior policy）时也会用 max 来计算 TD Target。更激进，可能高估 Q 值。</li>
+      <li><strong>SARSA</strong> 是 On-Policy——学到的是带有探索的策略（ε-greedy 的最优）。更保守，会考虑探索带来的风险。</li>
+    </ul>
+    <p><strong>经典例子 — Cliff Walking：</strong>Q-Learning 走悬崖边（最优路径，但容易掉下去），SARSA 走安全通道（考虑 ε-探索时掉下去的风险）。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q7"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">7</span><div class="q-text"><h4>DQN（Deep Q-Network）的两个核心创新是什么？解决了什么问题？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">深度学习 RL</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>DQN 使用神经网络来近似 Q(s,a)，面临两大问题：</p>
+    <p><strong>创新 1 — Experience Replay（经验回放）</strong></p>
+    <ul>
+      <li><strong>解决的问题：</strong>连续样本之间的强相关性破坏 i.i.d. 假设；数据只用一次效率低。</li>
+      <li><strong>做法：</strong>将每次交互的 (s,a,r,s') 存入 Replay Buffer，训练时随机采样 mini-batch。</li>
+    </ul>
+    <p><strong>创新 2 — Target Network（目标网络）</strong></p>
+    <ul>
+      <li><strong>解决的问题：</strong>用同一个 Q 网络计算 TD Target（max Q）和当前 Q，类似"追自己的尾巴"——目标不断变化导致训练不稳定。</li>
+      <li><strong>做法：</strong>维护一个 Target Network（参数 θ⁻），定期（如每 C 步）从主网络复制参数。TD Target 用 Target Network 计算。</li>
+    </ul>
+    <pre><code># DQN Loss
+L(θ) = E[(R + γ·max_{a'}Q(s',a'; θ⁻) - Q(s,a; θ))²]
+
+# θ 每次更新，θ⁻ 每 C 步从 θ 复制一次</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q8"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">8</span><div class="q-text"><h4>什么是 Q 值高估问题（Overestimation Bias）？Double DQN 如何解决？</h4>
+    <div class="q-tags"><span class="q-tag hot">算法改进</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>问题根源：</strong>Q-Learning 的 TD Target 使用 <code>max_{a'} Q(s',a')</code>。由于 Q 函数有估计误差，<strong>取 max 会系统性地选择正误差最大的动作</strong>，导致 Q 值被持续高估。这会导致次优的策略选择。</p>
+    <p><strong>Double DQN 解决方案：</strong>将"选择最优动作"和"评估该动作的 Q 值"<strong>解耦到两个网络</strong>：</p>
+    <pre><code># DQN: 同一个网络先选动作再估值
+TD Target = R + γ · Q(s', argmax Q(s',a'; θ); θ)
+#                              ↑ 选动作       ↑ 估值   → 同一网络，高估传播
+
+# Double DQN: 两个网络分工
+TD Target = R + γ · Q(s', argmax Q(s',a'; θ); θ⁻)
+#                              ↑ 主网络选动作  ↑ Target 网络估值 → 解耦</code></pre>
+    <p>用主网络（θ）选动作，Target 网络（θ⁻）估值，降低了同一误差被放大两次的风险。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q9"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">9</span><div class="q-text"><h4>Dueling DQN 的架构创新是什么？Advantage Function 起到了什么作用？</h4>
+    <div class="q-tags"><span class="q-tag core">架构改进</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Dueling DQN 将 Q 网络拆分为<strong>两个并行的流</strong>（共享特征提取层后分叉）：</p>
+    <pre><code>Q(s,a) = V(s) + A(s,a) - 1/|A| · Σ_{a'} A(s,a')
+
+其中：
+V(s)  — 状态本身的价值（与动作无关）
+A(s,a) — 动作的优势（Advantage）：这个动作比平均水平好多少
+减均值 — 确保 V 和 A 的可辨识性（identifiability）</code></pre>
+    <p><strong>优势：</strong></p>
+    <ul>
+      <li>在某些状态下，动作选择不重要（如等红灯时，所有操作都不影响结果）→ V(s) 可以被高效学习，不必为每个动作都精确估计 Q 值。</li>
+      <li>同样的 V(s) 学习信号可以泛化到所有动作上，提高样本效率。</li>
+    </ul>
+    <div class="highlight-box">💡 Advantage Function 的思想在 Actor-Critic 和 PPO 中被广泛使用——GAE（Generalized Advantage Estimation）就是对 Advantage 的优雅估计。</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 3 ====== -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="s-icon">📈</span> 三、Policy-Based 方法<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q10"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">10</span><div class="q-text"><h4>Policy Gradient 的核心思想是什么？请推导 REINFORCE 算法的梯度公式。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心算法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>核心思想：</strong>不估计 Q 值再推导策略，而是<strong>直接对策略参数求梯度</strong>，朝"增加好动作概率、降低坏动作概率"的方向更新。</p>
+    <p><strong>Policy Gradient Theorem：</strong></p>
+    <pre><code>∇J(θ) = E_π[ ∇log π_θ(a|s) · Q^π(s,a) ]
+
+直观解释：
+- ∇log π(a|s)：策略对参数的变化方向
+- Q^π(s,a)：该动作的好坏程度（相当于"权重"或"学习信号"）
+→ 好的动作（Q 大）被强化，差的动作被抑制</code></pre>
+    <p><strong>REINFORCE 算法（蒙特卡洛 Policy Gradient）：</strong></p>
+    <pre><code># 收集一条完整轨迹
+τ = (s₀, a₀, r₁, s₁, a₁, r₂, ..., s_T)
+
+# 计算每个时间步的回报（Return）
+G_t = Σ_{k=t}^T γ^{k-t} · r_{k+1}    # 从 t 开始的实际累积奖励
+
+# 更新策略（用 G_t 替代 Q 的蒙特卡洛估计）
+θ ← θ + α · Σ_t γ^t · ∇log π_θ(a_t|s_t) · G_t</code></pre>
+    <p>REINFORCE 的缺点：高方差（G_t 是多次采样的和，波动大）。解决方法：引入 Baseline（减去 V(s) 得到 Advantage），即 Actor-Critic 的思路。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q11"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">11</span><div class="q-text"><h4>Value-Based 方法和 Policy-Based 方法各自的适用场景是什么？为什么连续动作空间不适合 Q-Learning？</h4>
+    <div class="q-tags"><span class="q-tag hot">选型对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>Value-Based</th><th>Policy-Based</th></tr>
+      <tr><td>输出</td><td>Q(s,a) 值</td><td>直接输出动作分布 π(a|s)</td></tr>
+      <tr><td>最优动作</td><td>argmax Q(s,a)</td><td>从 π 采样 / 取均值</td></tr>
+      <tr><td>离散动作</td><td>✅ 自然适配（遍历所有 a 取 max）</td><td>✅ 可以</td></tr>
+      <tr><td>连续动作</td><td>❌ 无法遍历连续空间取 max</td><td>✅ 输出分布参数（μ, σ）</td></tr>
+      <tr><td>随机策略</td><td>❌ 学确定性策略</td><td>✅ 天然支持随机策略</td></tr>
+      <tr><td>收敛性</td><td>有保证（tabular case）</td><td>收敛到局部最优</td></tr>
+      <tr><td>代表算法</td><td>DQN, SARSA, Q-Learning</td><td>REINFORCE, PPO, TRPO</td></tr>
+    </table>
+    <p><strong>连续动作空间的核心挑战：</strong>Q-Learning 需要 max_{a} Q(s,a) 来选择最优动作。连续空间中有无穷多个动作，无法穷举。虽然可以用梯度上升搜索 argmax，但这在每步都做代价太高。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q12"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">12</span><div class="q-text"><h4>什么是 REINFORCE 的高方差问题？引入 Baseline 为什么能减小方差？</h4>
+    <div class="q-tags"><span class="q-tag core">理论理解</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>高方差来源：</strong>REINFORCE 用 <strong>G_t（整个轨迹的实际累积奖励）</strong> 作为 Q 的估计。G_t = r_1 + γr_2 + ... + γ^{T-t}r_{T-t+1} 是多个随机变量的和，方差极大。</p>
+    <p><strong>Baseline 的方差缩减原理：</strong></p>
+    <pre><code># 原始 Policy Gradient
+∇J = E[ ∇log π(a|s) · G_t ]
+
+# 加入 Baseline (通常是 V(s))
+∇J = E[ ∇log π(a|s) · (G_t - b(s)) ]
+
+数学上：E[∇log π(a|s) · b(s)] = b(s) · ∇E[π(a|s)] = b(s) · ∇1 = 0
+→ 减 Baseline 不改变梯度的期望，但可以减少方差</code></pre>
+    <p><strong>直觉：</strong>不判断"这个动作带来 +100 奖励（好）"，而是判断"这个动作比平均水平好 +20（好）"，信号更聚焦于动作本身的贡献，去除了状态本身好坏的影响。</p>
+    <p><strong>最常用的 Baseline：</strong>状态价值函数 V(s)。此时 G_t - V(s_t) 就是 <strong>Advantage Function A(s,a)</strong>，这正是 Actor-Critic 和 PPO 的核心。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q13"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">13</span><div class="q-text"><h4>什么是信任域（Trust Region）问题？TRPO 和 PPO 分别如何解决它？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">策略优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>问题：</strong>Policy Gradient 的一个更新步长太大可能导致策略突变，新策略在旧策略没探索过的区域表现很差→ 训练崩溃（Performance Collapse）。</p>
+    <p><strong>TRPO（Trust Region Policy Optimization）的解决方案：</strong></p>
+    <ul>
+      <li>为每次策略更新加一个<strong>硬约束</strong>：KL(π_old || π_new) ≤ δ ——新旧策略的 KL 散度不能超过阈值。</li>
+      <li>用共轭梯度法求解带约束的优化问题。</li>
+      <li><strong>缺点：</strong>计算复杂（需要计算 Hessian-vector product），难以实现。</li>
+    </ul>
+    <p><strong>PPO（Proximal Policy Optimization）的解决方案：</strong></p>
+    <ul>
+      <li>用 <strong>Clipping</strong> 替代硬约束：如果概率比值 r(θ) = π_new/π_old 偏离 1 太远，直接剪掉梯度。</li>
+      <li>实现简单（几行代码），效果与 TRPO 相当甚至更好。</li>
+    </ul>
+    <pre><code># PPO Clipped Objective
+r_t(θ) = π_θ(a_t|s_t) / π_old(a_t|s_t)
+L_CLIP = E[ min( r_t·A_t,   clip(r_t, 1-ε, 1+ε)·A_t ) ]
+#             如果 A>0→ 不鼓励 r>1+ε (别太激进)
+#             如果 A<0→ 不鼓励 r<1-ε (别太保守)</code></pre>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 4 ====== -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="s-icon">🎭</span> 四、Actor-Critic & PPO<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q14"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">14</span><div class="q-text"><h4>Actor-Critic 架构如何结合 Value-Based 和 Policy-Based 方法的优点？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心架构</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Actor-Critic 由两个网络组成：</p>
+    <ul>
+      <li><strong>Actor（演员 — Policy Network）</strong>：输出策略 π(a|s)，决定做什么动作。对应 Policy-Based。</li>
+      <li><strong>Critic（评论家 — Value Network）</strong>：输出 V(s) 或 Q(s,a)，评估 Actor 的表现。对应 Value-Based。</li>
+    </ul>
+    <pre><code># Actor-Critic 更新流程
+for each step:
+    a = Actor.sample(s)           # Actor 选动作
+    s', r = env.step(a)           # 环境反馈
+
+    # TD Error = 实际奖励 + 下一状态估值 - 当前状态估值
+    δ = r + γ·Critic(s') - Critic(s)
+
+    Critic ← minimize(δ²)         # Critic 学得更准
+    Actor ← Actor + α·∇log π(a|s)·δ  # Actor 朝好的方向调整
+    # 注意：这里用 Critic 提供的 TD Error (δ) 替代 REINFORCE 的 G_t
+    # 作为 Advantage 的低方差估计</code></pre>
+    <p><strong>优势：</strong>Actor 不需要等轨迹结束（不依赖 G_t），每步都能用 Critic 的即时反馈更新 → 低方差 + 在线学习。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q15"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">15</span><div class="q-text"><h4>PPO（Proximal Policy Optimization）的目标函数是什么？Clip 机制是如何运作的？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">LLM 对齐核心</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>PPO 是 RLHF 和大多数现代 RL 应用的首选算法。完整目标函数：</p>
+    <pre><code># PPO-Clip 目标函数
+L(θ) = E[ L_CLIP(θ) + c₁·L_VF(θ) + c₂·S[π_θ](s) ]
+
+其中：
+L_CLIP = min(r_t(θ)·A_t, clip(r_t(θ), 1-ε, 1+ε)·A_t)   # 策略损失
+          概率比值 r_t = π_new(a|s) / π_old(a|s)
+
+L_VF = (V_θ(s) - V_target)²    # Critic 损失（价值函数拟合）
+S[π] = -Σ π(a|s) log π(a|s)    # 熵正则项（鼓励探索）</code></pre>
+    <p><strong>Clip 机制的直观理解：</strong></p>
+    <ul>
+      <li>如果 <strong>A_t > 0</strong>（这个动作是好的）→ 想增大 π_new/π_old，但不能超过 1+ε（防止"过犹不及"）</li>
+      <li>如果 <strong>A_t < 0</strong>（这个动作是坏的）→ 想减小 π_new/π_old，但不能低于 1-ε（防止"过度打压"）</li>
+    </ul>
+    <p>这使得策略更新保持在"信赖域"内——策略不会变得与旧策略差别太大。通常 ε = 0.2。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q16"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">16</span><div class="q-text"><h4>什么是 GAE（Generalized Advantage Estimation）？λ 参数的作用是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">技术细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>GAE 是一种在<strong>偏差和方差之间平衡</strong>的 Advantage 估计方法：</p>
+    <pre><code># 单步 TD Error
+δ_t = r_t + γ·V(s_{t+1}) - V(s_t)
+
+# GAE: 对未来的 TD Error 做指数加权衰减
+A_t^GAE(λ) = Σ_{l=0}^∞ (γλ)^l · δ_{t+l}
+
+展开：
+A_t^GAE = δ_t + (γλ)·δ_{t+1} + (γλ)²·δ_{t+2} + ...</code></pre>
+    <p><strong>λ 的作用（0 ≤ λ ≤ 1）：</strong></p>
+    <ul>
+      <li><strong>λ = 0：</strong>A_t = δ_t（单步 TD Error）——低方差，高偏差（过度依赖不准确的 V 函数）</li>
+      <li><strong>λ = 1：</strong>A_t = G_t - V(s_t)（蒙特卡洛估计）——无偏差，高方差</li>
+      <li><strong>0 < λ < 1：</strong>两者之间的折中——实践中 λ=0.95 是常用选择</li>
+    </ul>
+    <p>γλ 作为衰减因子：越远的 future TD error 权重越小（因为它们更不确定）。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q17"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">17</span><div class="q-text"><h4>PPO 中的 Critic 网络如何训练？Value Function Clipping 是什么？</h4>
+    <div class="q-tags"><span class="q-tag core">实现细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Critic 的训练目标：</strong>让 V(s) 尽可能准确地估计实际回报。</p>
+    <pre><code># 标准 Value Loss
+L_VF = (V_θ(s) - V_target)²
+
+其中 V_target = A_t^GAE + V_old(s)    # 用 GAE + 旧 V 值构造</code></pre>
+    <p><strong>Value Function Clipping（PPO 论文中的技巧）：</strong></p>
+    <pre><code># 约束 V 的更新幅度
+V_clipped = V_old(s) + clip(V_θ(s) - V_old(s), -ε, ε)
+L_VF_clipped = max((V_θ(s) - V_target)², (V_clipped - V_target)²)
+
+# 取两者中的较大者，防止 V 更新过于激进</code></pre>
+    <p>这与 Policy Clip 的思想一致：限制单次更新的最大变化幅度，提高训练稳定性。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q18"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">18</span><div class="q-text"><h4>PPO 在实现中有哪些关键的工程细节（Hyperparameters & Tricks）？</h4>
+    <div class="q-tags"><span class="q-tag hot">工程实践</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <ol>
+      <li><strong>Clip 范围 ε</strong>：通常 0.1~0.2。太大 → 策略不稳定；太小 → 学习太慢。</li>
+      <li><strong>GAE λ</strong>：通常 0.95~0.98。接近 1 时方差大，接近 0 时偏差大。</li>
+      <li><strong>Mini-batch Updates</strong>：收集一轮数据后，将其分成多个 mini-batch，每个 batch 做多轮更新。常见：数据量 2048 → mini-batch 64 → 做 4-10 个 epoch。</li>
+      <li><strong>Entropy Coefficient</strong>：通常 0.01。太小 → 探索不足；太大 → 策略太随机。RLHF 中有时设为 0（因为希望策略尽量贴近奖励模型）。</li>
+      <li><strong>Advantage Normalization</strong>：计算完 A 后做批次标准化（减均值除方差），让学习信号更稳定。</li>
+      <li><strong>Reward Normalization / Clipping</strong>：将奖励归一化到 N(0,1) 或裁剪到 [-10, 10]，防止极端奖励扰乱训练。</li>
+      <li><strong>学习率 & Annealing</strong>：初始学习率（如 3e-4）并线性衰减到 0。</li>
+    </ol>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 5 ====== -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="s-icon">🤖</span> 五、RLHF 与 LLM 对齐<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q19"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">19</span><div class="q-text"><h4>RLHF（RL from Human Feedback）的完整流程是怎样的？每个阶段的目标是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">LLM 对齐核心</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>RLHF 是 ChatGPT / Claude 等对齐的核心技术，分为三个阶段：</p>
+    <pre><code>Phase 1 — SFT (Supervised Fine-Tuning)
+┌─────────────────────────────────────────┐
+│ 收集高质量的人类示范数据               │
+│ Prompt + 人类写的理想回答               │
+│         ↓                               │
+│ 基于 Base Model 做监督微调 → SFT Model  │
+│ 目标：让模型学会"好回答"的格式和风格    │
+└─────────────────────────────────────────┘
+
+Phase 2 — Reward Model (RM) Training
+┌─────────────────────────────────────────┐
+│ 对每个 Prompt 生成多个回答，人类排序    │
+│ Answer A > Answer B > Answer C          │
+│         ↓                               │
+│ 用 Bradley-Terry 偏好模型训练 RM        │
+│ P(A > B) = σ(r_A - r_B)                │
+│ Loss = -log σ(r_win - r_lose)          │
+│ 目标：得到能模拟人类偏好的打分函数      │
+└─────────────────────────────────────────┘
+
+Phase 3 — PPO 强化学习
+┌─────────────────────────────────────────┐
+│ SFT Model = 初始策略 (Actor)           │
+│ RM = 奖励信号 (替代环境奖励)           │
+│         ↓                               │
+│ PPO 优化：最大化 RM 给的分             │
+│ + KL 惩罚：别离 SFT Model 太远          │
+│ 目标：对齐人类偏好但保留语言能力        │
+└─────────────────────────────────────────┘</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q20"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">20</span><div class="q-text"><h4>RLHF 中的 Reward Model 是如何训练的？Bradley-Terry 模型是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">核心组件</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Reward Model 结构：</strong>通常是 SFT Model 去掉最后的 LM Head，换成一个输出标量的线性层。输入 prompt + response，输出一个分数 r。</p>
+    <p><strong>训练数据格式：</strong>每个 prompt 有 K 个回答，人类标注排序（A > B > C > D）。从排序中抽取所有两两比较对。</p>
+    <p><strong>Bradley-Terry 偏好模型：</strong></p>
+    <pre><code>假设人类选择回答 A 而非 B 的概率取决于它们的"真实质量"r_A 和 r_B：
+
+P(A > B | r_A, r_B) = exp(r_A) / (exp(r_A) + exp(r_B))
+                     = σ(r_A - r_B)      # sigmoid 形式
+
+其中 r = RewardModel(prompt, response)
+
+# 损失函数（对每个比较对）
+L = -log σ(r_chosen - r_rejected)
+# 等价于让被选中的回答分数越高越好，被拒绝的越低越好</code></pre>
+    <p><strong>Reward Hacking 风险：</strong>Reward Model 不是完美的，可能被 PPO 找到漏洞（如输出超长回答获得高分），因此 RLHF 中通常加 KL 惩罚或长度惩罚。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q21"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">21</span><div class="q-text"><h4>RLHF 中 KL 散度惩罚的作用是什么？为什么要防止策略偏离 SFT Model 太远？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">对齐关键</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># RLHF 完整的奖励信号
+R_total = R_RM(prompt, response) - β · KL(π_θ || π_SFT)
+
+其中：
+R_RM：Reward Model 给的奖励（人类偏好）
+KL 惩罚：当前策略与 SFT Model 的差异
+β：KL 惩罚系数（通常 0.01~0.1）</code></pre>
+    <p><strong>为什么需要 KL 惩罚：</strong></p>
+    <ol>
+      <li><strong>防止 Reward Hacking</strong>：没有 KL，PPO 会学会"钻 Reward Model 的空子"——输出格式怪异但 RM 打分高。</li>
+      <li><strong>保持语言流畅性</strong>：SFT Model 经过了大量训练，其输出分布保证了基本的流畅性和语法正确性。偏离太远 → 输出可能变得不自然。</li>
+      <li><strong>防止灾难性遗忘</strong>：PPO 只优化 RM 偏好，会遗忘 SFT 中学到的通用能力。</li>
+      <li><strong>防止模式坍缩</strong>：没有约束，策略可能坍缩到输出少数几个高分回答。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q22"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">22</span><div class="q-text"><h4>DPO（Direct Preference Optimization）与 RLHF 的核心区别是什么？为什么 DPO 更简单？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">前沿方法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>RLHF 的问题：</strong>需要训练 Reward Model + PPO 在线采样，流程复杂、不稳定、计算成本高。</p>
+    <p><strong>DPO 的核心洞察：</strong>在 Bradley-Terry 偏好模型下，最优的 RLHF 策略有一个<strong>闭式解</strong>——可以直接从偏好数据中学习策略，完全跳过 Reward Model 和 PPO。</p>
+    <pre><code># DPO Loss（直接优化策略，无需 RM + PPO）
+L_DPO(π_θ; π_ref) = -log σ(
+    β · [ log(π_θ(y_win|x) / π_ref(y_win|x)) -
+          log(π_θ(y_lose|x) / π_ref(y_lose|x)) ]
+)
+
+直觉：
+- 增加被偏好的回答相对于参考策略的 log 概率
+- 减小被拒绝的回答相对于参考策略的 log 概率
+- β 控制偏离参考策略的程度（类似 RLHF 中的 KL 系数）</code></pre>
+    <table>
+      <tr><th>维度</th><th>RLHF (PPO)</th><th>DPO</th></tr>
+      <tr><td>阶段数</td><td>3（SFT → RM → PPO）</td><td>2（SFT → DPO）</td></tr>
+      <tr><td>需要 RM</td><td>✅ 需要</td><td>❌ 不需要</td></tr>
+      <tr><td>在线采样</td><td>✅ 需要（PPO 每步）</td><td>❌ 不需要（纯离线）</td></tr>
+      <tr><td>训练稳定性</td><td>较低（RL 容易崩溃）</td><td>较高（纯监督学习）</td></tr>
+      <tr><td>实现复杂度</td><td>高</td><td>低（修改 loss 函数即可）</td></tr>
+      <tr><td>性能</td><td>数据利用效率高（在线探索）</td><td>离线数据固化，可能受限于数据质量</td></tr>
+    </table>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q23"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">23</span><div class="q-text"><h4>RLHF 在实际中面临哪些核心挑战？有哪些改进方向？</h4>
+    <div class="q-tags"><span class="q-tag hot">工程实践</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <ol>
+      <li><strong>Reward Hacking</strong>：策略找到 Reward Model 的漏洞，输出高分但低质量的回答。缓解方案：KL 惩罚、长度惩罚、多个 RM 集成、对抗训练 RM。</li>
+      <li><strong>人类偏好噪声</strong>：标注者意见不一致、个人偏见。缓解：多人标注取平均/多数，按标注者建模。</li>
+      <li><strong>训练不稳定性</strong>：PPO 训练容易发散或坍缩。缓解：更小的 learning rate、更保守的 clip、更频繁的 KL 检查。</li>
+      <li><strong>成本高昂</strong>：高质量人类偏好数据昂贵，PPO 采样需要大量 GPU。DPO 和 IPO 等离线方法试图降低此成本。</li>
+      <li><strong>评估困难</strong>：对齐质量难以量化。缓解：ElO 竞技场（Chatbot Arena）、综合 benchmark（MT-Bench、AlpacaEval）。</li>
+    </ol>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 6 ====== -->
+<div class="section" id="s6">
+  <div class="section-title"><span class="s-icon">🔬</span> 六、探索与工程实践<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q24"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">24</span><div class="q-text"><h4>什么是稀疏奖励（Sparse Reward）问题？有哪些解决方案？</h4>
+    <div class="q-tags"><span class="q-tag hot">实践难题</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>问题：</strong>在大多数任务中，智能体只在完成目标时才获得正奖励（如围棋只在结束时知道输赢），中间步骤完全没有反馈。导致学习信号极度稀疏，探索困难。</p>
+    <p><strong>解决方案：</strong></p>
+    <ol>
+      <li><strong>Reward Shaping（奖励塑形）</strong>：设计辅助奖励引导 Agent（如到达子目标给分）。风险：可能引入错误的归纳偏置。</li>
+      <li><strong>Hindsight Experience Replay (HER)</strong>：将失败的经历重新标记——目标本来是 A 但达到了 B，就将这条数据重标为"目标是 B 且成功了"。</li>
+      <li><strong>Curiosity-driven Exploration</strong>：以状态的新奇程度（访问次数少 → 奖励高）作为内在奖励（Intrinsic Reward）。</li>
+      <li><strong>Curriculum Learning</strong>：从简单任务开始，逐渐增加难度。</li>
+      <li><strong>Imitation Learning / BC 初始化</strong>：先用人类示范预训练策略，再用 RL 微调。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q25"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">25</span><div class="q-text"><h4>什么是死记硬背问题（Deadly Triad）？它为什么会导致 Q-Learning 发散？</h4>
+    <div class="q-tags"><span class="q-tag core">理论深度</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Deadly Triad（致命三要素）</strong>由 Sutton 提出，当以下三个条件<strong>同时满足</strong>时，TD 学习可能发散：</p>
+    <ol>
+      <li><strong>Function Approximation（函数逼近）</strong>：用神经网络而非表格来近似 Q 值 — 引入泛化但也引入近似误差。</li>
+      <li><strong>Bootstrapping（自举）</strong>：TD Target 使用了当前估计值来更新自身（用 Q 更新 Q）— 误差会递归传播。</li>
+      <li><strong>Off-Policy Learning（离线策略学习）</strong>：用于更新的数据分布 ≠ 当前策略的分布 — 分布偏移导致误差被放大。</li>
+    </ol>
+    <p>三者叠加 → 近似误差通过 Bootstrap 被放大 → Off-Policy 导致误差不断累积而无纠正机会 → 发散。</p>
+    <p><strong>解决：</strong>DQN 引入 Target Network 和 Experience Replay 就是为了打破致命三要素——Target Network 解耦 Bootstrap，Replay 让数据更近似 i.i.d.。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q26"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">26</span><div class="q-text"><h4>SAC（Soft Actor-Critic）相比于 PPO 有什么特点？Maximum Entropy RL 是什么？</h4>
+    <div class="q-tags"><span class="q-tag core">算法对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>SAC 的核心特点：</strong>Off-Policy + 最大熵 RL（Maximum Entropy RL）。</p>
+    <pre><code># 标准 RL 目标
+max E[ Σ γ^t · r_t ]
+
+# Maximum Entropy RL 目标
+max E[ Σ γ^t · (r_t + α·H(π(·|s_t))) ]
+#                       ↑ 额外的熵项：鼓励策略保持高熵（随机性）
+
+# SAC 的软 Q 更新
+Q(s,a) ← r + γ·E[ Q(s',a') - α·log π(a'|s') ]  # 带熵的 soft Q</code></pre>
+    <table>
+      <tr><th>维度</th><th>PPO</th><th>SAC</th></tr>
+      <tr><td>学习方式</td><td>On-Policy</td><td>Off-Policy</td></tr>
+      <tr><td>样本效率</td><td>较低</td><td>高（可以重复使用旧数据）</td></tr>
+      <tr><td>策略类型</td><td>随机策略</td><td>随机策略（最大熵促进探索）</td></tr>
+      <tr><td>适用场景</td><td>模拟器（可大量采样）</td><td>真实环境（样本珍贵）、机器人</td></tr>
+      <tr><td>训练稳定性</td><td>Clip 机制保证</td><td>双 Q 网络 + Target Network</td></tr>
+    </table>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q27"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">27</span><div class="q-text"><h4>如何处理 RL 中的部分可观测性（Partial Observability / POMDP）？</h4>
+    <div class="q-tags"><span class="q-tag core">进阶问题</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>问题：</strong>真实场景中，Agent 通常无法观测到环境的完整状态。如自动驾驶只能看到前方画面，不知道拐角后面有什么。</p>
+    <p><strong>解决方案：</strong></p>
+    <ol>
+      <li><strong>Frame Stacking</strong>：将最近 K 帧作为状态（DQN 对 Atari 游戏的标准做法，4 帧叠加）。提供运动信息和短暂历史。</li>
+      <li><strong>RNN/LSTM Policy</strong>：在策略网络中加入循环层，隐状态 h_t 编码历史观测信息。代表：DRQN（Deep Recurrent Q-Network）。</li>
+      <li><strong>Transformer Policy</strong>：类似 Decision Transformer，用自注意力聚合历史序列。</li>
+      <li><strong>Belief State</strong>：维护对真实状态的信念分布（Bayesian Filtering），将 POMDP 转化为 belief MDP 求解（但计算代价高）。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q28"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">28</span><div class="q-text"><h4>在实际工程中，如何选择 RL 算法？有哪些决策框架？</h4>
+    <div class="q-tags"><span class="q-tag hot">工程选型</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>场景</th><th>推荐算法</th><th>原因</th></tr>
+      <tr><td>离散动作 + 模拟器（可大量采样）</td><td>PPO</td><td>稳定、易实现、调参经验丰富</td></tr>
+      <tr><td>离散动作 + 样本珍贵</td><td>Rainbow DQN / SAC-Discrete</td><td>Off-Policy，样本效率高</td></tr>
+      <tr><td>连续动作 + 模拟器</td><td>PPO</td><td>最可靠的基线</td></tr>
+      <tr><td>连续动作 + 真实机器人</td><td>SAC</td><td>Off-Policy + 最大熵探索</td></tr>
+      <tr><td>LLM 对齐 / NLP 任务</td><td>PPO / DPO</td><td>PPO 是经过验证的方案，DPO 更简单</td></tr>
+      <tr><td>多智能体</td><td>MADDPG / QMIX / MAPPO</td><td>多智能体有专门的分布式策略</td></tr>
+      <tr><td>稀疏奖励</td><td>SAC + HER / 好奇心驱动</td><td>需要辅助的探索或奖励机制</td></tr>
+    </table>
+    <div class="highlight-box">💡 <strong>核心原则：</strong>先确认环境特点（离散/连续、样本成本、观测性），再匹配算法。PPO 是最安全的默认选择——它几乎在所有任务上都能"work"。</div>
+    </div>
+  </div></div>
+</div>
+
+</div>
+
+<div class="footer">强化学习面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a></div>
+
+<script>
+function toggleQ(header) {
+  header.parentElement.classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) target.classList.add('open');
+  }
+});
+</script>
+
+</body>
+</html>

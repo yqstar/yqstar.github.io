@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer 面试题 — 从注意力机制到预训练</title>
+<style>
+:root {
+  --bg: #fafafa; --white: #ffffff; --border: #e2e2e2; --border-light: #eff0f0;
+  --text: #262626; --text2: #595959; --text3: #8c8c8c;
+  --accent: #7c3aed; --accent-bg: rgba(124,58,237,0.06); --accent-glow: rgba(124,58,237,0.1);
+  --claude: #da7756; --claude-glow: rgba(218,119,86,0.08);
+  --green: #2db55d; --orange: #f59e0b;
+  --radius: 10px; --radius-sm: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+  --mono: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+.page-header {
+  text-align: center; padding: 64px 20px 40px;
+  background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.page-header .icon { font-size: 3em; margin-bottom: 12px; display: block; }
+.page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.page-header h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #c4704a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.page-header .subtitle { font-size: 1em; color: var(--text3); margin-top: 8px; }
+.page-header .back-link { display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none; font-size: 0.88em; font-weight: 500; }
+.page-header .back-link:hover { text-decoration: underline; }
+
+.stats-bar { max-width: 900px; margin: 0 auto; padding: 24px 24px 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; text-align: center; min-width: 90px; }
+.stat-item .stat-num { font-size: 1.4em; font-weight: 700; color: var(--accent); }
+.stat-item .stat-label { font-size: 0.72em; color: var(--text3); margin-top: 2px; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 24px 80px; }
+
+.section { margin-bottom: 40px; }
+.section-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.section-title .s-icon { font-size: 1.2em; }
+.section-title .s-count { font-size: 0.72em; color: var(--text3); font-weight: 500; background: var(--border-light); padding: 2px 10px; border-radius: 12px; }
+
+.q-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: all 0.2s; }
+.q-card:hover { border-color: #d0d0cc; }
+.q-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.q-header { padding: 16px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; user-select: none; transition: background 0.12s; }
+.q-header:hover { background: #fafaf9; }
+.q-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.q-text { flex: 1; min-width: 0; }
+.q-text h4 { font-size: 1em; font-weight: 600; color: var(--text); line-height: 1.5; }
+.q-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.q-tag { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: #f0f0ee; color: var(--text3); }
+.q-tag.core { background: var(--accent-bg); color: var(--accent); }
+.q-tag.hot { background: var(--claude-glow); color: var(--claude); }
+.q-arrow { font-size: 0.8em; color: var(--text3); transition: transform 0.25s; flex-shrink: 0; margin-top: 4px; }
+.q-card.open .q-arrow { transform: rotate(90deg); }
+.q-body { display: none; padding: 0 20px 20px 60px; }
+.q-card.open .q-body { display: block; }
+.q-body .answer-section { margin-bottom: 16px; }
+.q-body .answer-section:last-child { margin-bottom: 0; }
+.q-body .answer-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
+.q-body p, .q-body li { font-size: 0.9em; color: var(--text2); line-height: 1.75; }
+.q-body ul, .q-body ol { padding-left: 20px; margin: 6px 0; }
+.q-body li { margin-bottom: 4px; }
+.q-body pre { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.82em; line-height: 1.65; overflow-x: auto; margin: 8px 0; }
+.q-body code { background: #f0f0ee; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
+.q-body pre code { background: none; padding: 0; color: inherit; }
+.q-body .highlight-box { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0; font-size: 0.88em; color: #92400e; line-height: 1.6; }
+.q-body table { width: 100%; border-collapse: collapse; font-size: 0.88em; color: var(--text2); margin: 8px 0; }
+.q-body table th { text-align: left; padding: 6px 8px; color: var(--text); border-bottom: 1px solid var(--border); }
+.q-body table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); }
+
+.toc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 32px; }
+.toc h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.toc-list li { font-size: 0.85em; }
+.toc-list a { color: var(--accent); text-decoration: none; }
+.toc-list a:hover { text-decoration: underline; }
+.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); }
+.footer a { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 640px) {
+  .page-header h1 { font-size: 1.6em; }
+  .q-body { padding: 0 16px 16px 16px; }
+  .q-header { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="icon">🧠</span>
+  <h1>Transformer <span class="gradient-text">面试题精选</span></h1>
+  <p class="subtitle">Self-Attention · Multi-Head Attention · Positional Encoding · Encoder-Decoder · 预训练与微调</p>
+  <a href="index.html" class="back-link">← 返回 Study Hub</a>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">精选题目</div></div>
+  <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">知识模块</div></div>
+  <div class="stat-item"><div class="stat-num">★★★★★</div><div class="stat-label">大模型必考</div></div>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ul class="toc-list">
+    <li><a href="#s1">一、Self-Attention 核心机制</a></li>
+    <li><a href="#s2">二、Multi-Head Attention</a></li>
+    <li><a href="#s3">三、位置编码</a></li>
+    <li><a href="#s4">四、Encoder-Decoder 架构</a></li>
+    <li><a href="#s5">五、训练与推理</a></li>
+    <li><a href="#s6">六、变体与进阶</a></li>
+  </ul>
+</div>
+
+<!-- ====== SECTION 1 ====== -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="s-icon">🔍</span> 一、Self-Attention 核心机制<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q1"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">1</span><div class="q-text"><h4>请用通俗语言解释 Self-Attention（自注意力）的核心思想，并推导其数学公式。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Self-Attention 的核心思想是：<strong>让序列中的每个 token 都能"看到"所有其他 token，并根据相关性动态加权聚合信息</strong>。不再依赖固定窗口或递推结构。</p>
+    <p><strong>数学推导（Scaled Dot-Product Attention）：</strong></p>
+    <pre><code>给定输入序列 X ∈ ℝ^(n×d)，通过三个可学习的权重矩阵投影：
+
+Q = X · W_Q    (Query:  我要查什么)
+K = X · W_K    (Key:    我有什么标签)
+V = X · W_V    (Value:  我包含什么内容)
+
+Attention(Q, K, V) = softmax( Q·K^T / √d_k ) · V
+
+步骤分解：
+1. Q·K^T      → 计算每对 token 的"匹配分数" (n×n 注意力矩阵)
+2. / √d_k     → 缩放，防止点积过大导致 softmax 梯度消失
+3. softmax()  → 将分数归一化为概率分布（每行和为 1）
+4. · V        → 按注意力权重对 Value 加权求和</code></pre>
+    <p><strong>物理直觉：</strong>每个 token 发出 Query（"我在找什么"），检查所有 token 的 Key（"我有什么"），匹配度决定从 Value（"我的内容"）中取多少信息。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q2"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">2</span><div class="q-text"><h4>为什么 Self-Attention 中要除以 √d_k（缩放因子）？不除以会怎样？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">细节理解</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>除以 √d_k 是为了<strong>防止点积的方差随维度增大而增大</strong>，从而避免 softmax 进入梯度极小的饱和区。</p>
+    <ul>
+      <li><strong>不除以 √d_k 的后果：</strong>当 d_k 较大时（如 64），Q 和 K 的点积值会很大（方差 ≈ d_k）。大值输入 softmax 后，输出分布变得极度尖锐（接近 one-hot）→ 梯度接近 0 → 模型无法学习。</li>
+      <li><strong>除以 √d_k 后：</strong>点积的方差被归一化到 1 左右，softmax 输出保持适中的熵，梯度能正常反向传播。</li>
+    </ul>
+    <pre><code># 假设 q, k 是独立的标准正态分布 N(0,1)
+# q·k = Σ q_i·k_i,  方差 = d_k
+# q·k / √d_k 的方差 = d_k / d_k = 1  ✓  保持稳定</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q3"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">3</span><div class="q-text"><h4>Self-Attention 的复杂度是多少？为什么长序列处理是瓶颈？有哪些优化方向？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">复杂度分析</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>复杂度：</strong></p>
+    <ul>
+      <li>时间：<strong>O(n²·d)</strong> — Q·K^T 产生 n×n 矩阵，n 是序列长度</li>
+      <li>空间：<strong>O(n²)</strong> — 需要存储注意力矩阵（训练时尤其严重）</li>
+    </ul>
+    <p><strong>优化方向：</strong></p>
+    <table>
+      <tr><th>方法</th><th>复杂度</th><th>思路</th></tr>
+      <tr><td>Sparse Attention</td><td>O(n·k·d)</td><td>每个 token 只关注局部窗口 + 少数全局 token</td></tr>
+      <tr><td>Linear Attention</td><td>O(n·d²)</td><td>用核函数替换 softmax，交换计算顺序</td></tr>
+      <tr><td>FlashAttention</td><td>O(n²·d) 但更低的常数</td><td>IO-aware 的 tiling 算法，减少 HBM 读写</td></tr>
+      <tr><td>MQA / GQA</td><td>减少 KV 头数</td><td>多个 Query 头共享 KV 头，减少 KV cache</td></tr>
+      <tr><td>Sliding Window</td><td>O(n·w·d)</td><td>限制注意力窗口大小 w（如 Mistral 的 4096）</td></tr>
+    </table>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q4"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">4</span><div class="q-text"><h4>Self-Attention 与 RNN / LSTM 相比，各自的优劣势是什么？为什么 Transformer 最终胜出？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>RNN / LSTM</th><th>Self-Attention (Transformer)</th></tr>
+      <tr><td>长程依赖</td><td>差 — 信息经多步传递会衰减</td><td>好 — 任意两个 token 之间距离 = 1</td></tr>
+      <tr><td>并行计算</td><td>差 — 必须串行（t 依赖 t-1）</td><td>好 — 所有 token 可同时计算</td></tr>
+      <tr><td>训练速度</td><td>慢</td><td>快（可充分并行）</td></tr>
+      <tr><td>序列长度限制</td><td>理论上无限</td><td>受 O(n²) 复杂度限制</td></tr>
+      <tr><td>位置信息</td><td>隐式编码在递推中</td><td>需要显式位置编码</td></tr>
+      <tr><td>可解释性</td><td>差</td><td>较好（注意力权重可视化）</td></tr>
+      <tr><td>小数据/短序列</td><td>可能更好（归纳偏置）</td><td>需要更多数据</td></tr>
+    </table>
+    <p><strong>Transformer 胜出的关键：</strong>并行训练能力 + 长程依赖建模 + 可扩展性（Scaling Law）。训练效率的差异在 GPT 尺度上被极度放大。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q5"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">5</span><div class="q-text"><h4>什么是注意力矩阵（Attention Matrix）的稀疏性假设？它在实践中成立吗？</h4>
+    <div class="q-tags"><span class="q-tag core">理论理解</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>注意力矩阵的稀疏性假设认为：<strong>每个 token 真正需要关注的 token 只是少数几个</strong>，而非全部。注意力矩阵中大部分权重应该接近 0。</p>
+    <ul>
+      <li><strong>实践证明：</strong>大多数注意力头学到的模式确实偏向稀疏——有的头关注局部上下文，有的头关注特定语法角色（如动词关注主语），而不是均匀分布。</li>
+      <li><strong>应用：</strong>这是 Sparse Attention（如 Longformer、BigBird）和 Mixture-of-Experts 中稀疏路由的理论基础。</li>
+      <li><strong>例外：</strong>某些层的注意力头确实会展现出较均匀的分布（起到"全局汇总"的作用），因此完全稀疏化会损失部分能力。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 2 ====== -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="s-icon">🔀</span> 二、Multi-Head Attention<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q6"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">6</span><div class="q-text"><h4>为什么需要 Multi-Head Attention（多头注意力）？单头有什么问题？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心机制</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Multi-Head Attention 将 Q、K、V 分别投影到 h 个不同的<strong>低维子空间</strong>（每个维度 d_k = d_model / h）。核心原因：</p>
+    <ol>
+      <li><strong>多角度关注</strong>：不同头可以关注不同类型的关系——一个头关注语法依存，一个头关注语义相似，一个头关注位置近邻。</li>
+      <li><strong>表达能力增强</strong>：单头注意力的表达空间受限，多头的并集覆盖了更丰富的特征组合。</li>
+      <li><strong>训练稳定性</strong>：多头的平均效应可以降低单个注意力头的方差。</li>
+    </ol>
+    <pre><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) · W_O
+
+其中 head_i = Attention(Q·W_Qi, K·W_Ki, V·W_Vi)
+
+W_Qi, W_Ki, W_Vi ∈ ℝ^(d_model × d_k)
+W_O ∈ ℝ^(h·d_k × d_model)
+
+通常 d_k = d_model / h，如 d_model=512, h=8 → d_k=64</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q7"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">7</span><div class="q-text"><h4>MHA（Multi-Head Attention）、MQA、GQA 三者的区别是什么？各自在什么场景下使用？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">工程优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>机制</th><th>Q 头数</th><th>KV 头数</th><th>KV Cache 大小</th><th>模型质量</th><th>代表模型</th></tr>
+      <tr><td>MHA</td><td>h</td><td>h</td><td>最大（h 组 KV）</td><td>最优</td><td>GPT-3, BERT</td></tr>
+      <tr><td>GQA</td><td>h</td><td>g (1<g<h)</td><td>中等（g 组 KV）</td><td>接近 MHA</td><td>Llama 2 (70B), Llama 3</td></tr>
+      <tr><td>MQA</td><td>h</td><td>1</td><td>最小（1 组 KV）</td><td>略降</td><td>PaLM, Gemini (早期)</td></tr>
+    </table>
+    <p><strong>核心思想：</strong>多个 Query 头<strong>共享同一组 Key 和 Value</strong>权重。因为推理时 KV Cache 是主要内存瓶颈，减少 KV 头的数量显著节省内存。</p>
+    <p><strong>选择指导：</strong></p>
+    <ul>
+      <li><strong>MQA</strong> — 极致省内存，适合端侧部署（手机、边缘设备）</li>
+      <li><strong>GQA</strong> — 质量和内存的最佳平衡，Llama 2 用 8 个 KV 头配 32 个 Q 头</li>
+      <li><strong>MHA</strong> — 质量优先，不在乎推理成本的场景</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q8"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">8</span><div class="q-text"><h4>如何分析不同 Attention Head 学到的模式？它们分别关注什么？</h4>
+    <div class="q-tags"><span class="q-tag core">可解释性</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>常见分析角度：</p>
+    <ol>
+      <li><strong>注意力模式可视化</strong>：直接查看注意力权重矩阵，识别每个头关注的 token 对。</li>
+      <li><strong>头功能分类</strong>（Clark et al., 2019）：
+        <ul>
+          <li>位置头：关注相邻/固定偏移 token</li>
+          <li>语法头：关注句法依存关系（主语-动词、代词-先行词）</li>
+          <li>语义头：关注语义相关的 token</li>
+          <li>分隔头：关注句子边界标记（[SEP]、[CLS]）</li>
+        </ul>
+      </li>
+      <li><strong>消融实验</strong>：剪掉某个头，看下游任务性能下降多少，判断其重要性。</li>
+      <li><strong>探针（Probing）</strong>：用线性分类器从注意力分布中预测语法/语义特征，验证是否包含该类信息。</li>
+    </ol>
+    <div class="highlight-box">💡 研究发现：大量注意力头在推理时是<strong>冗余的</strong>——剪掉 50% 甚至 80% 的头后模型性能下降很小。这启发了结构化剪枝和动态头选择技术。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q9"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">9</span><div class="q-text"><h4>Cross-Attention 与 Self-Attention 有什么区别？在 Encoder-Decoder 架构中各起什么作用？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>Self-Attention</th><th>Cross-Attention</th></tr>
+      <tr><td>Q 来源</td><td>当前序列自身</td><td>Decoder 当前层输出</td></tr>
+      <tr><td>K, V 来源</td><td>当前序列自身</td><td>Encoder 最终输出</td></tr>
+      <tr><td>作用</td><td>捕捉序列内部的关系</td><td>将 Encoder 信息融合到 Decoder</td></tr>
+      <tr><td>注意力矩阵形状</td><td>n×n（方阵）</td><td>m×n（m: Decoder 长度, n: Encoder 长度）</td></tr>
+    </table>
+    <ul>
+      <li><strong>Self-Attention</strong> 在 Encoder 中：每个 token 关注整个输入序列的上下文。</li>
+      <li><strong>Self-Attention</strong> 在 Decoder 中：使用 Causal Mask（掩码），每个 token 只能看到自己和之前的 token。</li>
+      <li><strong>Cross-Attention</strong> 只在 Decoder 中：让 Decoder 的每个 token 能"查阅"完整的 Encoder 输出（如翻译时，解码器可以关注源语言的任意位置）。</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q10"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">10</span><div class="q-text"><h4>什么是 Casual Attention（因果注意力 / Masked Self-Attention）？为什么 Decoder 必须用它？</h4>
+    <div class="q-tags"><span class="q-tag core">基础概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Causal Attention 通过一个<strong>上三角遮罩矩阵（Mask）</strong>，强制第 i 个 token 只能关注第 0 到 i 个 token（当前位置及之前的 token），不能"偷看"未来的 token。</p>
+    <pre><code>Mask 矩阵 (n=4):        注意力权重 (softmax 后):
+[ 0  -∞ -∞ -∞]         [1.0  0    0    0 ]
+[ 0   0 -∞ -∞]         [0.3 0.7   0    0 ]
+[ 0   0  0 -∞]         [0.2 0.3 0.5   0 ]
+[ 0   0  0  0]         [0.1 0.2 0.3 0.4]</code></pre>
+    <p><strong>为什么 Decoder 必须用它？</strong></p>
+    <ul>
+      <li><strong>自回归生成</strong>：Decoder 逐个生成 token，生成时未来的 token 还不存在，自然不能关注。</li>
+      <li><strong>训练时并行</strong>：训练时已知完整序列，但需要用 Mask 模拟推理时的自回归约束，否则就是"作弊"（信息泄露）。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 3 ====== -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="s-icon">📍</span> 三、位置编码 (Positional Encoding)<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q11"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">11</span><div class="q-text"><h4>为什么 Transformer 需要位置编码？Self-Attention 本身为什么不能感知位置？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Self-Attention 本质上是<strong>置换等变性（Permutation Equivariance）</strong>——打乱输入序列的顺序，输出的顺序也相应打乱，但每个位置的输出值不变。</p>
+    <p>"A 爱 B" 和 "B 爱 A" 在不加位置编码时，Self-Attention 无法区分两者，因为 token 间的注意力权重只取决于内容，不取决于位置。</p>
+    <p><strong>位置编码的作用：</strong>在输入 embedding 上叠加/拼接位置信息，打破置换等变性，让模型能够区分"第一个 token"和"第二个 token"。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q12"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">12</span><div class="q-text"><h4>Sinusoidal Positional Encoding（正弦位置编码）的公式是什么？为什么用 sin/cos？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">细节推导</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code>PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+
+其中 pos = 位置, i = 维度索引, d_model = 模型维度</code></pre>
+    <p><strong>设计原因：</strong></p>
+    <ol>
+      <li><strong>不同频率 → 多尺度位置信息</strong>：低维度对应低频（波长长，区分大范围位置），高维度对应高频（波长短，区分相邻位置）。</li>
+      <li><strong>相对位置的可表达性</strong>：由于 sin(a+b) = sin(a)cos(b) + cos(a)sin(b)，PE(pos+k) 可以表示为 PE(pos) 的线性变换，使得模型能学习相对位置关系。</li>
+      <li><strong>值域有界</strong>：[-1, 1] 范围内，数值稳定。</li>
+      <li><strong>可外推</strong>：理论上可以推广到训练时未见过的长度，无需重新训练（虽然实际效果有限）。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q13"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">13</span><div class="q-text"><h4>RoPE（旋转位置编码）的原理是什么？为什么主流大模型（LLaMA、Qwen）都用它？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">现代方法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>RoPE（Rotary Position Embedding）</strong> 通过<strong>旋转矩阵</strong>将位置信息编码到 Q 和 K 中，使得 Q·K 的点积结果只取决于两个 token 的<strong>相对位置</strong>。</p>
+    <pre><code>核心公式：
+q_m = R_m · W_Q · x_m     (对位置 m 的 Query 施加旋转)
+k_n = R_n · W_K · x_n     (对位置 n 的 Key 施加旋转)
+
+其中 R_m 是一个分块对角旋转矩阵：
+R_m = [[cos(mθ₁), -sin(mθ₁)],    # 对第 0,1 维旋转
+       [sin(mθ₁),  cos(mθ₁)],
+       [cos(mθ₂), -sin(mθ₂)],    # 对第 2,3 维旋转
+       ...]
+
+点积结果：
+q_m · k_n = (R_m W_Q x_m) · (R_n W_K x_n)
+          = x_m^T W_Q^T R_{n-m} W_K x_n  ← 只依赖相对位置 (n-m)</code></pre>
+    <p><strong>为什么主流模型都用它：</strong></p>
+    <ul>
+      <li><strong>相对位置天然编码</strong>：直接内置于 attention 计算中，无需额外位置向量。</li>
+      <li><strong>外推性好</strong>：通过调整 θ 频率（如 NTK-aware scaling），可以较好地扩展到更长的序列。</li>
+      <li><strong>效率高</strong>：实现简单，不增加额外参数，可作为逐元素操作高效计算。</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q14"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">14</span><div class="q-text"><h4>ALiBi（Attention with Linear Biases）是什么？与 RoPE 相比有什么优劣？</h4>
+    <div class="q-tags"><span class="q-tag core">位置编码对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>ALiBi</strong> 是最简单的位置编码方案：不添加位置嵌入，而是在注意力分数上<strong>减去一个与距离成正比的偏置</strong>。</p>
+    <pre><code>Attention(Q, K, V) = softmax( Q·K^T / √d_k  -  m·|i-j| ) · V
+
+其中 |i-j| 是 token 之间的相对距离，m 是每个头独立的斜率</code></pre>
+    <table>
+      <tr><th>维度</th><th>RoPE</th><th>ALiBi</th></tr>
+      <tr><td>原理</td><td>旋转 Q/K 编码相对位置</td><td>线性偏置惩罚远距离</td></tr>
+      <tr><td>外推能力</td><td>好（需调参）</td><td>较好（天然衰减远距离）</td></tr>
+      <tr><td>参数开销</td><td>0 参数</td><td>0 参数</td></tr>
+      <tr><td>实现复杂度</td><td>中等</td><td>极简</td></tr>
+      <tr><td>模型质量</td><td>好</td><td>略低于 RoPE</td></tr>
+      <tr><td>代表模型</td><td>LLaMA, Qwen, Mistral</td><td>BLOOM, MPT</td></tr>
+    </table>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 4 ====== -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="s-icon">🏗️</span> 四、Encoder-Decoder 架构<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q15"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">15</span><div class="q-text"><h4>请画出 Transformer 的完整架构图，并解释每个组件的功能。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">架构全景</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code>                    ENCODER (×N 层)                    DECODER (×N 层)
+                ┌──────────────────┐            ┌──────────────────────┐
+    Input   →   │ Input Embedding  │            │ Output Embedding     │  ← Shifted Right
+                │ + Positional Enc │            │ + Positional Enc     │
+                │       ↓          │            │       ↓              │
+                │ Multi-Head       │            │ Masked Multi-Head    │
+                │ Self-Attention   │            │ Self-Attention       │
+                │       ↓          │            │       ↓              │
+                │ Add &amp; Norm       │            │ Add &amp; Norm           │
+                │       ↓          │            │       ↓              │
+                │ Feed Forward     │            │ Multi-Head           │
+                │ Network (FFN)    │            │ Cross-Attention      │  ← K,V 来自 Encoder
+                │       ↓          │            │       ↓              │
+                │ Add &amp; Norm       │            │ Add &amp; Norm           │
+                └──────────────────┘            │       ↓              │
+                                                │ Feed Forward         │
+                                                │ Network (FFN)        │
+                                                │       ↓              │
+                                                │ Add &amp; Norm           │
+                                                └──────────────────────┘
+                                                           ↓
+                                                    Linear + Softmax
+                                                           ↓
+                                                      Output</code></pre>
+    <p><strong>核心组件：</strong></p>
+    <ul>
+      <li><strong>Input/Output Embedding</strong>：将 token ID 映射为 d_model 维向量。</li>
+      <li><strong>Positional Encoding</strong>：注入位置信息。</li>
+      <li><strong>Multi-Head Self-Attention</strong>：捕捉序列内的上下文关系。</li>
+      <li><strong>Add & Norm</strong>：残差连接（Add）+ Layer Normalization（Norm），稳定深层训练。</li>
+      <li><strong>Feed Forward Network</strong>：位置逐元素的全连接网络，通常为两层的 MLP。</li>
+      <li><strong>Masked Self-Attention</strong>（Decoder）：因果掩码，防止看到未来 token。</li>
+      <li><strong>Cross-Attention</strong>（Decoder）：Q 来自 Decoder，K/V 来自 Encoder 输出。</li>
+      <li><strong>Linear + Softmax</strong>：投影到词汇表维度并归一化为概率。</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q16"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">16</span><div class="q-text"><h4>为什么 Transformer 中每个子层都要用残差连接（Residual Connection）+ Layer Normalization？Post-LN 和 Pre-LN 有什么区别？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">训练稳定性</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>残差连接的作用：</strong></p>
+    <ul><li>缓解深层网络的梯度消失/爆炸</li><li>提供"恒等映射"的快捷路径，让模型更容易学习恒等变换</li><li>使深层 Transformer（几十上百层）能够稳定训练</li></ul>
+    <p><strong>Post-LN vs Pre-LN：</strong></p>
+    <pre><code>Post-LN (原论文):                Pre-LN (现代做法):
+x → SubLayer(x) → Add(x) → LN   x → LN → SubLayer(x) → Add(x)
+
+Output = LN(x + SubLayer(x))    Output = x + SubLayer(LN(x))</code></pre>
+    <table>
+      <tr><th>维度</th><th>Post-LN</th><th>Pre-LN</th></tr>
+      <tr><td>训练稳定性</td><td>需要 warmup，否则梯度爆炸</td><td>无需 warmup，天然稳定</td></tr>
+      <tr><td>收敛速度</td><td>较快</td><td>略慢</td></tr>
+      <tr><td>最终性能</td><td>可能略好</td><td>接近或略好</td></tr>
+      <tr><td>代表模型</td><td>原始 Transformer, BERT</td><td>GPT-2/3/4, LLaMA, 几乎所有现代 LLM</td></tr>
+    </table>
+    <div class="highlight-box">💡 现代大模型几乎全部使用 Pre-LN，因为它消除了对 LR warmup 的依赖，让训练更加简单可靠。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q17"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">17</span><div class="q-text"><h4>Feed Forward Network (FFN) 在 Transformer 中起什么作用？为什么需要它？</h4>
+    <div class="q-tags"><span class="q-tag core">组件理解</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>FFN 是 Transformer 中<strong>唯一的位置逐元素（Position-wise）非线性变换</strong>。标准形式：</p>
+    <pre><code>FFN(x) = ReLU(x·W₁ + b₁)·W₂ + b₂     (原始)
+FFN(x) = SiLU(x·W_gate) ⊙ (x·W_up) · W_down   (SwiGLU, LLaMA 等使用)</code></pre>
+    <p><strong>核心作用：</strong></p>
+    <ol>
+      <li><strong>引入非线性</strong>：Self-Attention 本质上是线性的（加权求和），FFN 提供非线性变换能力。</li>
+      <li><strong>知识存储</strong>：研究表明 FFN 层是 Transformer 存储事实知识的主要位置（类似键值存储器）。W₁ 的每一行可以看作一个"模式检测器"，W₂ 的每一列是响应模式。</li>
+      <li><strong>维度变换</strong>：先扩展到 4× d_model → 激活 → 压缩回 d_model，提供了更大的表达空间。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q18"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">18</span><div class="q-text"><h4>Encoder-Only（BERT）、Decoder-Only（GPT）、Encoder-Decoder（T5）三种架构各有什么特点和适用场景？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">架构选型</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>架构</th><th>注意力方式</th><th>代表模型</th><th>最佳场景</th><th>局限性</th></tr>
+      <tr>
+        <td><strong>Encoder-Only</strong></td>
+        <td>双向 Self-Attention</td>
+        <td>BERT, RoBERTa, DeBERTa</td>
+        <td>NLU 任务：分类、NER、QA（理解）</td>
+        <td>不能做文本生成</td>
+      </tr>
+      <tr>
+        <td><strong>Decoder-Only</strong></td>
+        <td>因果（单向）Self-Attention</td>
+        <td>GPT 系列, LLaMA, Claude</td>
+        <td>文本生成：对话、代码生成、通用任务</td>
+        <td>某些理解任务不如双向模型</td>
+      </tr>
+      <tr>
+        <td><strong>Encoder-Decoder</strong></td>
+        <td>双向 Enc + 因果 Dec + Cross-Attn</td>
+        <td>T5, BART, 原始 Transformer</td>
+        <td>Seq2Seq：翻译、摘要、输入输出长度不同的任务</td>
+        <td>参数效率较低（需要两份参数）</td>
+      </tr>
+    </table>
+    <p><strong>为什么 Decoder-Only 主导了 LLM 时代？</strong></p>
+    <ul>
+      <li>统一的"一切皆生成"范式：分类、翻译、QA 都可以格式化为文本生成任务。</li>
+      <li>训练效率更高：不需要 Encoder，参数集中在生成能力上。</li>
+      <li>Prompt 和 In-Context Learning 天然契合。</li>
+      <li>Scaling 经验最丰富：GPT 系列的 Scaling Law 验证最充分。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 5 ====== -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="s-icon">⚙️</span> 五、训练与推理<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q19"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">19</span><div class="q-text"><h4>Transformer 的训练过程是怎样的？Teacher Forcing 是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">训练机制</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>训练流程：</strong></p>
+    <ol>
+      <li>输入序列 → Encoder → 上下文表示</li>
+      <li>目标序列（右移一位，添加 START token）→ Decoder（使用 Causal Mask）</li>
+      <li>Decoder 通过 Cross-Attention 融合 Encoder 表示</li>
+      <li>输出投影到词汇表 → softmax → 交叉熵损失（与真实目标序列比较）</li>
+    </ol>
+    <p><strong>Teacher Forcing：</strong>训练时 Decoder 的输入使用<strong>真实的目标序列</strong>（ground truth），而不是模型自己上一步预测的 token。</p>
+    <ul>
+      <li><strong>优点</strong>：训练稳定、收敛快、可并行计算所有位置。</li>
+      <li><strong>缺点</strong>：训练-推理不一致（Exposure Bias）→ 推理时一步错可能导致后续全错。</li>
+    </ul>
+    <p>缓解 Exposure Bias 的方法：Scheduled Sampling（逐渐用模型自己的输出替换部分 ground truth）。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q20"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">20</span><div class="q-text"><h4>请详细解释 KV Cache 的原理，以及为什么它能大幅加速自回归推理。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">推理优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>KV Cache</strong> 是 Decoder 推理时的核心优化：缓存已生成 token 的 Key 和 Value，避免每一步重复计算。</p>
+    <p><strong>为什么能加速：</strong></p>
+    <ol>
+      <li>自回归生成时，第 t 步只需要计算新 token 的 Q、K、V</li>
+      <li>前 t-1 个 token 的 K 和 V 在上一步已经计算过</li>
+      <li>将它们缓存起来，第 t 步只做增量计算：新 Q 与所有历史 K 做 attention</li>
+    </ol>
+    <pre><code># 无 KV Cache — O(n²·d) 每步
+Step 1: 计算 token₀ 的 Q,K,V → attention(Q₀,K₀,V₀)
+Step 2: 计算 token₀,₁ 的 Q,K,V → attention(Q₁,[K₀,K₁],[V₀,V₁])  ← 重复计算 K₀,V₀
+Step 3: 计算 token₀,₁,₂ 的 Q,K,V → ...                          ← 重复更多
+
+# 有 KV Cache — O(n·d) 每步的新计算
+Step 1: 计算 token₀ 的 Q,K,V → attention(Q₀,K₀,V₀) → 缓存 K₀,V₀
+Step 2: 计算 token₁ 的 Q,K,V → attention(Q₁,[K₀,K₁],[V₀,V₁]) → 追加缓存 K₁,V₁
+Step 3: 计算 token₂ 的 Q,K,V → attention(Q₂,[K₀,K₁,K₂],[V₀,V₁,V₂]) → ...</code></pre>
+    <p><strong>内存分析：</strong>KV Cache 占用 = 2 × n_layers × n_heads × d_head × seq_len × dtype_size。长序列下内存可能非常大（如 LLaMA-7B 在 2048 token 时 KV Cache ≈ 1GB）。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q21"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">21</span><div class="q-text"><h4>什么是 FlashAttention？它为什么比标准 Attention 更快？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">前沿优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>FlashAttention</strong> 是一种 IO-Aware 的精确注意力算法。它不改变数学结果，而是通过优化<strong>GPU 内存访问模式</strong>来加速。</p>
+    <p><strong>核心思想 — Tiling（分块计算）：</strong></p>
+    <ol>
+      <li>标准 Attention 需要将完整的 n×n 注意力矩阵写入 HBM（高带宽显存），这是最大的瓶颈。</li>
+      <li>FlashAttention 将 Q、K、V 分成小块，在 SRAM（片上共享内存）中逐块计算 softmax，避免将整个注意力矩阵写入 HBM。</li>
+      <li>使用 Online Softmax 技巧（tiling + rescaling），保证分块计算与全局计算数学等价。</li>
+    </ol>
+    <pre><code>标准 Attention：
+Q,K,V [HBM] → 计算 S=QK^T [写入 HBM] → softmax(S) [读写 HBM]
+→ 计算 SV [写入 HBM]     ← 大量 HBM 读写
+
+FlashAttention：
+for 每个 Q 块:
+    for 每个 K,V 块:
+        S_block = Q_block @ K_block^T  [SRAM]
+        S_block 做 online softmax       [SRAM]
+        累加加权 V_block                 [SRAM]
+    输出 O_block [写回 HBM]    ← 只写一次最终结果</code></pre>
+    <p><strong>效果：</strong>训练速度 2-4× 提升，显存 O(n) 而非 O(n²)，允许训练更长的序列。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q22"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">22</span><div class="q-text"><h4>为什么现在的大模型基本都是 Pre-Norm 而非 Post-Norm？LayerNorm 和 RMSNorm 有什么区别？</h4>
+    <div class="q-tags"><span class="q-tag hot">训练细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Pre-Norm 主导原因：</strong></p>
+    <ul><li>训练更稳定，不需要 LR warmup</li><li>梯度流更顺畅（norm 在残差分支之前）</li><li>对学习率更鲁棒</li></ul>
+    <p><strong>LayerNorm vs RMSNorm：</strong></p>
+    <pre><code>LayerNorm(x) = γ · (x - μ) / √(σ² + ε) + β
+              需要计算均值和方差，再做缩放和平移
+
+RMSNorm(x)  = γ · x / √(mean(x²) + ε)
+              只做缩放，去除均值的中心和偏移
+
+对比：
+- RMSNorm 去掉了"去均值"操作，速度提升约 10-15%
+- 实验表明去掉去均值不影响性能
+- LLaMA、T5、Mistral 等均采用 RMSNorm</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q23"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">23</span><div class="q-text"><h4>如何对 Transformer 做长度外推（Length Extrapolation）？有哪些主流方法？</h4>
+    <div class="q-tags"><span class="q-tag hot">前沿话题</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>长度外推是指让模型在<strong>推理时处理比训练时更长的序列</strong>。主要方法：</p>
+    <ol>
+      <li><strong>NTK-aware Scaling（RoPE 专用）</strong>：将 RoPE 的频率基数从 10000 放大（如到 500000），改变频率分布，让高频维度更好地适应更长序列。</li>
+      <li><strong>YaRN（NTK + 温度调节）</strong>：在 NTK 基础上对注意力 softmax 加温度系数，缓解长序列的注意力分布过尖问题。</li>
+      <li><strong>Position Interpolation</strong>：将推理时的大位置索引线性缩放到训练时的范围。如训练长度 2048，推理 4096，将位置 4096 映射为 2048。</li>
+      <li><strong>Sliding Window / 局部注意力</strong>：限制有效注意力范围，完全不受长度影响（如 Mistral 的 4096 滑动窗口）。</li>
+      <li><strong>ALiBi</strong>：天然的线性偏置让模型天生支持外推。</li>
+    </ol>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 6 ====== -->
+<div class="section" id="s6">
+  <div class="section-title"><span class="s-icon">🚀</span> 六、变体与进阶<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q24"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">24</span><div class="q-text"><h4>SwiGLU 激活函数是什么？为什么现代 LLM（LLaMA、PaLM）用它替代 ReLU？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">FFN 优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>SwiGLU</strong> 是一种门控激活函数，结合了 Swish 和 Gated Linear Unit：</p>
+    <pre><code>ReLU FFN:
+FFN(x) = ReLU(x·W₁ + b₁)·W₂ + b₂
+
+SwiGLU FFN:
+FFN(x) = (SiLU(x·W_gate) ⊙ (x·W_up)) · W_down
+       = Swish(x·W_gate) ⊙ (x·W_up) · W_down
+
+其中 SiLU(x) = x·σ(x)，σ 是 sigmoid
+⊙ 表示逐元素乘法（门控）</code></pre>
+    <p><strong>优势：</strong></p>
+    <ul>
+      <li><strong>门控机制</strong>：Swish(x·W_gate) 输出 0~x 之间的门控值，控制信息流。类似 LSTM/GRU 的门控思想。</li>
+      <li><strong>平滑的非线性</strong>：SiLU 处处可导，没有 ReLU 在 x=0 处的不可导问题。</li>
+      <li><strong>更好的性能</strong>：在相同参数量下，SwiGLU 普遍优于 ReLU。</li>
+    </ul>
+    <p>注：使用 SwiGLU 时，通常将 FFN 中间维度缩小（从 4× 调整为约 8/3×），以保持参数量不变。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q25"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">25</span><div class="q-text"><h4>Mixture of Experts (MoE) 是如何与 Transformer 结合的？解决了什么问题？带来了什么新挑战？</h4>
+    <div class="q-tags"><span class="q-tag hot">前沿架构</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>MoE</strong> 将 Transformer 的 FFN 层替换为<strong>多个专家 FFN + 一个路由网络</strong>：</p>
+    <pre><code>标准 FFN:
+y = FFN(x)
+
+MoE FFN:
+router_logits = x · W_router              # 路由网络计算分数
+weights = softmax(TopK(router_logits))    # 选 Top-K 个专家，归一化权重
+y = Σ weights_i · Expert_i(x)             # 加权求和选中专家的输出</code></pre>
+    <p><strong>解决的痛点：</strong>增加模型容量而<strong>不线性增加计算量</strong>。如 Mixtral 8×7B：8 个专家，每次只激活 2 个，总参数 47B，推理成本 ≈ 13B 模型。</p>
+    <p><strong>新挑战：</strong></p>
+    <ul>
+      <li>负载均衡：路由可能坍缩到少数专家（需要负载均衡损失）</li>
+      <li>通信开销：专家分布在多卡上时，token 需要在卡间路由</li>
+      <li>训练稳定性：需要辅助损失（Load Balancing Loss + Router Z-Loss）</li>
+      <li>显存占用：所有专家都需要加载到显存（虽然只计算部分）</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q26"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">26</span><div class="q-text"><h4>BERT 和 GPT 的 Attention 机制有什么核心区别？为什么 BERT 不能做生成？</h4>
+    <div class="q-tags"><span class="q-tag hot">经典对比</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>BERT (Encoder-Only)</th><th>GPT (Decoder-Only)</th></tr>
+      <tr><td>注意力类型</td><td>双向 Self-Attention（无 Mask）</td><td>因果 Masked Self-Attention</td></tr>
+      <tr><td>看到什么</td><td>每个位置能看到整句的所有 token</td><td>每个位置只能看到自己和之前的 token</td></tr>
+      <tr><td>预训练任务</td><td>MLM（遮词填空）+ NSP</td><td>Next Token Prediction（自回归）</td></tr>
+      <tr><td>能否生成</td><td>不能直接生成</td><td>天然支持生成</td></tr>
+    </table>
+    <p><strong>BERT 不能生成的原因：</strong>BERT 的双向注意力意味着每个位置的输出依赖于整个序列的信息。如果要逐 token 生成，每生成一个新 token 都需要重新编码整个序列，这不可行。而且 BERT 没有自回归的训练目标。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q27"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">27</span><div class="q-text"><h4>Transformer 模型中的 Dropout 通常加在哪些位置？各有什么作用？</h4>
+    <div class="q-tags"><span class="q-tag core">正则化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Transformer 中 Dropout 的常见位置：</p>
+    <ol>
+      <li><strong>Attention Dropout</strong>：在 softmax 后的注意力权重上做 Dropout（随机置零某些注意力连接）。防止过度依赖特定的 token 对。</li>
+      <li><strong>Residual Dropout</strong>：在每个子层的输出加到残差路径之前做 Dropout。防止过拟合，是作用最大的 Dropout 位置。</li>
+      <li><strong>FFN Dropout</strong>：在 FFN 的激活函数之后做 Dropout。</li>
+      <li><strong>Embedding Dropout</strong>：在 Embedding 层之后做 Dropout。</li>
+    </ol>
+    <p>注意：现代大模型（GPT-3+、LLaMA）<strong>趋向于减少或不使用 Dropout</strong>。因为数据量足够大，加上 Pre-Norm 本身就有正则化作用，Dropout 反而会降低训练效率和最终性能。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q28"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">28</span><div class="q-text"><h4>请谈谈你对 Transformer 未来发展方向的理解。哪些改进最具潜力？</h4>
+    <div class="q-tags"><span class="q-tag hot">开放讨论</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Transformer 仍在快速演进，主要方向：</p>
+    <ol>
+      <li><strong>状态空间模型（SSM）</strong>如 Mamba：将 O(n²) 注意力替换为 O(n) 的状态空间递推，在长序列上具有显著优势。可能成为 Transformer 的补充甚至替代。</li>
+      <li><strong>线性注意力</strong>：用核函数替换 softmax 来交换计算顺序，实现 O(n) 复杂度。挑战在于质量能否持平 softmax attention。</li>
+      <li><strong>稀疏 + MoE</strong>：结合稀疏注意力和混合专家，以更低的计算成本达到更大模型的效果。</li>
+      <li><strong>Infini-Attention</strong>：将压缩记忆与因果注意力结合，实现理论上无限的上下文。</li>
+      <li><strong>量化 + 高效推理</strong>：INT4/FP8 + 更高效的 attention 实现（FlashAttention-3）。</li>
+      <li><strong>多模态 Transformer</strong>：统一的 Transformer 处理文本+图像+音频+视频。</li>
+    </ol>
+    <div class="highlight-box">💡 <strong>面试要点：</strong>这类问题没有标准答案，重点是展示你对前沿方向的了解广度和思考深度。提到 Mamba/SSM、FlashAttention、MoE 等通常会是加分项。</div>
+    </div>
+  </div></div>
+</div>
+
+</div>
+
+<div class="footer">Transformer 面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a></div>
+
+<script>
+function toggleQ(header) {
+  header.parentElement.classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) target.classList.add('open');
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SFT & 微调面试题 — 从 LoRA 到 RLHF</title>
+<style>
+:root {
+  --bg: #fafafa; --white: #ffffff; --border: #e2e2e2; --border-light: #eff0f0;
+  --text: #262626; --text2: #595959; --text3: #8c8c8c;
+  --accent: #0071e3; --accent-bg: rgba(0,113,227,0.06); --accent-glow: rgba(0,113,227,0.1);
+  --claude: #da7756; --claude-glow: rgba(218,119,86,0.08);
+  --radius: 10px; --radius-sm: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+  --mono: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+.page-header {
+  text-align: center; padding: 64px 20px 40px;
+  background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.page-header .icon { font-size: 3em; margin-bottom: 12px; display: block; }
+.page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.page-header h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #c4704a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.page-header .subtitle { font-size: 1em; color: var(--text3); margin-top: 8px; }
+.page-header .back-link { display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none; font-size: 0.88em; font-weight: 500; }
+.page-header .back-link:hover { text-decoration: underline; }
+
+.stats-bar { max-width: 900px; margin: 0 auto; padding: 24px 24px 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; text-align: center; min-width: 90px; }
+.stat-item .stat-num { font-size: 1.4em; font-weight: 700; color: var(--accent); }
+.stat-item .stat-label { font-size: 0.72em; color: var(--text3); margin-top: 2px; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 24px 80px; }
+
+.section { margin-bottom: 40px; }
+.section-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.section-title .s-icon { font-size: 1.2em; }
+.section-title .s-count { font-size: 0.72em; color: var(--text3); font-weight: 500; background: var(--border-light); padding: 2px 10px; border-radius: 12px; }
+
+.q-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: all 0.2s; }
+.q-card:hover { border-color: #d0d0cc; }
+.q-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.q-header { padding: 16px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; user-select: none; transition: background 0.12s; }
+.q-header:hover { background: #fafaf9; }
+.q-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.q-text { flex: 1; min-width: 0; }
+.q-text h4 { font-size: 1em; font-weight: 600; color: var(--text); line-height: 1.5; }
+.q-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.q-tag { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: #f0f0ee; color: var(--text3); }
+.q-tag.core { background: var(--accent-bg); color: var(--accent); }
+.q-tag.hot { background: var(--claude-glow); color: var(--claude); }
+.q-arrow { font-size: 0.8em; color: var(--text3); transition: transform 0.25s; flex-shrink: 0; margin-top: 4px; }
+.q-card.open .q-arrow { transform: rotate(90deg); }
+.q-body { display: none; padding: 0 20px 20px 60px; }
+.q-card.open .q-body { display: block; }
+.q-body .answer-section { margin-bottom: 16px; }
+.q-body .answer-section:last-child { margin-bottom: 0; }
+.q-body .answer-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
+.q-body p, .q-body li { font-size: 0.9em; color: var(--text2); line-height: 1.75; }
+.q-body ul, .q-body ol { padding-left: 20px; margin: 6px 0; }
+.q-body li { margin-bottom: 4px; }
+.q-body pre { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.82em; line-height: 1.65; overflow-x: auto; margin: 8px 0; }
+.q-body code { background: #f0f0ee; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
+.q-body pre code { background: none; padding: 0; color: inherit; }
+.q-body .highlight-box { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0; font-size: 0.88em; color: #92400e; line-height: 1.6; }
+.q-body table { width: 100%; border-collapse: collapse; font-size: 0.88em; color: var(--text2); margin: 8px 0; }
+.q-body table th { text-align: left; padding: 6px 8px; color: var(--text); border-bottom: 1px solid var(--border); }
+.q-body table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); }
+
+.toc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 32px; }
+.toc h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.toc-list li { font-size: 0.85em; }
+.toc-list a { color: var(--accent); text-decoration: none; }
+.toc-list a:hover { text-decoration: underline; }
+.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); }
+.footer a { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 640px) {
+  .page-header h1 { font-size: 1.6em; }
+  .q-body { padding: 0 16px 16px 16px; }
+  .q-header { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="icon">📚</span>
+  <h1>SFT & 微调 <span class="gradient-text">面试题精选</span></h1>
+  <p class="subtitle">LoRA · QLoRA · Instruction Tuning · Data Pipeline · PEFT · 训练与评估</p>
+  <a href="index.html" class="back-link">← 返回 Study Hub</a>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">精选题目</div></div>
+  <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">知识模块</div></div>
+  <div class="stat-item"><div class="stat-num">★★★★★</div><div class="stat-label">LLM 工程师必考</div></div>
+</div>
+
+<div class="container">
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ul class="toc-list">
+    <li><a href="#s1">一、微调基础与 SFT</a></li>
+    <li><a href="#s2">二、LoRA 与 QLoRA</a></li>
+    <li><a href="#s3">三、PEFT 方法全景</a></li>
+    <li><a href="#s4">四、指令微调与数据</a></li>
+    <li><a href="#s5">五、训练 Pipeline</a></li>
+    <li><a href="#s6">六、评估与部署</a></li>
+  </ul>
+</div>
+
+<!-- ====== SECTION 1 ====== -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="s-icon">🔧</span> 一、微调基础与 SFT<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q1"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">1</span><div class="q-text"><h4>什么是 SFT（Supervised Fine-Tuning）？它在 LLM 训练流程中处于什么位置？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>SFT</strong> 是在预训练（Pre-training）的 Base Model 基础上，用<strong>高质量的人工标注数据</strong>（指令-回答对）进行监督学习，让模型学会遵循指令、生成符合人类期望的回答。</p>
+    <pre><code>LLM 训练全流程：
+
+Pre-training             → SFT              → Reward Model    → PPO / DPO
+(大规模无监督)            (监督微调)          (偏好建模)        (对齐优化)
+    ↓                       ↓                    ↓                ↓
+Next Token Prediction  指令→回答的交叉熵    Bradley-Terry偏好  RL / 偏好优化
+Base Model              SFT Model           RM                Aligned Model
+
+典型数据量：
+Pre-training: 数万亿 Token（如 LLaMA 1T+）
+SFT: 1万~100万条 高质量指令-回答对
+RLHF: 10万~100万条 人类偏好比较对</code></pre>
+    <p><strong>SFT 的核心目标：</strong></p>
+    <ul>
+      <li>让模型从"补全文本"转变为"回答指令"</li>
+      <li>注入特定的格式、风格和安全行为</li>
+      <li>为后续 RLHF 提供一个稳定的初始策略</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q2"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">2</span><div class="q-text"><h4>全量微调（Full Fine-Tuning）和参数高效微调（PEFT）的核心区别是什么？什么场景用哪个？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">选型决策</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>Full Fine-Tuning</th><th>PEFT</th></tr>
+      <tr><td>训练参数</td><td>所有参数</td><td>仅少量额外参数 / 部分参数</td></tr>
+      <tr><td>显存需求</td><td>极大（模型 × 4 + 优化器状态）</td><td>小（可训练参数 < 1%）</td></tr>
+      <tr><td>存储成本</td><td>每个任务存一份完整模型（×N）</td><td>每个任务存一个小适配器（~几MB）</td></tr>
+      <tr><td>训练速度</td><td>慢</td><td>快</td></tr>
+      <tr><td>灾难性遗忘</td><td>高（可能丢失预训练知识）</td><td>低（冻结主干参数）</td></tr>
+      <tr><td>最终性能</td><td>理论上最优</td><td>接近 Full FT（差距 < 1%）</td></tr>
+      <tr><td>硬件门槛</td><td>需要多卡 / 高端 GPU</td><td>单卡可微调 7B 模型</td></tr>
+    </table>
+    <p><strong>决策框架：</strong></p>
+    <ul>
+      <li><strong>Full FT</strong>：你有充足 GPU、数据量大、需要极致性能、只有一个任务</li>
+      <li><strong>PEFT</strong>：资源受限、需要服务多个任务、需要快速迭代、想保留预训练能力</li>
+    </ul>
+    <div class="highlight-box">💡 目前业界趋势：绝大多数应用场景都用 PEFT（尤其是 LoRA），Full FT 一般只在预训练机构做大规模训练时使用。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q3"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">3</span><div class="q-text"><h4>SFT 中的损失函数是什么？与预训练的损失函数有什么异同？为什么要 Mask 掉 Prompt 部分的 Loss？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">训练细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>SFT 和 Pre-training 都使用<strong>交叉熵损失（Cross-Entropy Loss）</strong>，即 Next Token Prediction：</p>
+    <pre><code># 统一的 Next Token Prediction Loss
+L = - Σ_t log P(y_t | x, y_1, ..., y_{t-1})
+
+Pre-training: 对所有 token 计算 Loss
+SFT: 只对 Response 部分的 token 计算 Loss（Mask 掉 Prompt）</code></pre>
+    <p><strong>为什么 Mask 掉 Prompt 部分：</strong></p>
+    <ul>
+      <li>SFT 的目标是<strong>学会"给这个指令，应该这样回答"</strong>，而不是"学会预测指令文本"。</li>
+      <li>如果对 Prompt 也计算 Loss，模型会浪费容量去学习重复/补全指令，而非学习指令-回答的映射。</li>
+      <li>不 Mask 的情况下，Prompt 和 Response 的 Loss 混合会稀释关键的学习信号。</li>
+    </ul>
+    <pre><code># 实现：labels 中 Prompt 部分设为 -100（PyTorch CrossEntropy 忽略 -100）
+tokens = ["<|user|>", "你好", "请", "介绍", "北京", "<|assistant|>", "北京", "是", "..."]
+labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", "..."]
+#         ↑ 全部忽略                                        ↑ 从这里开始计算 Loss</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q4"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">4</span><div class="q-text"><h4>什么是灾难性遗忘（Catastrophic Forgetting）？微调时如何缓解？</h4>
+    <div class="q-tags"><span class="q-tag hot">核心问题</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>灾难性遗忘</strong>：在微调过程中，模型为了适应新任务的数据分布，过度调整参数，导致在预训练阶段学到的通用知识和能力被覆盖或丢失。</p>
+    <p><strong>缓解策略：</strong></p>
+    <ol>
+      <li><strong>PEFT（LoRA / Adapter）</strong>：冻结主干参数，只训练少量新增参数。最有效的防遗忘方法。</li>
+      <li><strong>较小的学习率</strong>：通常 SFT LR ≈ 2e-5（预训练的 1/10 ~ 1/100），减少参数更新幅度。</li>
+      <li><strong>Data Replay / Mixing</strong>：在微调数据中混入一定比例的预训练数据（如 5-10%），让模型"复习"原有知识。</li>
+      <li><strong>Early Stopping</strong>：只训练 1-3 个 Epoch。SFT 通常不需要多 Epoch（容易过拟合）。</li>
+      <li><strong>KL 正则化</strong>：加一个 KL(π_θ || π_pretrained) 惩罚项，防止新策略偏离预训练分布太远。</li>
+      <li><strong>渐进式解冻（Gradual Unfreezing）</strong>：先解冻顶层，逐层向下解冻。</li>
+    </ol>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q5"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">5</span><div class="q-text"><h4>多任务微调（Multi-Task Fine-Tuning）与单任务微调有什么不同？有什么优缺点？</h4>
+    <div class="q-tags"><span class="q-tag core">策略选择</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>单任务微调</th><th>多任务微调</th></tr>
+      <tr><td>数据</td><td>一个任务的数据</td><td>多个任务的数据混合</td></tr>
+      <tr><td>输出</td><td>一个专用模型</td><td>一个通用模型</td></tr>
+      <tr><td>单任务性能</td><td>最优</td><td>接近单任务（有任务干扰）</td></tr>
+      <tr><td>泛化能力</td><td>差（过拟合单任务）</td><td>好（多任务正则化效应）</td></tr>
+      <tr><td>维护成本</td><td>高（每个任务一个模型）</td><td>低（一个模型服务所有任务）</td></tr>
+      <tr><td>适用场景</td><td>追求极致性能的单一场景</td><td>通用助手、平台级服务</td></tr>
+    </table>
+    <p><strong>关键技巧：</strong></p>
+    <ul>
+      <li><strong>Task Prompting</strong>：每个任务前加任务描述（"请翻译："、"请总结："），帮助模型区分任务。</li>
+      <li><strong>Data Balancing</strong>：不同任务的数据量要平衡，防止模型偏向数据量多的任务。常用 Temperature Sampling 或手动调整采样比例。</li>
+      <li><strong>Task-Specific Adapters</strong>：共享主干 + 每任务一个 LoRA Adapter（组合 PEFT 的多任务方案）。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 2 ====== -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="s-icon">🎯</span> 二、LoRA 与 QLoRA<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q6"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">6</span><div class="q-text"><h4>LoRA（Low-Rank Adaptation）的核心原理是什么？为什么低秩分解能有效微调大模型？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心算法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>核心假设：</strong>模型适配过程中的权重更新 ΔW 是<strong>低秩的（Low-Rank）</strong>——即可以用两个小矩阵的乘积来近似。这个假设来自 Aghajanyan et al. (2020) 的 Intrinsic Dimensionality 研究。</p>
+    <pre><code># LoRA 核心公式
+h = W₀·x + ΔW·x
+  = W₀·x + (B·A)·x        # ΔW = B·A 低秩分解
+
+其中：
+W₀ ∈ ℝ^(d×k)   — 原始权重（冻结，不训练）
+A  ∈ ℝ^(r×k)   — 降维矩阵（随机高斯初始化）
+B  ∈ ℝ^(d×r)   — 升维矩阵（零初始化，训练开始时 ΔW=0）
+r  ≪ min(d,k)  — 秩（通常 r=8~64）
+
+参数量对比：
+原始：d × k
+LoRA：r × (d + k)   ← 当 r 很小时，参数量大幅减少
+
+例如：d=4096, k=4096, r=16
+原始参数：16.7M
+LoRA 参数：131K   ← 减少了 99.2%</code></pre>
+    <p><strong>为什么有效：</strong></p>
+    <ul>
+      <li>Aghajanyan 等人发现，大模型适应新任务时，参数更新的"内在维度"（intrinsic dimension）远小于参数空间维度。微调实际上只改变了少数"方向"。</li>
+      <li>LoRA 通过低秩分解显式地约束更新在这些低维子空间中进行。</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q7"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">7</span><div class="q-text"><h4>LoRA 中的秩 r 和 α（scaling factor）分别控制什么？如何选择这些超参数？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">调参实践</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># LoRA 实际更新的公式
+ΔW = (α / r) · B·A
+#     ↑ scaling factor
+
+其中：
+r — 秩（Rank）：控制 LoRA 的表达能力
+α — 缩放因子：控制 LoRA 更新的"强度"（类似学习率的角色）</code></pre>
+    <table>
+      <tr><th>超参数</th><th>作用</th><th>太小</th><th>太大</th><th>常用值</th></tr>
+      <tr><td>r</td><td>低秩分解的秩 — 决定能捕获多少"变化维度"</td><td>欠拟合，学不到足够知识</td><td>过拟合 + 增加计算量</td><td>8, 16, 32, 64</td></tr>
+      <tr><td>α</td><td>缩放因子 — 放大/缩小 LoRA 更新的影响</td><td>学得太慢</td><td>训练不稳定</td><td>通常 α = 2r（如 r=16, α=32）</td></tr>
+    </table>
+    <p><strong>选参指导：</strong></p>
+    <ul>
+      <li><strong>简单任务</strong>（单轮 QA、分类）：r=8, α=16</li>
+      <li><strong>中等复杂度</strong>（多轮对话、指令遵循）：r=16, α=32</li>
+      <li><strong>复杂任务</strong>（代码生成、长文推理）：r=32~64, α=64~128</li>
+      <li><strong>经验法则</strong>：α 设为 r 的 2 倍是一个好的起点</li>
+      <li>α 增大 ≠ 学习率增大。实际有效学习率 ≈ lr × (α/r)</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q8"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">8</span><div class="q-text"><h4>LoRA 通常加在 Transformer 的哪些层？为什么主要加在 Attention 权重上？</h4>
+    <div class="q-tags"><span class="q-tag core">实现细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>最常见的加 LoRA 的位置：</strong></p>
+    <pre><code>Transformer 层中可加 LoRA 的权重矩阵：
+
+Multi-Head Attention:
+  W_Q (Query)   ← ✅ 最常见
+  W_K (Key)     ← ✅ 常见
+  W_V (Value)   ← ✅ 最常见
+  W_O (Output)  ← ✅ 常见
+
+Feed Forward Network:
+  W_up, W_gate, W_down  ← 可选，部分工作也加在这里</code></pre>
+    <p><strong>为什么侧重 Attention 权重：</strong></p>
+    <ul>
+      <li>Attention 权重是"信息路由"的关键——微调主要是改变模型"关注什么"和"如何组合信息"。</li>
+      <li>原论文实验表明，只对 W_Q 和 W_V 加 LoRA 就能达到接近 Full FT 的效果。</li>
+      <li>对 Attention 的 4 个权重矩阵全加（Q、K、V、O）通常效果最好。</li>
+      <li>对 FFN 也加可以进一步提升，但会增加参数量和可能过拟合。</li>
+    </ul>
+    <p><strong>现代实践：</strong>大多数开源微调项目（如 LLaMA-Factory）默认对 Attention 的 Q、K、V、O 全部加 LoRA，即 <code>target_modules=["q_proj","k_proj","v_proj","o_proj"]</code>。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q9"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">9</span><div class="q-text"><h4>QLoRA 是如何在 LoRA 基础上进一步降低显存占用的？NF4 + 双重量化是什么？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">前沿技术</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>QLoRA</strong> 在 LoRA 的基础上，通过<strong>量化主干模型（Base Model）</strong>进一步压缩显存：</p>
+    <pre><code>显存占用对比（以 LLaMA-7B 为例）：
+
+Full Fine-Tuning:  ~ 56 GB  (FP16 模型 + 梯度 + 优化器状态)
+LoRA:              ~ 16 GB  (FP16 模型 + LoRA 梯度)
+QLoRA:             ~ 10 GB  (NF4 量化模型 + LoRA 梯度)
+                                           ↑ 单张消费级 GPU 即可</code></pre>
+    <p><strong>QLoRA 的三大技术：</strong></p>
+    <ol>
+      <li>
+        <strong>NF4（4-bit NormalFloat）</strong>
+        <p>一种针对正态分布权重优化的 4-bit 量化格式。假设预训练权重服从 N(0,σ)，NF4 在正态分布的尾部分配更多精度。比 INT4 更贴合神经网络权重的分布特点。</p>
+      </li>
+      <li>
+        <strong>双重量化（Double Quantization）</strong>
+        <p>对量化过程中的缩放因子（scaling factor）再做一次量化（从 FP32 → FP8）。进一步节省 ~0.4 bits/参数。</p>
+      </li>
+      <li>
+        <strong>分页优化器（Paged Optimizer）</strong>
+        <p>当显存不足时，将优化器状态换页到 CPU 内存（类似操作系统换页）。防止 OOM 而不影响训练正确性。</p>
+      </li>
+    </ol>
+    <p>QLoRA 让在<strong>单张 24GB 消费级 GPU（RTX 3090/4090）上微调 33B 甚至 65B 模型</strong>成为可能。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q10"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">10</span><div class="q-text"><h4>如何合并（Merge）LoRA 权重到主模型？什么情况下应该 Merge，什么情况下不该 Merge？</h4>
+    <div class="q-tags"><span class="q-tag hot">工程实践</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># LoRA Merge 公式
+W_merged = W₀ + (α/r) · B·A
+
+# 矩阵加法，将低秩适配器"融入"原始权重
+# 合并后与普通模型完全一样，可以正常加载和推理</code></pre>
+    <p><strong>应该 Merge 的场景：</strong></p>
+    <ul>
+      <li><strong>生产部署</strong>：合并后不需要额外的 LoRA 加载逻辑，减少推理延迟。</li>
+      <li><strong>需要做量化部署</strong>：如 GPTQ / AWQ 量化通常需要完整的权重矩阵。</li>
+      <li><strong>模型共享/分发</strong>：合并后的模型更易用（用户不需要知道 LoRA）。</li>
+      <li><strong>多 LoRA 叠加</strong>：将多个 LoRA 逐个 merge 进同一个基底，实现能力组合。</li>
+    </ul>
+    <p><strong>不应该 Merge 的场景：</strong></p>
+    <ul>
+      <li><strong>需要服务多任务</strong>：保留基底 + 动态加载不同 LoRA 适配器，节省存储和显存。</li>
+      <li><strong>快速实验/迭代</strong>：LoRA 小文件（几 MB），可以快速切换和对比不同版本。</li>
+      <li><strong>隐私/安全隔离</strong>：不同用户使用不同的 LoRA，逻辑上隔离。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 3 ====== -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="s-icon">🔬</span> 三、PEFT 方法全景<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q11"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">11</span><div class="q-text"><h4>除了 LoRA，还有哪些主流的 PEFT 方法？请至少介绍三种并对比。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">方法全景</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>方法</th><th>核心思想</th><th>额外参数</th><th>推理开销</th><th>典型性能</th></tr>
+      <tr>
+        <td><strong>Adapter</strong></td>
+        <td>在每个 Transformer 层插入小型瓶颈网络（降维→激活→升维）</td>
+        <td>3-8%</td>
+        <td>有（增加了层）</td>
+        <td>好</td>
+      </tr>
+      <tr>
+        <td><strong>Prefix Tuning</strong></td>
+        <td>在输入前添加可训练的虚拟 token 序列（Prefix）</td>
+        <td>< 0.1%</td>
+        <td>无（合并到输入）</td>
+        <td>中等</td>
+      </tr>
+      <tr>
+        <td><strong>Prompt Tuning</strong></td>
+        <td>Prefix Tuning 的简化版——只在 Embedding 层加可训练 token</td>
+        <td>< 0.01%</td>
+        <td>无</td>
+        <td>较小模型差，大模型好</td>
+      </tr>
+      <tr>
+        <td><strong>LoRA</strong></td>
+        <td>低秩分解权重更新 ΔW = B·A</td>
+        <td>0.1-2%</td>
+        <td>无（可 Merge）</td>
+        <td>好</td>
+      </tr>
+      <tr>
+        <td><strong>IA³</strong></td>
+        <td>对 K、V、FFN 激活值乘以一个可学习的标量向量</td>
+        <td>< 0.01%</td>
+        <td>无（可 Merge）</td>
+        <td>接近 LoRA</td>
+      </tr>
+    </table>
+    <p><strong>为什么 LoRA 最流行：</strong>无推理开销（Merge 后等价于原始模型）+ 实现简单 + 性能优秀 + 社区生态成熟（PEFT 库、LLaMA-Factory）。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q12"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">12</span><div class="q-text"><h4>Adapter 和 LoRA 在架构上有什么本质区别？各有什么优劣？</h4>
+    <div class="q-tags"><span class="q-tag hot">对比分析</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># Adapter 架构
+x → [Self-Attention] → Add&Norm → [Adapter Layer] → Add&Norm → FFN → ...
+
+Adapter Layer = W_up(ReLU(W_down(x))) + x
+#  W_down: d → bottleneck → W_up: bottleneck → d
+#  ↑ 串行插入，增加推理延迟
+
+# LoRA 架构
+x → [Self-Attention + LoRA] → Add&Norm → FFN → ...
+#  ΔW = B·A 直接加到 W 上
+#  ↑ 并行计算（可 Merge），不增加推理延迟</code></pre>
+    <table>
+      <tr><th>维度</th><th>Adapter</th><th>LoRA</th></tr>
+      <tr><td>位置</td><td>串行插入在 Attention/FFN 之后</td><td>并行加到 Attention/FFN 的权重上</td></tr>
+      <tr><td>推理开销</td><td>有（多了层，必须串行计算）</td><td>无（Merge 后等价于原始模型）</td></tr>
+      <tr><td>表达能力</td><td>非线性（有 ReLU）</td><td>线性（纯矩阵乘法）</td></tr>
+      <tr><td>参数量</td><td>较多（通常 3-8%）</td><td>较少（1-2%）</td></tr>
+      <tr><td>多任务</td><td>需要切换 Adapter 层</td><td>可动态热加载 LoRA 权重</td></tr>
+    </table>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q13"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">13</span><div class="q-text"><h4>什么是 Prefix Tuning 和 Prompt Tuning？它们与 LoRA 有什么本质不同？</h4>
+    <div class="q-tags"><span class="q-tag core">方法理解</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Prefix Tuning 和 Prompt Tuning 的核心思想：<strong>不修改模型权重，而是在输入空间中学习"软提示"</strong>。</p>
+    <pre><code># Prompt Tuning (Lester et al., 2021)
+Input = [Soft_Prompt_1, ..., Soft_Prompt_k,  User_Input]
+#        ↑ 可训练的虚拟 Embedding（k 个 token）
+# 只在 Embedding 层加可训练参数，最简单但能力有限
+
+# Prefix Tuning (Li & Liang, 2021)
+# 在每一层都插入可训练的 Prefix 向量
+for layer in transformer_layers:
+    layer.attention.K = concat([Prefix_K, K])
+    layer.attention.V = concat([Prefix_V, V])
+# 每层都有 Prefix，表达能力更强</code></pre>
+    <p><strong>与 LoRA 的本质区别：</strong></p>
+    <ul>
+      <li>LoRA 修改的是<strong>权重空间</strong>（改变模型的计算方式）</li>
+      <li>Prefix/Prompt Tuning 修改的是<strong>输入/激活空间</strong>（改变模型的输入表示）</li>
+      <li>Prompt Tuning 的参数量是最少的（仅 Embedding 层）但效果也最弱</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q14"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">14</span><div class="q-text"><h4>如何组合多种 PEFT 方法？例如 LoRA + Prefix Tuning 的场景和价值是什么？</h4>
+    <div class="q-tags"><span class="q-tag core">进阶实践</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>不同 PEFT 方法作用在不同位置，<strong>可以正交地组合</strong>使用：</p>
+    <pre><code>组合方案示例：
+
+┌────────────────────────────────────────┐
+│ LoRA (权重空间)                         │
+│ → 学习领域知识、推理模式               │
+│ → 加在 W_Q, W_V 上，r=32              │
+├────────────────────────────────────────┤
+│ Prompt Tuning (输入空间)                │
+│ → 控制输出风格、安全行为               │
+│ → 在 Embedding 层加 k=20 个软 token    │
+├────────────────────────────────────────┤
+│ IA³ (激活空间)                          │
+│ → 快速调整任务偏好                     │
+│ → 对 K, V, FFN 激活值缩放              │
+└────────────────────────────────────────┘</code></pre>
+    <p><strong>实用场景：</strong></p>
+    <ul>
+      <li><strong>LoRA（知识） + Prompt Tuning（风格）</strong>：LoRA 注入领域知识（如医学诊断），Prompt Tuning 微调输出风格（如"对儿童解释" vs "对医生解释"）。</li>
+      <li><strong>LoRA 叠加多个 LoRA</strong>：将多个 LoRA 合并——如"医学 LoRA" + "友善语气 LoRA" → 友善的医学助手。</li>
+    </ul>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 4 ====== -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="s-icon">📝</span> 四、指令微调与数据<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q15"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">15</span><div class="q-text"><h4>什么是 Instruction Tuning（指令微调）？它与传统 SFT 有什么不同？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Instruction Tuning</strong> 是 SFT 的一种特殊形式，其训练数据格式为 <strong>(Instruction, Input, Output)</strong> 三元组，目标是让模型学会"遵循指令"而非简单"映射输入到输出"。</p>
+    <table>
+      <tr><th>维度</th><th>传统 SFT</th><th>Instruction Tuning</th></tr>
+      <tr><td>数据格式</td><td>任务特定的 (Input, Output)</td><td>统一的 (Instruction, Input, Output)</td></tr>
+      <tr><td>目标</td><td>优化特定任务的性能</td><td>学会遵循各类指令</td></tr>
+      <tr><td>泛化性</td><td>差（过拟合单一任务）</td><td>强（跨任务泛化）</td></tr>
+      <tr><td>零样本能力</td><td>无</td><td>有（遵循未见过的指令）</td></tr>
+      <tr><td>代表</td><td>单任务分类/翻译微调</td><td>FLAN, Alpaca, Vicuna</td></tr>
+    </table>
+    <pre><code># Instruction Tuning 数据格式
+{
+  "instruction": "将以下句子翻译成英文",
+  "input": "今天天气真好",
+  "output": "The weather is really nice today."
+}
+
+# 也支持无 input 的情况
+{
+  "instruction": "写一首关于春天的五言绝句",
+  "input": "",
+  "output": "春风吹绿柳，细雨润红花。燕子衔泥至，筑巢在檐下。"
+}</code></pre>
+    <div class="highlight-box">💡 Instruction Tuning 是 ChatGPT 成功的核心要素之一：FLAN 论文表明，指令多样化的微调可以让模型获得零样本遵循新指令的能力。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q16"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">16</span><div class="q-text"><h4>如何构建高质量的 SFT 数据集？数据质量 vs 数据数量，哪个更重要？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">数据工程</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>数据质量 > 数据数量。</strong>LIMA 论文（2023）表明：仅用 1000 条精心挑选的高质量 SFT 数据，就能让模型达到接近 GPT-4 级别的指令遵循能力。</p>
+    <p><strong>高质量 SFT 数据的特征：</strong></p>
+    <ol>
+      <li><strong>指令多样</strong>：覆盖不同任务类型（生成、推理、分类、创作、代码等），不同难度。</li>
+      <li><strong>回答准确</strong>：事实正确、逻辑自洽、无幻觉。</li>
+      <li><strong>格式统一</strong>：使用一致的 Chat Template（如 ChatML、Llama chat format）。</li>
+      <li><strong>风格一致</strong>：语气、详细程度、输出格式保持一致。</li>
+      <li><strong>安全无害</strong>：拒绝有害请求、不输出不安全内容。</li>
+      <li><strong>多样性</strong>：覆盖不同领域（科技、人文、生活、法律等），不同语言。</li>
+    </ol>
+    <p><strong>数据构建 Pipeline：</strong></p>
+    <pre><code>1. 种子指令 → 2. 指令扩增 (Self-Instruct / Evol-Instruct) →
+3. 强模型生成回答 (GPT-4 / Claude) → 4. 人工审核/修正 →
+5. 质量过滤 (去重、去低质、安全检查) → 6. 格式统一化</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q17"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">17</span><div class="q-text"><h4>Self-Instruct 和 Evol-Instruct 分别是什么？它们如何自动生成指令数据？</h4>
+    <div class="q-tags"><span class="q-tag hot">数据增强</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Self-Instruct（自我指令生成）：</strong></p>
+    <ol>
+      <li>从一个种子池（175 条人工写的指令）开始</li>
+      <li>每次随机采样 8 条作为 Few-shot 示例</li>
+      <li>让 LLM 生成新的指令 → 判断是否为分类任务 → 生成回答 → 过滤低质量 → 加入池</li>
+      <li>迭代重复，最终从 175 条种子生成 82K 条指令（Alpaca 数据集）</li>
+    </ol>
+    <p><strong>Evol-Instruct（进化指令生成）：</strong></p>
+    <ol>
+      <li>对简单指令进行"进化"——让 LLM 将其变复杂</li>
+      <li>进化维度：加约束条件、深化推理、增加步骤、泛化场景、增加输入</li>
+      <li>再次让 LLM 生成新指令对应的回答</li>
+      <li>结果：WizardLM 数据集，包含大量复杂指令（多步推理、带约束生成等）</li>
+    </ol>
+    <pre><code># Self-Instruct: 模仿 → 生成 → 过滤
+种子 → 生成新指令 → 生成回答 → 质量过滤 → 扩展到 82K
+
+# Evol-Instruct: 简单 → 进化 → 复杂
+"写一首诗" → 进化 → "写一首七言律诗，主题是秋天，必须包含'枫叶'意象"
+
+# 两者互补：Self-Instruct 负责广度，Evol-Instruct 负责深度</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q18"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">18</span><div class="q-text"><h4>Chat Template 在 SFT 中起什么作用？不同模型的 Chat Template 有什么差异？</h4>
+    <div class="q-tags"><span class="q-tag hot">工程细节</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>Chat Template 定义了<strong>如何将对话结构化为 Token 序列</strong>——不同的 Base Model 使用不同的特殊 Token 和格式约定。</p>
+    <pre><code># Llama 3 Chat Template
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+你是专业的Python编程助手。<|eot_id|>
+<|start_header_id|>user<|end_header_id|>
+请用Python实现快速排序。<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>
+以下是快速排序的Python实现：
+def quicksort(arr):
+    ...<|eot_id|>
+
+# ChatML (Qwen / DeepSeek 等)
+<|im_start|>system
+你是专业的Python编程助手。<|im_end|>
+<|im_start|>user
+请用Python实现快速排序。<|im_end|>
+<|im_start|>assistant
+以下是快速排序的Python实现：
+...<|im_end|></code></pre>
+    <p><strong>为什么重要：</strong></p>
+    <ul>
+      <li>用错 Template → 模型"看不懂"对话结构 → 性能大幅下降。</li>
+      <li>SFT 训练和推理必须使用<strong>完全一致</strong>的 Template。</li>
+      <li>不同模型家族的特殊 Token 不同（Llama 用 <code><|eot_id|></code>，Qwen 用 <code><|im_end|></code>）。</li>
+    </ul>
+    <p>HuggingFace 的 <code>tokenizer.apply_chat_template()</code> 可以自动应用每个模型对应的 Template。</p>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q19"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">19</span><div class="q-text"><h4>SFT 数据中如何处理多轮对话（Multi-turn Conversation）？与单轮有什么不同？</h4>
+    <div class="q-tags"><span class="q-tag core">数据处理</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code># 多轮对话数据格式
+{
+  "messages": [
+    {"role": "user", "content": "Python中list和tuple的区别是什么？"},
+    {"role": "assistant", "content": "list是可变的，tuple是不可变的..."},
+    {"role": "user", "content": "那什么场景下应该用tuple？"},
+    {"role": "assistant", "content": "当你需要不可变集合时，如作为dict的key..."},
+    {"role": "user", "content": "能举一个具体的例子吗？"},
+    {"role": "assistant", "content": "比如存储坐标点..."}
+  ]
+}</code></pre>
+    <p><strong>与单轮的关键区别：</strong></p>
+    <ol>
+      <li><strong>Loss 计算</strong>：每轮 assistant 回答都计算 Loss，所有 user 消息 Mask 掉。</li>
+      <li><strong>上下文累积</strong>：每轮 assistant 的输出成为下一轮的输入上下文的一部分。</li>
+      <li><strong>序列长度</strong>：多轮对话的总 Token 数可能很长，需要关注 max_length 截断策略（按轮截断 vs 按 Token 截断）。</li>
+      <li><strong>连贯性</strong>：模型需要学习跨轮指代、话题跟随、追问应答等能力。</li>
+    </ol>
+    <p><strong>最佳实践：</strong>训练数据中混合单轮和多轮（如 30% 单轮 + 70% 多轮），让模型既能处理快速问答，也能胜任深度对话。</p>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 5 ====== -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="s-icon">⚡</span> 五、训练 Pipeline<span class="s-count">5 题</span></div>
+
+  <div class="q-card" id="q20"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">20</span><div class="q-text"><h4>请描述一个完整的 SFT 训练 Pipeline，从数据准备到模型保存。</h4>
+    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">工程全景</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code>完整 SFT Pipeline：
+
+1. 数据收集与清洗
+   ├── 收集种子数据（人工标注 / 爬取 / 购买）
+   ├── 数据清洗（去重、去敏感信息、格式检查）
+   └── 质量打分与过滤
+
+2. 数据增强
+   ├── Self-Instruct → 扩展指令多样性
+   ├── Evol-Instruct → 增加复杂指令
+   └── 多语言翻译扩充
+
+3. 格式标准化
+   ├── 统一为 Chat Template 格式
+   ├── Tokenize + Mask Prompt Loss
+   └── 打包（Packing）/ 截断（Truncation）
+
+4. 训练配置
+   ├── 选模型 + 选 PEFT 方法
+   ├── LoRA config: r, α, target_modules
+   ├── Training args: lr, batch_size, epochs, warmup
+   └── 分布式策略: FSDP / DeepSpeed
+
+5. 训练执行
+   ├── 训练循环 + 梯度累积
+   ├── 周期性保存 Checkpoint
+   ├── 周期性 Evaluation（验证集 Loss / 生成样本检查）
+   └── TensorBoard / Wandb 监控
+
+6. 模型后处理
+   ├── Merge LoRA（可选）
+   ├── 量化（GPTQ / AWQ，可选）
+   └── 最终评估 → 部署</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q21"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">21</span><div class="q-text"><h4>SFT 的关键训练超参数有哪些？如何设置学习率、Batch Size、Epoch 数？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">调参指南</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>超参数</th><th>常用范围</th><th>设置建议</th></tr>
+      <tr>
+        <td>Learning Rate</td>
+        <td>1e-5 ~ 5e-4</td>
+        <td>LoRA 可用较高 LR（2e-4~5e-4）；Full FT 需低 LR（1e-5~5e-5）。太大→训练崩溃，太小→学不动。</td>
+      </tr>
+      <tr>
+        <td>LR Scheduler</td>
+        <td>Cosine / Linear</td>
+        <td>Cosine 最常用。通常配 3-10% warmup。</td>
+      </tr>
+      <tr>
+        <td>Batch Size</td>
+        <td>64 ~ 512 (global)</td>
+        <td>显存受限用 Gradient Accumulation 模拟大 Batch。micro_batch=4, grad_accum=16 → global_batch=64。</td>
+      </tr>
+      <tr>
+        <td>Epochs</td>
+        <td>1 ~ 5</td>
+        <td>SFT 通常 1-3 Epoch 足够。数据量小（<1万）可以用 3-5 Epoch，数据量大 1 Epoch 即可。多 Epoch 容易过拟合。</td>
+      </tr>
+      <tr>
+        <td>Max Sequence Length</td>
+        <td>2048 / 4096 / 8192</td>
+        <td>取决于任务+显存。长于 80% 的数据即可。太长浪费显存。</td>
+      </tr>
+      <tr>
+        <td>Warmup Ratio</td>
+        <td>0.03 ~ 0.1</td>
+        <td>前 3-10% 步 LR 从 0 线性增加到目标值，防止训练初期不稳定。</td>
+      </tr>
+      <tr>
+        <td>Weight Decay</td>
+        <td>0 ~ 0.1</td>
+        <td>LoRA 通常不需要（0），Full FT 用 0.01~0.1。</td>
+      </tr>
+    </table>
+    <div class="highlight-box">💡 <strong>经验之谈：</strong>LoRA 微调最关键的三个超参数 — Learning Rate（调得对不对看 Loss 曲线）、Rank r（太小欠拟合太大过拟合）、Epoch 数（多 Epoch 往往过拟合）。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q22"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">22</span><div class="q-text"><h4>什么是 Gradient Checkpointing 和 Gradient Accumulation？各解决什么问题？</h4>
+    <div class="q-tags"><span class="q-tag hot">显存优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>Gradient Checkpointing（梯度检查点）</strong></p>
+    <ul>
+      <li><strong>问题：</strong>反向传播需要保存前向传播的中间激活值，显存消耗巨大。</li>
+      <li><strong>方案：</strong>只保存部分层的激活值（检查点），反向传播时重新计算中间激活。用<strong>时间换空间</strong>。</li>
+      <li><strong>代价：</strong>训练速度降低约 20-30%。</li>
+    </ul>
+    <p><strong>Gradient Accumulation（梯度累积）</strong></p>
+    <ul>
+      <li><strong>问题：</strong>GPU 显存不够 → 无法用足够大的 Batch Size → 训练不稳定。</li>
+      <li><strong>方案：</strong>将一个大 Batch 拆分为多个 Micro-Batch，每个 Micro-Batch 前向+反向（但不更新），累积 N 个 Micro-Batch 的梯度后再做一次参数更新。</li>
+      <li><strong>代价：</strong>无（训练速度略降因为更多通信）。</li>
+    </ul>
+    <pre><code># 示例：想用 global_batch_size=128 但单卡只能跑 4
+per_device_batch = 4
+gradient_accumulation_steps = 8
+# 8 张卡 × 4 × 8 = 256 effective batch size
+
+# 实现等价于：
+for i, batch in enumerate(dataloader):
+    loss = model(batch) / gradient_accumulation_steps
+    loss.backward()  # 梯度累积
+    if (i+1) % gradient_accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q23"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">23</span><div class="q-text"><h4>DeepSpeed ZeRO 的三个阶段分别做了什么？LLM 微调通常用哪个阶段？</h4>
+    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">分布式训练</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>阶段</th><th>分片（Shard）的内容</th><th>显存节省</th><th>通信开销</th><th>适用</th></tr>
+      <tr>
+        <td><strong>ZeRO-1</strong></td>
+        <td>Optimizer States</td>
+        <td>~4×</td>
+        <td>最低</td>
+        <td>优化器状态是瓶颈（大多数 Full FT 场景）</td>
+      </tr>
+      <tr>
+        <td><strong>ZeRO-2</strong></td>
+        <td>Optimizer States + Gradients</td>
+        <td>~8×</td>
+        <td>低</td>
+        <td>梯度也占显存的场景</td>
+      </tr>
+      <tr>
+        <td><strong>ZeRO-3</strong></td>
+        <td>Optimizer States + Gradients + Parameters</td>
+        <td>线性扩展（N 卡 ≈ N×）</td>
+        <td>较高</td>
+        <td>超大模型（100B+）训练</td>
+      </tr>
+    </table>
+    <p><strong>LLM 微调的推荐：</strong></p>
+    <ul>
+      <li><strong>LoRA 微调</strong>：通常<strong>不需要 DeepSpeed</strong>，单卡 FSDP / DDP 就够。因为只有 LoRA 参数需要优化器状态。</li>
+      <li><strong>Full FT (7B)</strong>：ZeRO-2 足够，4×A100(80G) 可以跑。</li>
+      <li><strong>Full FT (70B+)</strong>：必须 ZeRO-3 + CPU Offload。</li>
+      <li><strong>QLoRA</strong>：单卡 + Gradient Checkpointing 即可，接近不需 DeepSpeed。</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q24"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">24</span><div class="q-text"><h4>如何判断 SFT 训练是否过拟合？有哪些监控指标？</h4>
+    <div class="q-tags"><span class="q-tag core">训练监控</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>过拟合的信号：</strong></p>
+    <ol>
+      <li><strong>Train Loss 持续下降但 Eval Loss 上升</strong>：经典过拟合。Loss 分开走时可以停止训练。</li>
+      <li><strong>生成重复/退化</strong>：模型开始输出重复短语、循环输出，或对所有问题都给出类似回答。</li>
+      <li><strong>Eval Loss 平坦</strong>：Eval Loss 不再下降，继续训练徒增过拟合风险。</li>
+      <li><strong>多样性下降</strong>：对同一问题的不同问法，模型输出几乎相同。</li>
+    </ol>
+    <p><strong>监控体系：</strong></p>
+    <ul>
+      <li><strong>定量指标</strong>：Train/Eval Loss、Perplexity、Token Accuracy。</li>
+      <li><strong>定期生成检查</strong>：每 N 步用固定的一组 Prompt 生成回答，人工/LLM-as-Judge 检查质量。</li>
+      <li><strong>Benchmark 评估</strong>：在 MMLU、HumanEval 等基准上评估通用能力是否下降（灾难性遗忘检测）。</li>
+      <li><strong>KL Divergence</strong>：监控当前策略 vs 初始模型的 KL 散度（RLHF 中尤其重要）。</li>
+    </ul>
+    <div class="highlight-box">💡 <strong>核心原则：</strong>SFT 通常是 1-2 Epoch 就够了。不要追求 Training Loss 降到最低——Eval Loss 和实际生成质量才是你真正关心的指标。</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ====== SECTION 6 ====== -->
+<div class="section" id="s6">
+  <div class="section-title"><span class="s-icon">📊</span> 六、评估与部署<span class="s-count">4 题</span></div>
+
+  <div class="q-card" id="q25"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">25</span><div class="q-text"><h4>如何评估 SFT 模型的质量？有哪些主流的评估基准和方法？</h4>
+    <div class="q-tags"><span class="q-tag hot">评估体系</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p><strong>评估层次体系：</strong></p>
+    <ol>
+      <li>
+        <strong>知识/能力基准（Benchmark）</strong>
+        <ul>
+          <li>MMLU：57 个学科的多选题，评估世界知识</li>
+          <li>HumanEval / MBPP：代码生成能力</li>
+          <li>GSM8K / MATH：数学推理能力</li>
+          <li>HellaSwag / PIQA：常识推理</li>
+          <li>C-Eval / CMMLU：中文能力评估</li>
+        </ul>
+      </li>
+      <li>
+        <strong>对话质量评估</strong>
+        <ul>
+          <li>MT-Bench：多轮对话，GPT-4 打分（1-10）</li>
+          <li>AlpacaEval：与参考模型对比胜率</li>
+          <li>Chatbot Arena (LMSys)：人类投票 Elo 分</li>
+        </ul>
+      </li>
+      <li>
+        <strong>特定维度评估</strong>
+        <ul>
+          <li>TruthfulQA：真实性/幻觉程度</li>
+          <li>Toxigen：毒性/安全性</li>
+          <li>BBH / AGIEval：复杂推理能力</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="highlight-box">💡 <strong>现实建议：</strong>自动化 Benchmark 只能做初步筛选。生产级模型必须结合<strong>业务场景的 A/B 测试 + 人工评估</strong>来做最终判断。</div>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q26"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">26</span><div class="q-text"><h4>LLM-as-Judge 是如何评估模型输出的？有什么优缺点？</h4>
+    <div class="q-tags"><span class="q-tag hot">评估方法</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <p>LLM-as-Judge 是让一个<strong>强 LLM（如 GPT-4、Claude Opus）</strong>作为裁判，给目标模型的输出打分或比较。</p>
+    <pre><code># 单模型打分
+Judge Prompt:
+"请从 1-10 分评估以下回答的质量，考虑准确性、完整性、流畅性和有用性。
+问题：{question}
+回答：{answer}
+评分："
+
+# 比较打分 (Pairwise)
+Judge Prompt:
+"以下是同一个问题的两个回答，请判断哪个更好。
+问题：{question}
+回答 A：{answer_a}
+回答 B：{answer_b}
+哪个更好？A 还是 B？为什么？"</code></pre>
+    <p><strong>优点：</strong></p>
+    <ul><li>自动化，成本低于人工评估</li><li>可扩展，能评估大量样本</li><li>与人类偏好有一定相关性</li></ul>
+    <p><strong>缺点：</strong></p>
+    <ul>
+      <li><strong>位置偏差</strong>：倾向于选第一个/第二个（需做位置交换做两次取平均）</li>
+      <li><strong>长度偏差</strong>：倾向于给长回答高分</li>
+      <li><strong>自利偏差</strong>：GPT-4 可能偏好 GPT-4 风格的输出</li>
+      <li><strong>不一致性</strong>：同一对答案问两次可能得到不同结果</li>
+    </ul>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q27"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">27</span><div class="q-text"><h4>微调后的模型如何做量化部署？GPTQ 和 AWQ 有什么区别？</h4>
+    <div class="q-tags"><span class="q-tag hot">部署优化</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <table>
+      <tr><th>维度</th><th>GPTQ</th><th>AWQ</th></tr>
+      <tr><td>核心思想</td><td>逐列量化 + Hessian 信息修正剩余权重</td><td>识别重要权重通道并保留精度</td></tr>
+      <tr><td>量化过程</td><td>需要校准数据，逐层量化（耗时）</td><td>基于激活分布分析，更快</td></tr>
+      <tr><td>格式</td><td>INT4 / INT8</td><td>INT4（关键通道保留 FP16）</td></tr>
+      <tr><td>推理速度</td><td>快（纯 INT 计算）</td><td>快（混合精度）</td></tr>
+      <tr><td>质量保持</td><td>好</td><td>好（有时优于 GPTQ）</td></tr>
+      <tr><td>生态</td><td>vLLM, TGI 支持</td><td>vLLM, TGI, TensorRT-LLM 支持</td></tr>
+    </table>
+    <pre><code># 量化后的典型显存占用（4-bit）
+LLaMA-7B:   ~4 GB
+LLaMA-13B:  ~8 GB
+LLaMA-70B:  ~40 GB (需 2×A100)
+
+# ===== 对于 LoRA 微调的模型 =====
+# 方案 1：先 Merge 再量化
+LoRA → Merge 到 Base → GPTQ/AWQ 量化 → 部署
+
+# 方案 2：量化 Base + 动态加载 LoRA
+Base (已量化) → 推理时动态加载 LoRA (FP16) → 实时 Merge 计算
+# 适合多 LoRA 服务场景</code></pre>
+    </div>
+  </div></div>
+
+  <div class="q-card" id="q28"><div class="q-header" onclick="toggleQ(this)">
+    <span class="q-num">28</span><div class="q-text"><h4>从预训练到部署，LLM 的全生命周期涉及哪些关键技术点？请给出一个完整的端到端概览。</h4>
+    <div class="q-tags"><span class="q-tag hot">全景总结</span></div></div><span class="q-arrow">▶</span>
+  </div><div class="q-body">
+    <div class="answer-section"><div class="answer-label">核心回答</div>
+    <pre><code>LLM 全生命周期技术栈：
+
+┌─────────────────────────────────────────────────────┐
+│ 1. 预训练 (Pre-training)                             │
+│    大规模数据爬取/清洗 → Tokenizer训练 → 分布式训练  │
+│    关键技术：数据去重、DataPipeline、3D并行           │
+│    (DP/TP/PP)、FlashAttention、混合精度训练          │
+├─────────────────────────────────────────────────────┤
+│ 2. SFT (Supervised Fine-Tuning)                     │
+│    指令数据构建 → 格式标准化 → PEFT/LoRA 微调         │
+│    关键技术：Self-Instruct、数据质检、Chat Template   │
+├─────────────────────────────────────────────────────┤
+│ 3. 对齐 (Alignment)                                  │
+│    Reward Model 训练 → PPO 优化 / DPO                 │
+│    关键技术：偏好数据收集、KL 约束、Reward Hacking防护 │
+├─────────────────────────────────────────────────────┤
+│ 4. 评估 (Evaluation)                                 │
+│    自动化 Benchmark → LLM-as-Judge → 人工评估        │
+│    关键技术：MT-Bench、Chatbot Arena、红队测试        │
+├─────────────────────────────────────────────────────┤
+│ 5. 推理优化 (Inference Optimization)                 │
+│    量化 → 推理引擎 → 服务化                            │
+│    关键技术：GPTQ/AWQ、vLLM、TensorRT-LLM、           │
+│    FlashAttention、KV Cache优化、Continuous Batching │
+├─────────────────────────────────────────────────────┤
+│ 6. 持续迭代 (Continuous Improvement)                 │
+│    用户反馈收集 → 数据飞轮 → 定期重训                  │
+│    关键技术：在线学习、A/B 测试、模型监控              │
+└─────────────────────────────────────────────────────┘</code></pre>
+    <p>这六个阶段形成了一个<strong>数据飞轮</strong>——部署后的用户反馈不断回流到数据构建阶段，驱动模型持续改进。</p>
+    </div>
+  </div></div>
+</div>
+
+</div>
+
+<div class="footer">SFT & 微调面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a></div>
+
+<script>
+function toggleQ(header) {
+  header.parentElement.classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) target.classList.add('open');
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 面试题 — 从基础到多智能体</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --white: #ffffff;
+  --border: #e2e2e2;
+  --border-light: #eff0f0;
+  --text: #262626;
+  --text2: #595959;
+  --text3: #8c8c8c;
+  --accent: #7c3aed;
+  --accent-bg: rgba(124,58,237,0.06);
+  --accent-glow: rgba(124,58,237,0.1);
+  --claude: #da7756;
+  --claude-glow: rgba(218,119,86,0.08);
+  --green: #2db55d;
+  --green-glow: rgba(45,181,93,0.1);
+  --orange: #ff9800;
+  --orange-glow: rgba(255,152,0,0.1);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+  --mono: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* Header */
+.page-header {
+  text-align: center; padding: 64px 20px 40px;
+  background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.page-header .icon { font-size: 3em; margin-bottom: 12px; display: block; }
+.page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
+.page-header h1 .gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #c4704a 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.page-header .subtitle { font-size: 1em; color: var(--text3); margin-top: 8px; }
+.page-header .back-link {
+  display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none;
+  font-size: 0.88em; font-weight: 500;
+}
+.page-header .back-link:hover { text-decoration: underline; }
+
+/* Stats bar */
+.stats-bar {
+  max-width: 900px; margin: 0 auto; padding: 24px 24px 0;
+  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+}
+.stat-item {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 20px; text-align: center; min-width: 90px;
+}
+.stat-item .stat-num { font-size: 1.4em; font-weight: 700; color: var(--accent); }
+.stat-item .stat-label { font-size: 0.72em; color: var(--text3); margin-top: 2px; }
+
+/* Container */
+.container { max-width: 900px; margin: 0 auto; padding: 24px 24px 80px; }
+
+/* Section */
+.section { margin-bottom: 40px; }
+.section-title {
+  font-size: 1.3em; font-weight: 700; color: var(--text); margin-bottom: 16px;
+  padding-bottom: 10px; border-bottom: 2px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title .s-icon { font-size: 1.2em; }
+.section-title .s-count {
+  font-size: 0.72em; color: var(--text3); font-weight: 500;
+  background: var(--border-light); padding: 2px 10px; border-radius: 12px;
+}
+
+/* Question card */
+.q-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 10px; overflow: hidden; transition: all 0.2s;
+}
+.q-card:hover { border-color: #d0d0cc; }
+.q-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+.q-header {
+  padding: 16px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px;
+  user-select: none; transition: background 0.12s;
+}
+.q-header:hover { background: #fafaf9; }
+.q-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent-bg);
+  color: var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 0.8em; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.q-text { flex: 1; min-width: 0; }
+.q-text h4 { font-size: 1em; font-weight: 600; color: var(--text); line-height: 1.5; }
+.q-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.q-tag {
+  font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: 500;
+  background: #f0f0ee; color: var(--text3);
+}
+.q-tag.core { background: var(--accent-bg); color: var(--accent); }
+.q-tag.hot { background: var(--claude-glow); color: var(--claude); }
+.q-arrow {
+  font-size: 0.8em; color: var(--text3); transition: transform 0.25s; flex-shrink: 0; margin-top: 4px;
+}
+.q-card.open .q-arrow { transform: rotate(90deg); }
+
+.q-body { display: none; padding: 0 20px 20px 60px; }
+.q-card.open .q-body { display: block; }
+
+.q-body .answer-section { margin-bottom: 16px; }
+.q-body .answer-section:last-child { margin-bottom: 0; }
+.q-body .answer-label {
+  font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--accent); margin-bottom: 6px;
+}
+.q-body p, .q-body li { font-size: 0.9em; color: var(--text2); line-height: 1.75; }
+.q-body ul, .q-body ol { padding-left: 20px; margin: 6px 0; }
+.q-body li { margin-bottom: 4px; }
+
+.q-body pre {
+  background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: var(--radius-sm);
+  font-family: var(--mono); font-size: 0.82em; line-height: 1.65; overflow-x: auto;
+  margin: 8px 0;
+}
+.q-body code {
+  background: #f0f0ee; padding: 2px 6px; border-radius: 4px;
+  font-family: var(--mono); font-size: 0.85em; color: var(--accent);
+}
+.q-body pre code { background: none; padding: 0; color: inherit; }
+
+.q-body .highlight-box {
+  background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0;
+  font-size: 0.88em; color: #92400e; line-height: 1.6;
+}
+
+/* TOC */
+.toc {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px 24px; margin-bottom: 32px;
+}
+.toc h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.toc-list li { font-size: 0.85em; }
+.toc-list a { color: var(--accent); text-decoration: none; }
+.toc-list a:hover { text-decoration: underline; }
+
+/* Footer */
+.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); }
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .page-header h1 { font-size: 1.6em; }
+  .q-body { padding: 0 16px 16px 16px; }
+  .q-header { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="icon">🤖</span>
+  <h1>AI Agent <span class="gradient-text">面试题精选</span></h1>
+  <p class="subtitle">ReAct · Tool Use · Planning · Memory · Multi-Agent — 从原理到实践</p>
+  <a href="index.html" class="back-link">← 返回 Study Hub</a>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">30</div><div class="stat-label">精选题目</div></div>
+  <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">知识模块</div></div>
+  <div class="stat-item"><div class="stat-num">★★★★</div><div class="stat-label">2025-2026 高频</div></div>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ul class="toc-list">
+    <li><a href="#s1">一、基础概念</a></li>
+    <li><a href="#s2">二、ReAct 范式</a></li>
+    <li><a href="#s3">三、工具使用 (Tool Use)</a></li>
+    <li><a href="#s4">四、规划 (Planning)</a></li>
+    <li><a href="#s5">五、记忆系统 (Memory)</a></li>
+    <li><a href="#s6">六、多智能体 (Multi-Agent)</a></li>
+  </ul>
+</div>
+
+<!-- ====== SECTION 1: 基础概念 ====== -->
+<div class="section" id="s1">
+  <div class="section-title">
+    <span class="s-icon">📚</span> 一、基础概念
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q1 -->
+  <div class="q-card" id="q1">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">1</span>
+      <div class="q-text">
+        <h4>什么是 AI Agent？它与传统的 LLM Chatbot 有什么本质区别？</h4>
+        <div class="q-tags"><span class="q-tag core">核心概念</span><span class="q-tag hot">高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>AI Agent（智能体）</strong> 是一个能够<strong>自主感知环境、做出决策并采取行动</strong>来完成目标的系统。它与传统 LLM Chatbot 的本质区别在于：</p>
+        <ul>
+          <li><strong>Chatbot</strong>：被动响应 → 接收输入 → 生成输出 → 结束。本质是"一问一答"的静态映射。</li>
+          <li><strong>Agent</strong>：主动执行 → 感知 → 思考 → 行动 → 观察 → 再思考 → 再行动……形成一个<strong>自主循环</strong>，直到目标达成或终止条件满足。</li>
+        </ul>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">关键差异对比</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.88em;color:var(--text2);margin:8px 0;">
+          <tr style="border-bottom:1px solid var(--border);"><th style="text-align:left;padding:6px 8px;color:var(--text);">维度</th><th style="text-align:left;padding:6px 8px;color:var(--text);">LLM Chatbot</th><th style="text-align:left;padding:6px 8px;color:var(--text);">AI Agent</th></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 8px;">交互模式</td><td style="padding:6px 8px;">单轮/多轮对话</td><td style="padding:6px 8px;">自主循环 (Sense→Think→Act)</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 8px;">工具使用</td><td style="padding:6px 8px;">通常无</td><td style="padding:6px 8px;">核心能力：调用 API、搜索、代码执行等</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 8px;">记忆</td><td style="padding:6px 8px;">仅上下文窗口</td><td style="padding:6px 8px;">短期+长期+工作记忆</td></tr>
+          <tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 8px;">规划能力</td><td style="padding:6px 8px;">无显式规划</td><td style="padding:6px 8px;">任务分解、多步推理与执行</td></tr>
+          <tr><td style="padding:6px 8px;">目标导向</td><td style="padding:6px 8px;">完成当前对话</td><td style="padding:6px 8px;">完成复杂任务目标</td></tr>
+        </table>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">延伸：Agent 的核心组件</div>
+        <p>一个完整的 Agent 通常包含：<strong>大脑（LLM）</strong> + <strong>规划模块</strong> + <strong>记忆系统</strong> + <strong>工具集</strong> + <strong>执行环境</strong>。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="q-card" id="q2">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">2</span>
+      <div class="q-text">
+        <h4>Agent 的自主循环（Agentic Loop）是如何工作的？请描述其核心流程。</h4>
+        <div class="q-tags"><span class="q-tag core">核心概念</span><span class="q-tag hot">高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>Agentic Loop 是 Agent 运行的<strong>核心引擎</strong>，本质上是一个 <strong>while 循环</strong>，直到任务完成或达到最大步数限制：</p>
+        <pre><code>while not task_complete and step &lt; max_steps:
+    # 1. 感知 (Perceive)
+    observation = get_observation(environment)
+
+    # 2. 思考 (Think)
+    thought = llm.think(task, observation, memory, tools)
+
+    # 3. 决策 (Decide)
+    action = parse_action(thought)  # 可能是调用工具 or 生成最终答案
+
+    # 4. 行动 (Act)
+    if action.is_tool_call:
+        result = execute_tool(action.tool_name, action.params)
+        memory.add(action, result)  # 存入记忆
+    else:
+        return action.final_answer  # 任务完成</code></pre>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">关键设计要点</div>
+        <ul>
+          <li><strong>终止条件</strong>：必须设置 max_steps 防止无限循环；LLM 也可主动发出 finish 信号。</li>
+          <li><strong>上下文管理</strong>：每步的 observation 都追加到上下文，长任务可能超出窗口 — 需要摘要/压缩策略。</li>
+          <li><strong>错误处理</strong>：工具调用失败时应将错误信息反馈给 LLM，让其自行修正。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="q-card" id="q3">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">3</span>
+      <div class="q-text">
+        <h4>Agent 架构中，LLM 扮演什么角色？为什么说 LLM 是 Agent 的"大脑"？</h4>
+        <div class="q-tags"><span class="q-tag core">架构理解</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>LLM 在 Agent 架构中承担的是<strong>中央推理引擎</strong>的角色，负责：</p>
+        <ul>
+          <li><strong>理解任务</strong>：将模糊的用户意图转化为可执行的子任务。</li>
+          <li><strong>推理决策</strong>：分析当前状态和历史，决定下一步做什么（调用哪个工具、如何调用）。</li>
+          <li><strong>工具编排</strong>：理解每个工具的功能描述，生成正确的调用参数，解释工具返回结果。</li>
+          <li><strong>反思纠错</strong>：识别自己的错误（如工具调用失败），调整策略重试。</li>
+          <li><strong>最终合成</strong>：将多步执行结果整合为连贯的最终输出。</li>
+        </ul>
+        <p>LLM 不直接执行操作，而是<strong>生成"行动计划"</strong>，由 Agent 框架负责执行和反馈。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="q-card" id="q4">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">4</span>
+      <div class="q-text">
+        <h4>Function Calling 和 Tool Use 是什么关系？它们的技术原理是什么？</h4>
+        <div class="q-tags"><span class="q-tag core">核心概念</span><span class="q-tag hot">高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>Function Calling</strong> 是 LLM API 层面的能力：模型被训练为在推理时输出结构化的函数调用指令（函数名 + JSON 参数），而不是自然语言文本。<strong>Tool Use</strong> 是 Agent 层面的概念：Agent 将外部能力（API、数据库、代码解释器等）封装为"工具"，利用 Function Calling 机制来驱动这些工具。</p>
+        <p>关系：<strong>Function Calling 是实现 Tool Use 的技术手段</strong>。</p>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">技术原理</div>
+        <ol>
+          <li><strong>工具定义</strong>：用 JSON Schema 描述每个工具的名称、描述、参数类型。</li>
+          <li><strong>模型推理</strong>：将工具定义传入模型，模型在推理时输出 tool_calls（而非普通文本）。</li>
+          <li><strong>执行</strong>：Agent 框架解析 tool_calls，调用对应的实际函数，获取结果。</li>
+          <li><strong>反馈</strong>：将工具执行结果作为新的消息（role: "tool"）追加到对话中，模型继续推理。</li>
+        </ol>
+        <pre><code>// 工具定义示例
+{
+  "name": "search_web",
+  "description": "搜索互联网获取最新信息",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "搜索关键词" },
+      "max_results": { "type": "integer", "default": 5 }
+    },
+    "required": ["query"]
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="q-card" id="q5">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">5</span>
+      <div class="q-text">
+        <h4>构建一个生产级 Agent 面临哪些核心挑战？</h4>
+        <div class="q-tags"><span class="q-tag core">工程实践</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li><strong>可靠性</strong>：LLM 输出不确定，工具调用参数可能错误、格式不符合 Schema；需要重试、验证、fallback 机制。</li>
+          <li><strong>延迟</strong>：Agent 需要多轮 LLM 调用，端到端延迟可能是单次推理的 5-20 倍。流式输出和并行化是关键优化方向。</li>
+          <li><strong>成本控制</strong>：多步推理消耗大量 Token，需要设置 max_steps、选择合适的模型、对简单任务使用缓存。</li>
+          <li><strong>上下文窗口</strong>：长任务的历史消息可能超出窗口限制，需要摘要压缩、滑动窗口或外部记忆。</li>
+          <li><strong>安全与对齐</strong>：Agent 可以执行代码、访问外部系统，sandbox 隔离、权限控制、人工审核机制必不可少。</li>
+          <li><strong>可观测性</strong>：需要全链路追踪（每一步的 thought/action/observation），便于调试和评估。</li>
+          <li><strong>评估</strong>：Agent 任务的正确性难以自动判断，需要构建 benchmark + LLM-as-Judge + 人工评估的多层体系。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 2: ReAct 范式 ====== -->
+<div class="section" id="s2">
+  <div class="section-title">
+    <span class="s-icon">🔄</span> 二、ReAct 范式
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q6 -->
+  <div class="q-card" id="q6">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">6</span>
+      <div class="q-text">
+        <h4>请详细解释 ReAct（Reasoning + Acting）范式的工作原理。</h4>
+        <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心范式</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>ReAct</strong>（Reasoning + Acting）由 Google DeepMind 在 2022 年提出，是一种让 LLM <strong>交替进行推理和行动</strong>的提示范式。核心思想是：让模型在每一步都输出 <strong>Thought（思考）→ Action（行动）→ Observation（观察）</strong> 三个部分。</p>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">工作流程</div>
+        <pre><code>Question: 2024年诺贝尔物理学奖得主是谁？他的主要贡献是什么？
+
+Thought: 我需要先搜索2024年诺贝尔物理学奖得主的信息
+Action: search("2024 Nobel Prize in Physics winner")
+Observation: 2024年诺贝尔物理学奖授予John Hopfield和Geoffrey Hinton...
+
+Thought: 现在我知道了得主，还需要搜索他们的主要贡献
+Action: search("John Hopfield Geoffrey Hinton contributions")
+Observation: Hopfield因Hopfield网络，Hinton因深度学习领域的贡献获奖...
+
+Thought: 我已获得足够信息，可以给出完整答案
+Final Answer: 2024年诺贝尔物理学奖授予了John Hopfield和Geoffrey Hinton。
+Hopfield的主要贡献是发明了Hopfield网络（一种联想记忆模型）；Hinton的主要贡献
+是在深度学习领域的基础性工作，包括反向传播算法、玻尔兹曼机等。</code></pre>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">ReAct vs Chain-of-Thought (CoT)</div>
+        <ul>
+          <li><strong>CoT</strong>：只有推理（Thought），没有外部行动 — 容易产生幻觉，信息限于训练数据。</li>
+          <li><strong>ReAct</strong>：推理 + 行动交替 — 可以通过工具获取真实信息来修正推理，大幅减少幻觉。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="q-card" id="q7">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">7</span>
+      <div class="q-text">
+        <h4>ReAct 中的 Thought、Action、Observation 三者之间的关系是什么？每一步的设计考量是什么？</h4>
+        <div class="q-tags"><span class="q-tag core">范式细节</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>三者的关系是<strong>串行循环</strong>的：<strong>Thought → Action → Observation → Thought → …</strong></p>
+        <ul>
+          <li><strong>Thought（思考）</strong>：分析当前状态和已获得的信息，决定接下来需要什么信息或做什么操作。这是<strong>推理层</strong>。</li>
+          <li><strong>Action（行动）</strong>：将思考转化为具体操作——调用搜索、计算器、数据库查询等工具。这是<strong>执行层</strong>。</li>
+          <li><strong>Observation（观察）</strong>：工具返回的结果，成为新的信息输入。这是<strong>反馈层</strong>。</li>
+        </ul>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">设计考量</div>
+        <ul>
+          <li><strong>Thought 质量</strong>：需要引导模型做出结构化的推理，而非泛泛的"我需要搜索"。</li>
+          <li><strong>Action 格式</strong>：必须可以被可靠解析（如 JSON 格式），否则 Agent 框架无法执行。</li>
+          <li><strong>Observation 长度</strong>：搜索结果可能很长，需要截断或摘要后再反馈给模型。</li>
+          <li><strong>终止判断</strong>：模型需要学会在信息足够时直接给出 Final Answer，而非无限搜索。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="q-card" id="q8">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">8</span>
+      <div class="q-text">
+        <h4>ReAct 有哪些常见的变体和改进？请至少列举三种。</h4>
+        <div class="q-tags"><span class="q-tag hot">高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li>
+            <strong>ReWOO（Reasoning WithOut Observation）</strong>
+            <p>将规划和执行分离：先生成完整的工具调用计划（不等待结果），然后批量执行所有工具调用，最后基于所有结果一次性生成答案。优点：减少 LLM 调用次数，降低延迟。</p>
+          </li>
+          <li>
+            <strong>Reflexion</strong>
+            <p>在 ReAct 基础上增加<strong>自我反思</strong>机制：每轮执行后，Agent 进行口头反思（verbal reflection），将经验教训存入长期记忆，指导后续尝试。特别适合需要多次试错的任务（如代码生成）。</p>
+          </li>
+          <li>
+            <strong>Plan-and-Solve（Plan → Execute）</strong>
+            <p>先让 LLM 生成完整计划（列出所有步骤），然后按计划逐步执行，每一步执行后再检查计划是否需要调整。适合复杂多步推理任务。</p>
+          </li>
+          <li>
+            <strong>Tree-of-Thought (ToT) + Tool Use</strong>
+            <p>在每一步从多个可能的 Action 中选择最优的，构建搜索树，使用 BFS/DFS + 自我评估来探索多条路径。</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="q-card" id="q9">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">9</span>
+      <div class="q-text">
+        <h4>ReAct Agent 如何处理工具调用失败的情况？</h4>
+        <div class="q-tags"><span class="q-tag core">错误处理</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>ReAct Agent 处理工具调用失败的核心策略是<strong>将错误作为 Observation 反馈给 LLM</strong>，让模型自行修正：</p>
+        <ol>
+          <li><strong>解析错误</strong>：模型输出的 Action 格式不对（非 JSON）→ 将错误信息作为 Observation 反馈，或进行格式修复重试。</li>
+          <li><strong>参数错误</strong>：工具返回参数校验失败 → 将错误详情反馈给模型重新生成。</li>
+          <li><strong>运行时错误</strong>：工具执行异常（如 API 超时、返回空结果）→ 将错误信息反馈，模型可调整参数或换用其他工具。</li>
+          <li><strong>重试上限</strong>：设置每个步骤的最大重试次数（通常 3 次），避免死循环。</li>
+        </ol>
+        <pre><code>Action: search("")  # 空查询，工具返回错误
+Observation: ERROR: search query cannot be empty. Please provide a valid query.
+
+Thought: 我的搜索查询是空的，我需要根据任务生成有效的搜索词
+Action: search("2024 Nobel Prize Physics")  # 修正后重试
+Observation: ...</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="q-card" id="q10">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">10</span>
+      <div class="q-text">
+        <h4>请对比 ReAct、Plan-and-Execute、和 Function Calling 三种范式，各自适合什么场景？</h4>
+        <div class="q-tags"><span class="q-tag hot">高频对比</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.88em;color:var(--text2);margin:8px 0;">
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">范式</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">核心特点</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">适合场景</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">局限性</th>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:6px 8px;"><strong>ReAct</strong></td>
+            <td style="padding:6px 8px;">每步推理→行动→观察，灵活应变</td>
+            <td style="padding:6px 8px;">信息检索、需要动态调整的开放式任务</td>
+            <td style="padding:6px 8px;">步数多、延迟高、容易跑偏</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:6px 8px;"><strong>Plan-and-Execute</strong></td>
+            <td style="padding:6px 8px;">先制定完整计划，再逐步执行</td>
+            <td style="padding:6px 8px;">步骤明确的复杂任务（代码生成、数据分析）</td>
+            <td style="padding:6px 8px;">计划可能不准确、适应变化差</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;"><strong>Pure Function Calling</strong></td>
+            <td style="padding:6px 8px;">直接调用工具，无显式推理步骤</td>
+            <td style="padding:6px 8px;">简单、确定性的任务（查天气、发邮件）</td>
+            <td style="padding:6px 8px;">缺乏多步推理能力</td>
+          </tr>
+        </table>
+        <div class="highlight-box">
+          💡 <strong>面试技巧</strong>：实际生产中往往是混合使用——简单任务用 Function Calling，复杂任务用 ReAct 包裹 Plan 作为初始步骤。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 3: 工具使用 ====== -->
+<div class="section" id="s3">
+  <div class="section-title">
+    <span class="s-icon">🔧</span> 三、工具使用 (Tool Use)
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q11 -->
+  <div class="q-card" id="q11">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">11</span>
+      <div class="q-text">
+        <h4>如何为一个 Agent 设计工具（Tool）？一个好的工具定义应包含哪些要素？</h4>
+        <div class="q-tags"><span class="q-tag core">设计实践</span><span class="q-tag hot">高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>一个好的工具定义应包含以下<strong>6 个要素</strong>：</p>
+        <ol>
+          <li><strong>清晰的名称（name）</strong>：动词+名词，如 <code>search_web</code>、<code>calculate</code>、<code>send_email</code>。</li>
+          <li><strong>精确的描述（description）</strong>：一句话说明功能+适用场景，让 LLM 能正确选择何时使用。</li>
+          <li><strong>严格的参数 Schema（parameters）</strong>：每个参数的类型(type)、描述(description)、是否必填(required)、枚举值(enum)、默认值(default)。</li>
+          <li><strong>明确的返回值格式</strong>：工具返回的结构化数据应该易于 LLM 理解。</li>
+          <li><strong>错误处理约定</strong>：定义工具失败时的返回格式（如 <code>{"error": "..."}</code>），让 LLM 能识别并处理。</li>
+          <li><strong>使用示例</strong>：在描述中包含 1-2 个示例，能显著提高 LLM 的工具选择准确率。</li>
+        </ol>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">设计原则</div>
+        <ul>
+          <li><strong>单一职责</strong>：每个工具只做一件事。避免一个工具做太多不同的事情。</li>
+          <li><strong>命名不歧义</strong>：如果有 <code>search_web</code> 和 <code>search_database</code>，描述要清楚区分。</li>
+          <li><strong>参数不过多</strong>：超过 5 个参数时考虑拆分为多个工具或使用可选参数+默认值。</li>
+          <li><strong>幂等性</strong>：读操作工具应该是幂等的；写操作要谨慎设计。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="q-card" id="q12">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">12</span>
+      <div class="q-text">
+        <h4>Agent 如何决定在什么时候调用哪个工具？工具选择（Tool Selection）有哪些策略？</h4>
+        <div class="q-tags"><span class="q-tag core">核心机制</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>工具选择的核心是<strong>让 LLM 基于工具描述和当前上下文做出决策</strong>。常见的策略有：</p>
+        <ol>
+          <li><strong>全量注入（Flat Injection）</strong>：将所有工具定义一次性放入 System Prompt。简单直接，但工具多时（>20个）会超出上下文或导致选择错误。</li>
+          <li><strong>分类路由（Router-based）</strong>：先用一个轻量模型判断任务类型，再只注入该类工具。如：搜索类 → 只注入检索工具；代码类 → 只注入代码执行工具。</li>
+          <li><strong>检索增强选择（RAG for Tools）</strong>：将工具定义存入向量数据库，根据当前任务检索最相关的 Top-K 个工具。适合工具数量庞大（>100）的场景。</li>
+          <li><strong>多级选择（Two-stage）</strong>：第一阶段 LLM 输出"我需要搜索类型的工具"，第二阶段展开具体工具定义进行精确调用。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="q-card" id="q13">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">13</span>
+      <div class="q-text">
+        <h4>如何防止 Agent 的工具调用"失控"（如死循环、重复调用同一工具）？</h4>
+        <div class="q-tags"><span class="q-tag hot">工程实践</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>防止工具调用失控需要<strong>多层防护</strong>：</p>
+        <ol>
+          <li><strong>最大步数限制（max_steps / max_iterations）</strong>：硬性限制，最基础的兜底措施。通常设为 10-30。</li>
+          <li><strong>重复检测（Loop Detection）</strong>：记录最近 N 步的 (action, params)，如果连续重复 2-3 次则强制终止或强制换工具。</li>
+          <li><strong>超时机制（Timeout）</strong>：设置总任务超时（如 120 秒），以及单步超时（如 30 秒）。</li>
+          <li><strong>Token 预算（Token Budget）</strong>：限制单次任务的总 Token 消耗，超出后截断并返回部分结果。</li>
+          <li><strong>反思注入（Reflection Prompt）</strong>：当检测到即将重复调用时，向模型注入"你似乎陷入了循环，请尝试不同的方法"。</li>
+          <li><strong>人工审核（Human-in-the-Loop）</strong>：对高风险操作（删除、发送、付款），在执行前暂停等待人工确认。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="q-card" id="q14">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">14</span>
+      <div class="q-text">
+        <h4>如何处理工具调用的延迟问题？有哪些常见的优化策略？</h4>
+        <div class="q-tags"><span class="q-tag core">性能优化</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li><strong>并行工具调用（Parallel Tool Calls）</strong>：如果多个工具调用之间没有依赖关系（如同时搜索多个关键词），可以一次性发出多个 tool_calls，并行执行。</li>
+          <li><strong>流式输出（Streaming）</strong>：LLM 使用 streaming 模式，边生成边解析 tool_call，不等完整输出就开始执行。</li>
+          <li><strong>批处理执行（Batching）</strong>：类似 ReWOO 的思想，先生成所有需要的工具调用计划，再批量执行。</li>
+          <li><strong>缓存（Caching）</strong>：对确定性工具的相同输入结果进行缓存，避免重复调用。</li>
+          <li><strong>模型分层（Model Tiering）</strong>：简单工具选择用 Haiku/小模型，复杂推理才用 Sonnet/Opus。</li>
+          <li><strong>预取/预判</strong>：根据历史模式，在 Agent 思考时预先执行可能需要的工具调用。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="q-card" id="q15">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">15</span>
+      <div class="q-text">
+        <h4>Code Execution 作为特殊工具，有哪些安全考量？如何设计安全的代码执行沙箱？</h4>
+        <div class="q-tags"><span class="q-tag core">安全设计</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>代码执行是 Agent 中最危险的工具之一，安全设计需要：</p>
+        <ol>
+          <li><strong>沙箱隔离（Sandbox）</strong>：使用 Docker 容器 / gVisor / Firecracker microVM 隔离执行环境。</li>
+          <li><strong>网络限制</strong>：禁止或白名单控制网络访问，防止数据外泄或 SSRF 攻击。</li>
+          <li><strong>资源限制</strong>：限制 CPU、内存、磁盘、执行时间（如最多 30 秒）。</li>
+          <li><strong>文件系统隔离</strong>：只提供临时工作目录，禁止访问宿主文件系统。</li>
+          <li><strong>权限最小化</strong>：以非 root 用户运行，禁止特权操作。</li>
+          <li><strong>输入/输出审计</strong>：记录所有执行的代码和输出，用于安全审计。</li>
+          <li><strong>代码审查（可选）</strong>：对高风险代码模式（如 <code>os.system()</code>、<code>subprocess</code>、<code>eval</code>）进行预检。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 4: 规划 ====== -->
+<div class="section" id="s4">
+  <div class="section-title">
+    <span class="s-icon">🗺️</span> 四、规划 (Planning)
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q16 -->
+  <div class="q-card" id="q16">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">16</span>
+      <div class="q-text">
+        <h4>Agent 的规划（Planning）能力是如何实现的？请介绍几种主流的规划策略。</h4>
+        <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心机制</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>Agent 规划是指将用户给的复杂任务<strong>分解为可执行的子任务序列</strong>的能力。主流策略包括：</p>
+        <ol>
+          <li>
+            <strong>Plan-and-Execute（计划-执行）</strong>
+            <p>一次性生成完整计划（Step 1 → Step 2 → … → Step N），然后逐步执行。代表：HuggingGPT、LangChain Plan-and-Execute Agent。</p>
+          </li>
+          <li>
+            <strong>ReAct + Planning（边推理边规划）</strong>
+            <p>在 ReAct 循环中动态调整计划——每步执行后根据观察结果修改后续步骤。更灵活，但步骤更多。</p>
+          </li>
+          <li>
+            <strong>Hierarchical Planning（分层规划）</strong>
+            <p>将任务分解为多层：顶层目标 → 子目标 → 具体动作。类似人类处理复杂问题的方式。代表：BabyAGI、AutoGPT 的部分实现。</p>
+          </li>
+          <li>
+            <strong>LLM-as-Planner + Expert Executors</strong>
+            <p>LLM 只负责生成计划，实际执行交由专项模型或程序完成。如 LLM 写出 SQL 查询计划，由数据库引擎执行。</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q17 -->
+  <div class="q-card" id="q17">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">17</span>
+      <div class="q-text">
+        <h4>任务分解（Task Decomposition）有哪些方法？如何评估分解质量？</h4>
+        <div class="q-tags"><span class="q-tag core">规划细节</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>常见分解方法：</strong></p>
+        <ol>
+          <li><strong>Few-shot Prompting</strong>：在 Prompt 中提供 3-5 个任务分解示例，让 LLM 模仿分解模式。</li>
+          <li><strong>Chain-of-Thought Decomposition</strong>：让 LLM 先 "Let's think step by step" 列出推理步骤，再将步骤转为子任务。</li>
+          <li><strong>Recursive Decomposition</strong>：对每个子任务继续递归分解，直到每个子任务都足够简单（可由一个工具完成）。</li>
+          <li><strong>Template-based</strong>：对常见任务类型（如数据分析、信息检索）预设分解模板。</li>
+        </ol>
+        <p><strong>分解质量评估维度：</strong></p>
+        <ul>
+          <li><strong>完备性</strong>：所有子任务完成后是否能达成原始目标。</li>
+          <li><strong>独立性</strong>：子任务之间的耦合度是否足够低，能否并行执行。</li>
+          <li><strong>粒度</strong>：每个子任务是否足够小、具体、可执行。</li>
+          <li><strong>顺序正确性</strong>：子任务的依赖关系是否正确。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q18 -->
+  <div class="q-card" id="q18">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">18</span>
+      <div class="q-text">
+        <h4>当执行过程中计划出错或环境发生变化时，Agent 如何自适应调整计划？</h4>
+        <div class="q-tags"><span class="q-tag hot">动态规划</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>Agent 的自适应调整策略有以下几个层次：</p>
+        <ol>
+          <li><strong>Replanning（重新规划）</strong>：当某一步执行失败时，将失败信息和当前状态反馈给 LLM，让 LLM 重写剩余计划。</li>
+          <li><strong>Local Repair（局部修复）</strong>：只修正当前失败的步骤（如换一个工具或参数），不改变整体计划结构。</li>
+          <li><strong>Dynamic Re-prioritization（动态优先级调整）</strong>：在执行过程中根据观察结果重新排列剩余子任务的优先级（如 BabyAGI 的做法）。</li>
+          <li><strong>Reflection + Replan（反思+重规划）</strong>：定期进行自我反思，评估当前轨迹是否偏离目标，需要时触发完整的重新规划。</li>
+        </ol>
+        <pre><code># 执行某一步
+Action: query_database("SELECT * FROM users WHERE ...")
+Observation: ERROR: table 'users' does not exist
+
+Thought: 表名可能不对，让我先查看有哪些表
+Action: query_database("SHOW TABLES")
+Observation: ["user_accounts", "orders", "products"]
+
+Thought: 原来表名是'user_accounts'，我需要调整后续计划中所有涉及该表的步骤
+[更新计划步骤 3 和步骤 5 的表名]
+Action: query_database("SELECT * FROM user_accounts WHERE ...")</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q19 -->
+  <div class="q-card" id="q19">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">19</span>
+      <div class="q-text">
+        <h4>什么是 AutoGPT / BabyAGI 的规划机制？它们与 ReAct Agent 有什么不同？</h4>
+        <div class="q-tags"><span class="q-tag hot">高频对比</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>AutoGPT</strong> 和 <strong>BabyAGI</strong> 是 2023 年涌现的早期自主 Agent 框架，它们的核心机制不同于 ReAct：</p>
+        <ul>
+          <li><strong>BabyAGI</strong>：维护一个<strong>任务优先级队列</strong>。每次循环：从队列取优先级最高的任务 → 执行 → 根据执行结果生成新任务 → 对新任务排序 → 加入队列。核心是 <strong>任务生成+优先级排序</strong> 的循环。</li>
+          <li><strong>AutoGPT</strong>：在 BabyAGI 基础上增加了更多组件——互联网搜索、文件读写、长期记忆（向量存储）。它的 Prompt 中包含了"你是 Entity X，你的目标是 Y"的角色设定。</li>
+        </ul>
+        <p><strong>与 ReAct 的关键区别：</strong></p>
+        <ul>
+          <li>ReAct：<strong>单任务驱动</strong>——给定一个问题，通过 Thought→Action→Observation 解决它。</li>
+          <li>BabyAGI / AutoGPT：<strong>目标驱动+自主任务生成</strong>——给定一个目标，Agent 自己拆解任务、自己决定做什么。更"自主"但也更难控制、更容易跑偏。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q20 -->
+  <div class="q-card" id="q20">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">20</span>
+      <div class="q-text">
+        <h4>规划模块中如何处理"不确定性"——当 LLM 对某一步该怎么做不确定时，有哪些应对策略？</h4>
+        <div class="q-tags"><span class="q-tag core">规划鲁棒性</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li><strong>自我评估（Self-Evaluation）</strong>：让 LLM 对每步计划给出置信度评分（1-5），低于阈值时触发备选方案。</li>
+          <li><strong>多路径探索（Multi-Path）</strong>：生成 2-3 个候选计划，并行执行前几步后选择效果最好的路径（类似 Tree-of-Thought）。</li>
+          <li><strong>信息收集优先（Ask-before-Act）</strong>：当不确定时，先调用搜索/查询工具收集更多信息，再做决策。</li>
+          <li><strong>向用户提问</strong>：当不确定性超过阈值时，暂停并将不确定点呈现给用户，请求澄清。</li>
+          <li><strong>保守策略（Conservative Execution）</strong>：不确定时优先选择低风险、可逆的操作。</li>
+        </ol>
+        <div class="highlight-box">
+          💡 <strong>关键洞察</strong>：确定性越高的 Agent 越可靠，但过于保守会限制其能力。好的规划系统应该在"自主决策"和"请求帮助"之间取得平衡。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 5: 记忆系统 ====== -->
+<div class="section" id="s5">
+  <div class="section-title">
+    <span class="s-icon">🧠</span> 五、记忆系统 (Memory)
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q21 -->
+  <div class="q-card" id="q21">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">21</span>
+      <div class="q-text">
+        <h4>Agent 的记忆系统通常分为哪几类？每一类的作用和实现方式是什么？</h4>
+        <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心架构</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>Agent 记忆系统通常分为三类，类比人类的记忆结构：</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.88em;color:var(--text2);margin:8px 0;">
+          <tr style="border-bottom:1px solid var(--border);">
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">类型</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">类比</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">作用</th>
+            <th style="text-align:left;padding:6px 8px;color:var(--text);">实现方式</th>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:6px 8px;"><strong>工作记忆<br>(Working Memory)</strong></td>
+            <td style="padding:6px 8px;">前额叶皮层</td>
+            <td style="padding:6px 8px;">当前任务的上下文：对话历史、工具调用记录、中间结果</td>
+            <td style="padding:6px 8px;">LLM 上下文窗口 + 结构化 scratchpad</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:6px 8px;"><strong>短期记忆<br>(Short-term Memory)</strong></td>
+            <td style="padding:6px 8px;">海马体</td>
+            <td style="padding:6px 8px;">当前会话内的历史信息、最近几轮对话的关键事实</td>
+            <td style="padding:6px 8px;">滑动窗口 + 摘要 + 关键信息提取</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;"><strong>长期记忆<br>(Long-term Memory)</strong></td>
+            <td style="padding:6px 8px;">大脑皮层</td>
+            <td style="padding:6px 8px;">跨会话的用户偏好、学到的经验、重要知识</td>
+            <td style="padding:6px 8px;">向量数据库 (RAG) + 结构化存储 (用户画像)</td>
+          </tr>
+        </table>
+      </div>
+      <div class="answer-section">
+        <div class="answer-label">补充：感官记忆 (Sensory Memory)</div>
+        <p>一些框架（如 CoALA 论文）还提出了<strong>感官记忆</strong>概念，对应 Agent 最近一次 Observation 的原始数据，类似人类的"瞬时记忆"（持续几秒）。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q22 -->
+  <div class="q-card" id="q22">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">22</span>
+      <div class="q-text">
+        <h4>如何处理 Agent 上下文窗口溢出问题？有哪些上下文压缩/管理策略？</h4>
+        <div class="q-tags"><span class="q-tag hot">工程高频</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>当对话历史 + 工具调用结果的总长度超过 LLM 上下文窗口时，需要采取以下策略：</p>
+        <ol>
+          <li>
+            <strong>滑动窗口（Sliding Window）</strong>
+            <p>只保留最近 K 轮对话。简单直接，但会丢失早期关键信息。</p>
+          </li>
+          <li>
+            <strong>摘要压缩（Summarization）</strong>
+            <p>每隔 N 轮用 LLM 对历史对话进行摘要，用摘要替换原始历史。关键在于保留"关键事实和决策"而非"对话细节"。</p>
+          </li>
+          <li>
+            <strong>关键信息提取（Key-Value Memory）</strong>
+            <p>持续从对话中提取结构化的事实（如"用户偏好Python"、"任务目标：分析销售数据"），以 key-value 形式存入外部存储，注入到后续 Prompt 中。</p>
+          </li>
+          <li>
+            <strong>分层管理（Hierarchical Context）</strong>
+            <p>将上下文分为"核心层"（始终保留：任务目标、用户偏好、关键约束）和"扩展层"（按需加载：工具调用详情、中间推理）。</p>
+          </li>
+          <li>
+            <strong>向量检索（RAG-based Context）</strong>
+            <p>将历史信息向量化存储，每步只检索最相关的 Top-K 条注入上下文——不再保留完整历史。</p>
+          </li>
+        </ol>
+        <div class="highlight-box">
+          💡 <strong>最佳实践</strong>：实际生产中使用第 2+5 的组合——定期摘要压缩 + 向量检索关键信息。两者互补，既保留了能力，又控制了 Token。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q23 -->
+  <div class="q-card" id="q23">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">23</span>
+      <div class="q-text">
+        <h4>基于向量数据库的长期记忆（RAG Memory）是如何工作的？有哪些关键设计选择？</h4>
+        <div class="q-tags"><span class="q-tag core">RAG 记忆</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>RAG Memory 的工作流程：</p>
+        <ol>
+          <li><strong>写入（Write）</strong>：将关键信息（对话片段、学到的经验、用户事实）进行 embedding → 存入向量数据库（如 Pinecone、Chroma、Milvus）。</li>
+          <li><strong>检索（Retrieve）</strong>：当前任务/查询进行 embedding → 在向量数据库中搜索最相似的 Top-K 记忆 → 注入到 LLM Prompt。</li>
+          <li><strong>更新（Update）</strong>：基于新信息更新或删除过时记忆（如用户搬家后更新地址）。</li>
+        </ol>
+        <p><strong>关键设计选择：</strong></p>
+        <ul>
+          <li><strong>Embedding 模型</strong>：选通用文本（text-embedding-3）还是领域特化模型。</li>
+          <li><strong>Chunk 策略</strong>：每段记忆的粒度——是整段对话、单个事实、还是按 Token 数切分。</li>
+          <li><strong>记忆衰减</strong>：是否对旧记忆做衰减/归档（时间加权检索、TTL 过期）。</li>
+          <li><strong>检索策略</strong>：纯向量检索 vs 混合检索（向量 + 关键词 BM25）。</li>
+          <li><strong>记忆组织</strong>：是否按用户、按话题、按重要性分级存储。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q24 -->
+  <div class="q-card" id="q24">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">24</span>
+      <div class="q-text">
+        <h4>Agent 如何实现"从经验中学习"的能力？Reflexion 和 Experiential Learning 有什么区别？</h4>
+        <div class="q-tags"><span class="q-tag hot">进阶</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>Reflexion</strong>（Shinn et al., 2023）：</p>
+        <ul>
+          <li>在每次任务执行完成后，Agent 对本次执行进行<strong>口头反思</strong>（"我哪里做错了？为什么？下次应该怎么做？"）。</li>
+          <li>反思结果以自然语言形式存入长期记忆。</li>
+          <li>下次执行类似任务时，将相关反思注入 Prompt。</li>
+          <li>特别适合<strong>代码生成、决策任务</strong>等有明确对错的场景。</li>
+        </ul>
+        <p><strong>Experiential Learning</strong>（更广义的概念）：</p>
+        <ul>
+          <li>不仅包括口头反思，还包括<strong>结构化经验提取</strong>——将成功的执行轨迹（trajectory）作为 few-shot 示例存储。</li>
+          <li>可以涵盖<strong>参数调优经验</strong>（"用 temperature=0.3 效果更好"）、<strong>工具选择经验</strong>（"查询用户数据应该用 query_db 而非 search_web"）。</li>
+        </ul>
+        <p><strong>核心区别：</strong>Reflexion 侧重"从失败中学习"（事后反思），Experiential Learning 更广——也包括"从成功中学习"（最佳实践积累）。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q25 -->
+  <div class="q-card" id="q25">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">25</span>
+      <div class="q-text">
+        <h4>在多用户场景下，Agent 的记忆系统如何做用户隔离和隐私保护？</h4>
+        <div class="q-tags"><span class="q-tag core">安全与隐私</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li><strong>用户维度隔离</strong>：每条记忆带 user_id 标签，检索时严格按 user_id 过滤。</li>
+          <li><strong>会话隔离</strong>：短期记忆与会话 ID 绑定，不同会话间不共享——除非显式写入长期记忆。</li>
+          <li><strong>敏感信息过滤</strong>：在写入长期记忆前，对内容进行 PII（个人身份信息）检测和脱敏。</li>
+          <li><strong>记忆访问控制</strong>：对组织内的 Agent，可能需要基于 RBAC 的记忆权限（如经理可以查看团队记忆）。</li>
+          <li><strong>用户可管理</strong>：允许用户查看、修改、删除 Agent 保存的关于自己的记忆（"遗忘权"）。</li>
+          <li><strong>加密存储</strong>：敏感记忆在数据库中加密存储（AES-256）。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== SECTION 6: 多智能体 ====== -->
+<div class="section" id="s6">
+  <div class="section-title">
+    <span class="s-icon">🤝</span> 六、多智能体 (Multi-Agent)
+    <span class="s-count">5 题</span>
+  </div>
+
+  <!-- Q26 -->
+  <div class="q-card" id="q26">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">26</span>
+      <div class="q-text">
+        <h4>什么是多智能体系统（Multi-Agent System）？与单 Agent 相比，它解决了什么问题？</h4>
+        <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>多智能体系统（MAS）</strong> 是由多个独立的 Agent 组成，每个 Agent 有自己的角色、能力和目标，通过<strong>协作或竞争</strong>来完成单个 Agent 难以完成的复杂任务。</p>
+        <p><strong>相比单 Agent 的优势：</strong></p>
+        <ol>
+          <li><strong>分工协作（Division of Labor）</strong>：复杂任务分解后由不同专长的 Agent 处理——如一个 Agent 负责写代码，另一个负责测试。</li>
+          <li><strong>容错与鲁棒性</strong>：单个 Agent 出错不会导致整个任务失败，其他 Agent 可以接管或修正。</li>
+          <li><strong>并行处理</strong>：多个 Agent 可以同时处理不同的子任务，显著提高吞吐量。</li>
+          <li><strong>多视角决策</strong>：通过多个 Agent 的讨论、辩论来减少偏见和幻觉（类似 ensemble）。</li>
+          <li><strong>扩展性</strong>：需要新能力时，添加新的专项 Agent 而非修改单一的巨型 Agent。</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q27 -->
+  <div class="q-card" id="q27">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">27</span>
+      <div class="q-text">
+        <h4>多 Agent 系统中有哪些常见的通信和协作模式？请结合具体场景说明。</h4>
+        <div class="q-tags"><span class="q-tag hot">高频必考</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>常见的多 Agent 协作模式有以下几种：</p>
+        <ol>
+          <li>
+            <strong>顺序流水线（Sequential Pipeline）</strong>
+            <p>Agent A 的输出 → Agent B 的输入 → Agent C 的输入... 每个 Agent 完成一个阶段。如：需求分析 Agent → 架构设计 Agent → 编码 Agent → 测试 Agent。</p>
+          </li>
+          <li>
+            <strong>辩论/对话（Debate / Dialogue）</strong>
+            <p>多个 Agent 就一个问题进行多轮讨论，提出论点和反驳，最终达成共识。代表：DeepMind 的 Multi-Agent Debate。如：两个 Agent 分别给出方案，互相挑战，最终由裁判 Agent 裁定。</p>
+          </li>
+          <li>
+            <strong>层级结构（Hierarchical）</strong>
+            <p>一个 Manager Agent 负责任务分配和协调，多个 Worker Agent 负责执行。Manager 不直接执行任务，只做决策。如：AutoGen 的 GroupChat Manager 模式。</p>
+          </li>
+          <li>
+            <strong>发布-订阅（Pub-Sub / Broadcast）</strong>
+            <p>Agent 向公共消息总线发布消息，其他 Agent 根据兴趣订阅。适合松耦合的大规模 Agent 系统。</p>
+          </li>
+          <li>
+            <strong>投票/集成（Voting / Ensemble）</strong>
+            <p>多个 Agent 独立给出答案，通过投票或加权选出最终结果。如：多个代码审查 Agent 各自打分，取多数意见。</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q28 -->
+  <div class="q-card" id="q28">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">28</span>
+      <div class="q-text">
+        <h4>请介绍 AutoGen 框架的核心设计理念和多 Agent 通信机制。</h4>
+        <div class="q-tags"><span class="q-tag hot">框架考察</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p><strong>AutoGen</strong>（Microsoft Research）是当前最主流的多 Agent 框架之一。其核心设计理念：</p>
+        <ol>
+          <li><strong>ConversableAgent 抽象</strong>：所有 Agent 都继承自统一的 ConversableAgent 基类，通过<strong>对话（Conversation）</strong>进行交互。每个 Agent 可以 send/receive 消息。</li>
+          <li><strong>对话驱动编程（Conversation Programming）</strong>：用对话模式而非代码逻辑来编排多 Agent 协作——"让 Agent 自己决定何时跟谁说话"。</li>
+          <li><strong>GroupChat</strong>：多个 Agent 在一个群聊中，由 GroupChatManager 控制发言顺序（轮询、按角色、由 LLM 动态选择下一个发言者）。</li>
+          <li><strong>Human-in-the-Loop</strong>：人类用户可以作为特殊的 Agent 参与对话，在关键决策点干预。</li>
+          <li><strong>工具集成</strong>：每个 Agent 可以注册自己的工具集，在对话中调用。</li>
+        </ol>
+        <pre><code># AutoGen 典型结构
+from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
+
+# 创建多个专家 Agent
+planner = AssistantAgent("planner", llm_config=config,
+    system_message="你是任务规划专家")
+coder = AssistantAgent("coder", llm_config=config,
+    system_message="你是Python编程专家")
+reviewer = AssistantAgent("reviewer", llm_config=config,
+    system_message="你是代码审查专家")
+
+# 创建群聊
+groupchat = GroupChat(
+    agents=[planner, coder, reviewer],
+    messages=[],
+    max_round=10
+)
+manager = GroupChatManager(groupchat, llm_config=config)
+
+# 用户发起任务
+user_proxy.initiate_chat(manager, message="开发一个数据分析仪表板")</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q29 -->
+  <div class="q-card" id="q29">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">29</span>
+      <div class="q-text">
+        <h4>多 Agent 系统中的"共识机制"（Consensus）是如何实现的？有哪些常见方法？</h4>
+        <div class="q-tags"><span class="q-tag core">协作机制</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <p>多 Agent 共识机制的核心是<strong>让多个独立 Agent 在某个结论上达成一致</strong>：</p>
+        <ol>
+          <li>
+            <strong>多数投票（Majority Voting）</strong>
+            <p>每个 Agent 独立给出判断，取票数最多的选项。简单高效，但不考虑 Agent 的专业度差异。</p>
+          </li>
+          <li>
+            <strong>加权投票（Weighted Voting）</strong>
+            <p>根据 Agent 的历史准确率、专业领域匹配度等赋予不同权重。例如：代码相关问题上，coder Agent 的投票权重更高。</p>
+          </li>
+          <li>
+            <strong>辩论共识（Debate Consensus）</strong>
+            <p>Agent 之间通过多轮辩论逐渐缩小分歧。一方提出论点 → 另一方反驳 → 第一方修正 → 直到达成一致或裁判裁定。</p>
+          </li>
+          <li>
+            <strong>裁判/仲裁（Judge Arbitration）</strong>
+            <p>引入一个中立的 Judge Agent，听取各方意见后做出最终裁定。</p>
+          </li>
+          <li>
+            <strong>置信度加权（Confidence-Weighted）</strong>
+            <p>每个 Agent 不仅给出答案，还给出置信度。最终结论以置信度加权聚合。</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q30 -->
+  <div class="q-card" id="q30">
+    <div class="q-header" onclick="toggleQ(this)">
+      <span class="q-num">30</span>
+      <div class="q-text">
+        <h4>多 Agent 系统在工程落地中面临哪些核心挑战？如何应对？</h4>
+        <div class="q-tags"><span class="q-tag hot">工程实践</span></div>
+      </div>
+      <span class="q-arrow">▶</span>
+    </div>
+    <div class="q-body">
+      <div class="answer-section">
+        <div class="answer-label">核心回答</div>
+        <ol>
+          <li>
+            <strong>成本爆炸</strong>
+            <p>多 Agent 系统中每个 Agent 都在消耗 Token，总成本是单 Agent 的 N 倍。应对：只为必要任务启动多 Agent；用 Haiku/小模型做简单 Agent；设置 max_round 限制对话轮数。</p>
+          </li>
+          <li>
+            <strong>协调开销（Coordination Overhead）</strong>
+            <p>Agent 之间的通信本身消耗 Token 和时间——有时协调成本超过执行成本。应对：只在任务确实需要协作时才用多 Agent 模式。</p>
+          </li>
+          <li>
+            <strong>一致性问题</strong>
+            <p>多个 Agent 可能产生相互矛盾的结论。应对：明确的共识机制 + 仲裁者 + 冲突检测。</p>
+          </li>
+          <li>
+            <strong>幻觉传播（Hallucination Propagation）</strong>
+            <p>Agent A 的错误输出→ Agent B 基于错误信息推理→ 放大错误。应对：关键信息传递时附加来源和置信度；重要中间结果进行交叉验证。</p>
+          </li>
+          <li>
+            <strong>可观测性</strong>
+            <p>多个 Agent 的交互轨迹更复杂，调试困难。应对：统一的日志和追踪系统；每个 Agent 的 thought/action/observation 都记录并可视化。</p>
+          </li>
+          <li>
+            <strong>死锁和活锁</strong>
+            <p>Agent 之间互相等待或陷入无意义的循环讨论。应对：超时 + 最大轮次 + 心跳检测。</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  AI Agent 面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>
+</div>
+
+<script>
+function toggleQ(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+
+// Open Q1 by default
+document.addEventListener('DOMContentLoaded', function() {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) target.classList.add('open');
+  }
+});
+</script>
+
+</body>
+</html>
