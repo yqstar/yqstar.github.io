@@ -168,12 +168,18 @@ initInterview(DATA);
 """
 
 def main():
-    import subprocess
+    import subprocess, argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--from-worktree', action='store_true',
+                        help='Read from working tree instead of git HEAD')
+    args = parser.parse_args()
     for fname, accent, abg, ag in PAGES:
         path = os.path.join(ROOT, fname)
-        # Always regenerate from the original hand-authored source in git HEAD,
-        # so the script is idempotent regardless of the current working tree.
-        orig = subprocess.check_output(["git", "show", f"HEAD:{fname}"], cwd=ROOT).decode("utf-8")
+        if args.from_worktree:
+            with open(path, 'r', encoding='utf-8') as f:
+                orig = f.read()
+        else:
+            orig = subprocess.check_output(["git", "show", f"HEAD:{fname}"], cwd=ROOT).decode("utf-8")
         data = parse(orig)
         out = emit(data, accent, abg, ag)
         # preserve original <title> text verbatim

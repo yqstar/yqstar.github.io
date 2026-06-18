@@ -3,29 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="算法与 AI 学习平台 — LeetCode Hot 100 Python 题解、Transformer / RL / SFT / Agent 面试题集，在线代码运行。">
 <title>Algorithm & AI Study Hub</title>
 <style>
 :root {
-  --bg: #f5f5f0;
-  --text: #1a1a1a;
-  --text2: #6b6b6b;
-  --text3: #999999;
+  --bg: #fafafa;
+  --text: #262626;
+  --text2: #595959;
+  --text3: #8c8c8c;
   --claude: #da7756;
   --claude-glow: rgba(218,119,86,0.08);
   --blue: #0071e3;
   --blue-glow: rgba(0,113,227,0.06);
   --green: #30a14e;
   --green-glow: rgba(48,161,78,0.08);
-  --border: #e5e5e0;
+  --border: #e2e2e2;
   --card-bg: #ffffff;
-  --radius: 16px;
-  --radius-sm: 12px;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
   --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family: var(--font);
   background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased;
 }
 
@@ -54,7 +56,7 @@ body {
   text-decoration: none; color: inherit; display: block; position: relative; overflow: hidden;
   box-shadow: var(--shadow);
 }
-.card:hover { transform: translateY(-2px); border-color: #d0d0cc; box-shadow: var(--shadow-md); }
+.card:hover { transform: translateY(-2px); border-color: #d0d0d0; box-shadow: var(--shadow-md); }
 .card.available:hover { border-color: rgba(218,119,86,0.3); box-shadow: 0 4px 16px rgba(218,119,86,0.1); }
 .card .icon { font-size: 2em; margin-bottom: 14px; display: block; }
 .card h3 { font-size: 1.2em; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: -0.01em; }
@@ -69,6 +71,16 @@ body {
 .card.coming:hover { transform: none; box-shadow: var(--shadow); border-color: var(--border); }
 
 .footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); position: relative; z-index: 1; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a; --text: #e0e0e0; --text2: #aaa; --text3: #777;
+    --claude: #e8956f; --claude-glow: rgba(232,149,111,0.12);
+    --border: #383838; --card-bg: #232323;
+  }
+  .header h1 { background: linear-gradient(135deg, #e0e0e0 0%, var(--claude) 100%); -webkit-background-clip: text; background-clip: text; }
+  .card:hover { border-color: #444; }
+}
 </style>
 </head>
 <body>

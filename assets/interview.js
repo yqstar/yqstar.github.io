@@ -158,6 +158,35 @@ function ivExport() {
   ivDownload(ivFileName(), JSON.stringify(IV.current, null, 2));
 }
 
+function ivSanitize(html) {
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll('script,iframe,object,embed,form').forEach(function (el) { el.remove(); });
+  div.querySelectorAll('*').forEach(function (el) {
+    Array.from(el.attributes).forEach(function (attr) {
+      if (attr.name.toLowerCase().startsWith('on')) el.removeAttribute(attr.name);
+    });
+    ['href', 'src', 'action'].forEach(function (a) {
+      if (el.hasAttribute(a) && el.getAttribute(a).trim().toLowerCase().startsWith('javascript:')) {
+        el.removeAttribute(a);
+      }
+    });
+  });
+  return div.innerHTML;
+}
+
+function ivSanitizeData(data) {
+  if (!data || !data.sections) return data;
+  data.sections.forEach(function (s) {
+    if (!s.questions) return;
+    s.questions.forEach(function (q) {
+      if (q.body) q.body = ivSanitize(q.body);
+    });
+  });
+  if (data.footer && typeof data.footer === 'string') data.footer = ivSanitize(data.footer);
+  return data;
+}
+
 function ivImport(file) {
   if (!file) return;
   var reader = new FileReader();
@@ -165,6 +194,7 @@ function ivImport(file) {
     try {
       var data = JSON.parse(reader.result);
       if (!ivValid(data)) throw new Error('数据缺少 sections 字段');
+      ivSanitizeData(data);
       IV.current = data;
       ivSave(data);
       renderInterview(data);

@@ -1,0 +1,1606 @@
+const DATA = [
+{id:1,cat:"哈希",diff:"Easy",title:"两数之和",lc:"https://leetcode.cn/problems/two-sum/",
+ desc:"给定一个整数数组 nums 和一个整数目标值 target，找出和为目标值的那两个整数并返回下标。\n\n示例：nums = [2,7,11,15], target = 9 → [0,1]",
+ idea:"哈希表。遍历数组，检查 target-nums[i] 是否在哈希表中。O(n) 时间。",
+ code:`class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        hashmap = {}
+        for i in range(len(nums)):
+            if target - nums[i] in hashmap:
+                return [i, hashmap[target - nums[i]]]
+            hashmap[nums[i]] = i`,
+ test:'sol = Solution()\nprint(sol.twoSum([2,7,11,15], 9))   # expected [0,1]\nprint(sol.twoSum([3,2,4], 6))        # expected [1,2]'},
+{id:49,cat:"哈希",diff:"Medium",title:"字母异位词分组",lc:"https://leetcode.cn/problems/group-anagrams/",
+ desc:"将字母异位词组合在一起。\n\n示例：strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"] → [[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]",
+ idea:"哈希表。将每个单词按字典序排序作为 key，相同 key 的归为一组。O(n·klogk)。",
+ code:`class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        hashmap = defaultdict(list)
+        for word in strs:
+            sortedWord = "".join(sorted(word))
+            hashmap[sortedWord].append(word)
+        return list(hashmap.values())`,
+ test:'sol = Solution()\nprint(sol.groupAnagrams(["eat","tea","tan","ate","nat","bat"]))'},
+{id:128,cat:"哈希",diff:"Medium",title:"最长连续序列",lc:"https://leetcode.cn/problems/longest-consecutive-sequence/",
+ desc:"找出数字连续的最长序列长度。要求 O(n)。\n\n示例：nums = [100,4,200,1,3,2] → 4（序列[1,2,3,4]）",
+ idea:"哈希表存每个数所在连续序列长度。遍历时检查左右相邻数，更新端点长度。",
+ code:`class Solution:
+    def longestConsecutive(self, nums: List[int]) -> int:
+        if not nums: return 0
+        num_dict = {}
+        max_length = 0
+        for num in nums:
+            if num in num_dict: continue
+            left = num_dict.get(num-1, 0)
+            right = num_dict.get(num+1, 0)
+            cur = left + right + 1
+            max_length = max(max_length, cur)
+            num_dict[num] = cur
+            num_dict[num-left] = cur
+            num_dict[num+right] = cur
+        return max_length`,
+ test:'sol = Solution()\nprint(sol.longestConsecutive([100,4,200,1,3,2]))   # expected 4'},
+{id:283,cat:"双指针",diff:"Easy",title:"移动零",lc:"https://leetcode.cn/problems/move-zeroes/",
+ desc:"将所有 0 移到数组末尾，保持非零元素相对顺序。原地操作。\n\n示例：[0,1,0,3,12] → [1,3,12,0,0]",
+ idea:"双指针。zeroindex 记录第一个 0 的位置。遇到非 0 与 zeroindex 交换。O(n) O(1)。",
+ code:`class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        zeroindex = -1
+        for i in range(len(nums)):
+            if nums[i] == 0 and zeroindex == -1:
+                zeroindex = i
+            elif nums[i] != 0 and zeroindex != -1:
+                nums[zeroindex], nums[i] = nums[i], nums[zeroindex]
+                zeroindex += 1`,
+ test:'sol = Solution()\nnums = [0,1,0,3,12]\nsol.moveZeroes(nums)\nprint(nums)   # expected [1,3,12,0,0]'},
+{id:11,cat:"双指针",diff:"Medium",title:"盛最多水的容器",lc:"https://leetcode.cn/problems/container-with-most-water/",
+ desc:"找出两条线与 x 轴构成的容器能容纳最多的水。\n\n示例：[1,8,6,2,5,4,8,3,7] → 49",
+ idea:"双指针。两端向中间移动，每次移动较短的线。volume = min(h[l],h[r])*(r-l)。O(n)。",
+ code:`class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        l, r = 0, len(height)-1
+        max_v = 0
+        while l < r:
+            v = min(height[l], height[r]) * (r-l)
+            max_v = max(max_v, v)
+            if height[l] < height[r]: l += 1
+            else: r -= 1
+        return max_v`,
+ test:'sol = Solution()\nprint(sol.maxArea([1,8,6,2,5,4,8,3,7]))   # expected 49'},
+{id:15,cat:"双指针",diff:"Medium",title:"三数之和",lc:"https://leetcode.cn/problems/3sum/",
+ desc:"找出所有和为 0 且不重复的三元组。\n\n示例：[-1,0,1,2,-1,-4] → [[-1,-1,2],[-1,0,1]]",
+ idea:"排序+双指针。固定 i，L=i+1,R=n-1。total==0 时记录并跳过重复。O(n²)。",
+ code:`class Solution:
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        if len(nums) < 3: return []
+        nums.sort()
+        res = []
+        for i in range(len(nums)):
+            if nums[i] > 0: break
+            if i>0 and nums[i]==nums[i-1]: continue
+            L, R = i+1, len(nums)-1
+            while L < R:
+                t = nums[i]+nums[L]+nums[R]
+                if t==0:
+                    res.append([nums[i],nums[L],nums[R]])
+                    while L<R and nums[L]==nums[L+1]: L+=1
+                    while L<R and nums[R]==nums[R-1]: R-=1
+                    L+=1; R-=1
+                elif t<0: L+=1
+                else: R-=1
+        return res`,
+ test:'sol = Solution()\nprint(sol.threeSum([-1,0,1,2,-1,-4]))'},
+{id:42,cat:"双指针",diff:"Hard",title:"接雨水",lc:"https://leetcode.cn/problems/trapping-rain-water/",
+ desc:"给定 n 个非负整数表示柱子高度，计算能接多少雨水。\n\n示例：[0,1,0,2,1,0,1,3,2,1,2,1] → 6",
+ idea:"双指针。left/right两端向中间移动，维护leftMax/rightMax。较小端决定水量。O(n) O(1)。",
+ code:`class Solution:
+    def trap(self, height: List[int]) -> int:
+        l, r = 0, len(height) - 1
+        lmax = rmax = ans = 0
+        while l < r:
+            lmax = max(lmax, height[l])
+            rmax = max(rmax, height[r])
+            if lmax < rmax:
+                ans += lmax - height[l]
+                l += 1
+            else:
+                ans += rmax - height[r]
+                r -= 1
+        return ans`,
+ test:'sol = Solution()\nprint(sol.trap([0,1,0,2,1,0,1,3,2,1,2,1]))   # 6'},
+{id:3,cat:"滑动窗口",diff:"Medium",title:"无重复字符的最长子串",lc:"https://leetcode.cn/problems/longest-substring-without-repeating-characters/",
+ desc:"找出不含重复字符的最长子串长度。\n\n示例：\"abcabcbb\" → 3（\"abc\"）",
+ idea:"滑动窗口+哈希表。记录字符最后出现位置。重复时 start 跳到重复位+1。O(n)。",
+ code:`class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        if not s: return 0
+        start = max_len = 0
+        seen = {}
+        for end,ch in enumerate(s):
+            if ch in seen and seen[ch] >= start:
+                start = seen[ch] + 1
+            seen[ch] = end
+            max_len = max(max_len, end-start+1)
+        return max_len`,
+ test:'sol = Solution()\nprint(sol.lengthOfLongestSubstring("abcabcbb"))   # 3\nprint(sol.lengthOfLongestSubstring("bbbbb"))      # 1'},
+{id:438,cat:"滑动窗口",diff:"Medium",title:"找到字符串中所有字母异位词",lc:"https://leetcode.cn/problems/find-all-anagrams-in-a-string/",
+ desc:"找 s 中所有 p 的异位词子串起始索引。\n\n示例：s=\"cbaebabacd\", p=\"abc\" → [0,6]",
+ idea:"滑动窗口+Counter。维护窗口计数，匹配时记录起始位置。O(n)。",
+ code:`class Solution:
+    def findAnagrams(self, s: str, p: str) -> List[int]:
+        p_c = Counter(p)
+        s_c = Counter(s[:len(p)-1])
+        res = []
+        for i in range(len(p)-1, len(s)):
+            s_c[s[i]] += 1
+            if s_c == p_c: res.append(i-len(p)+1)
+            s_c[s[i-len(p)+1]] -= 1
+            if s_c[s[i-len(p)+1]] == 0: del s_c[s[i-len(p)+1]]
+        return res`,
+ test:'sol = Solution()\nprint(sol.findAnagrams("cbaebabacd", "abc"))   # [0,6]'},
+{id:560,cat:"子串",diff:"Medium",title:"和为 K 的子数组",lc:"https://leetcode.cn/problems/subarray-sum-equals-k/",
+ desc:"统计数组中和为 k 的子数组个数。\n\n示例：[1,1,1], k=2 → 2",
+ idea:"前缀和+哈希表。prefix_count 记录前缀和出现次数。count += prefix_count[prefix-k]。",
+ code:`class Solution:
+    def subarraySum(self, nums: List[int], k: int) -> int:
+        prefix = 0
+        count = 0
+        pc = {0:1}
+        for num in nums:
+            prefix += num
+            count += pc.get(prefix-k, 0)
+            pc[prefix] = pc.get(prefix,0)+1
+        return count`,
+ test:'sol = Solution()\nprint(sol.subarraySum([1,1,1], 2))   # 2\nprint(sol.subarraySum([1,2,3], 3))   # 2'},
+{id:239,cat:"子串",diff:"Hard",title:"滑动窗口最大值",lc:"https://leetcode.cn/problems/sliding-window-maximum/",
+ desc:"给定数组和滑动窗口大小 k，返回每个窗口的最大值。\n\n示例：nums=[1,3,-1,-3,5,3,6,7], k=3 → [3,3,5,5,6,7]",
+ idea:"单调递减双端队列。队头为当前窗口最大值索引。入队时弹出所有小于当前值的元素。O(n)。",
+ code:`class Solution:
+    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:
+        dq = deque()
+        res = []
+        for i in range(len(nums)):
+            while dq and dq[0] < i - k + 1:
+                dq.popleft()
+            while dq and nums[dq[-1]] < nums[i]:
+                dq.pop()
+            dq.append(i)
+            if i >= k - 1:
+                res.append(nums[dq[0]])
+        return res`,
+ test:'sol = Solution()\nprint(sol.maxSlidingWindow([1,3,-1,-3,5,3,6,7], 3))'},
+{id:76,cat:"子串",diff:"Hard",title:"最小覆盖子串",lc:"https://leetcode.cn/problems/minimum-window-substring/",
+ desc:"找出 s 中涵盖 t 所有字符的最小子串。\n\n示例：s=\"ADOBECODEBANC\", t=\"ABC\" → \"BANC\"",
+ idea:"滑动窗口+Counter。expand右指针直到覆盖t，然后收缩左指针找最小。O(n)。",
+ code:`class Solution:
+    def minWindow(self, s: str, t: str) -> str:
+        need = Counter(t)
+        missing = len(t)
+        l = start = end = 0
+        for r, ch in enumerate(s, 1):
+            if need[ch] > 0:
+                missing -= 1
+            need[ch] -= 1
+            if missing == 0:
+                while need[s[l]] < 0:
+                    need[s[l]] += 1
+                    l += 1
+                if not end or r - l <= end - start:
+                    start, end = l, r
+                need[s[l]] += 1
+                missing += 1
+                l += 1
+        return s[start:end]`,
+ test:'sol = Solution()\nprint(sol.minWindow("ADOBECODEBANC", "ABC"))'},
+{id:53,cat:"普通数组",diff:"Medium",title:"最大子数组和",lc:"https://leetcode.cn/problems/maximum-subarray/",
+ desc:"找出最大和的连续子数组。\n\n示例：[-2,1,-3,4,-1,2,1,-5,4] → 6（[4,-1,2,1]）",
+ idea:"Kadane 算法。cur = max(num, cur+num)，同时更新 max_sum。O(n) O(1)。",
+ code:`class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        cur = max_sum = nums[0]
+        for num in nums[1:]:
+            cur = max(num, cur+num)
+            max_sum = max(max_sum, cur)
+        return max_sum`,
+ test:'sol = Solution()\nprint(sol.maxSubArray([-2,1,-3,4,-1,2,1,-5,4]))   # 6'},
+{id:56,cat:"普通数组",diff:"Medium",title:"合并区间",lc:"https://leetcode.cn/problems/merge-intervals/",
+ desc:"合并所有重叠区间。\n\n示例：[[1,3],[2,6],[8,10],[15,18]] → [[1,6],[8,10],[15,18]]",
+ idea:"排序+遍历。按起始排序后合并重叠区间。O(n log n)。",
+ code:`class Solution:
+    def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+        intervals.sort(key=lambda x:x[0])
+        merged = []
+        for cur in intervals:
+            if not merged or merged[-1][1] < cur[0]:
+                merged.append(cur)
+            else:
+                merged[-1][1] = max(merged[-1][1], cur[1])
+        return merged`,
+ test:'sol = Solution()\nprint(sol.merge([[1,3],[2,6],[8,10],[15,18]]))'},
+{id:189,cat:"普通数组",diff:"Medium",title:"轮转数组",lc:"https://leetcode.cn/problems/rotate-array/",
+ desc:"将数组向右轮转 k 个位置。\n\n示例：[1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]",
+ idea:"三次翻转：整体翻转→翻转前k→翻转后n-k。O(1)空间。",
+ code:`class Solution:
+    def rotate(self, nums: List[int], k: int) -> None:
+        n = len(nums); k %= n
+        def rev(s,e):
+            while s<e:
+                nums[s],nums[e]=nums[e],nums[s]
+                s+=1; e-=1
+        rev(0,n-1); rev(0,k-1); rev(k,n-1)`,
+ test:'sol = Solution()\nnums = [1,2,3,4,5,6,7]\nsol.rotate(nums, 3)\nprint(nums)   # [5,6,7,1,2,3,4]'},
+{id:238,cat:"普通数组",diff:"Medium",title:"除自身以外数组的乘积",lc:"https://leetcode.cn/problems/product-of-array-except-self/",
+ desc:"返回 answer[i] = 除 nums[i] 外其余元素的乘积。禁止除法。\n\n示例：[1,2,3,4] → [24,12,8,6]",
+ idea:"前缀积+后缀积。先算前缀积，再从右往左乘后缀。O(n) O(1)额外。",
+ code:`class Solution:
+    def productExceptSelf(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        ans = [1]*n
+        for i in range(1,n): ans[i]=ans[i-1]*nums[i-1]
+        suffix = 1
+        for i in range(n-1,-1,-1):
+            ans[i]*=suffix; suffix*=nums[i]
+        return ans`,
+ test:'sol = Solution()\nprint(sol.productExceptSelf([1,2,3,4]))   # [24,12,8,6]'},
+{id:41,cat:"普通数组",diff:"Hard",title:"缺失的第一个正数",lc:"https://leetcode.cn/problems/first-missing-positive/",
+ desc:"找出未排序数组中缺失的最小正整数。要求 O(n) 时间 O(1) 空间。\n\n示例：[3,4,-1,1] → 2",
+ idea:"原地哈希。将每个数 nums[i] 放到 nums[nums[i]-1] 的位置。再扫描第一个 nums[i]!=i+1 的位置。",
+ code:`class Solution:
+    def firstMissingPositive(self, nums: List[int]) -> int:
+        n = len(nums)
+        for i in range(n):
+            while 1 <= nums[i] <= n and nums[nums[i]-1] != nums[i]:
+                nums[nums[i]-1], nums[i] = nums[i], nums[nums[i]-1]
+        for i in range(n):
+            if nums[i] != i + 1:
+                return i + 1
+        return n + 1`,
+ test:'sol = Solution()\nprint(sol.firstMissingPositive([3,4,-1,1]))   # 2'},
+{id:73,cat:"矩阵",diff:"Medium",title:"矩阵置零",lc:"https://leetcode.cn/problems/set-matrix-zeroes/",
+ desc:"若元素为 0，将其所在行和列全部设为 0。原地。\n\n示例：[[1,1,1],[1,0,1],[1,1,1]] → [[1,0,1],[0,0,0],[1,0,1]]",
+ idea:"用第一行/列作标记。先检查第一行/列是否有 0，再标记其他。O(1)额外空间。",
+ code:`class Solution:
+    def setZeroes(self, matrix: List[List[int]]) -> None:
+        m,n = len(matrix),len(matrix[0])
+        r0 = any(matrix[0][j]==0 for j in range(n))
+        c0 = any(matrix[i][0]==0 for i in range(m))
+        for i in range(1,m):
+            for j in range(1,n):
+                if matrix[i][j]==0: matrix[i][0]=matrix[0][j]=0
+        for i in range(1,m):
+            for j in range(1,n):
+                if matrix[i][0]==0 or matrix[0][j]==0: matrix[i][j]=0
+        if r0:
+            for j in range(n): matrix[0][j]=0
+        if c0:
+            for i in range(m): matrix[i][0]=0`,
+ test:'sol = Solution()\nm = [[1,1,1],[1,0,1],[1,1,1]]\nsol.setZeroes(m)\nprint(m)'},
+{id:54,cat:"矩阵",diff:"Medium",title:"螺旋矩阵",lc:"https://leetcode.cn/problems/spiral-matrix/",
+ desc:"顺时针螺旋顺序返回所有元素。\n\n示例：[[1,2,3],[4,5,6],[7,8,9]] → [1,2,3,6,9,8,7,4,5]",
+ idea:"维护 top/bottom/left/right 边界，顺时针遍历并收缩边界。",
+ code:`class Solution:
+    def spiralOrder(self, matrix: List[List[int]]) -> List[int]:
+        if not matrix or not matrix[0]: return []
+        m,n = len(matrix),len(matrix[0])
+        t,b,l,r = 0,m-1,0,n-1
+        res = []
+        while t<=b and l<=r:
+            for i in range(l,r+1): res.append(matrix[t][i])
+            t+=1
+            for i in range(t,b+1): res.append(matrix[i][r])
+            r-=1
+            if t<=b:
+                for i in range(r,l-1,-1): res.append(matrix[b][i])
+                b-=1
+            if l<=r:
+                for i in range(b,t-1,-1): res.append(matrix[i][l])
+                l+=1
+        return res`,
+ test:'sol = Solution()\nprint(sol.spiralOrder([[1,2,3],[4,5,6],[7,8,9]]))'},
+{id:48,cat:"矩阵",diff:"Medium",title:"旋转图像",lc:"https://leetcode.cn/problems/rotate-image/",
+ desc:"将 n×n 矩阵顺时针旋转 90 度，原地。\n\n示例：[[1,2,3],[4,5,6],[7,8,9]] → [[7,4,1],[8,5,2],[9,6,3]]",
+ idea:"逐层旋转。每层四个角互相交换。先转置再水平翻转也可。",
+ code:`class Solution:
+    def rotate(self, matrix: List[List[int]]) -> None:
+        n = len(matrix)
+        for layer in range(n//2):
+            t,b = layer, n-1-layer
+            for i in range(t,b):
+                offset = i-t
+                temp = matrix[t][i]
+                matrix[t][i] = matrix[b-offset][t]
+                matrix[b-offset][t] = matrix[b][b-offset]
+                matrix[b][b-offset] = matrix[i][b]
+                matrix[i][b] = temp`,
+ test:'sol = Solution()\nm = [[1,2,3],[4,5,6],[7,8,9]]\nsol.rotate(m)\nprint(m)   # [[7,4,1],[8,5,2],[9,6,3]]'},
+{id:240,cat:"矩阵",diff:"Medium",title:"搜索二维矩阵 II",lc:"https://leetcode.cn/problems/search-a-2d-matrix-ii/",
+ desc:"每行升序每列升序，搜索 target。\n\n示例：[[1,4,7],[2,5,8],[3,6,9]], target=5 → true",
+ idea:"从右上角开始。>target 左移，<target 下移。O(m+n)。",
+ code:`class Solution:
+    def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:
+        if not matrix or not matrix[0]: return False
+        r,c = 0, len(matrix[0])-1
+        while r<len(matrix) and c>=0:
+            if matrix[r][c]==target: return True
+            elif matrix[r][c]>target: c-=1
+            else: r+=1
+        return False`,
+ test:'sol = Solution()\nprint(sol.searchMatrix([[1,4,7],[2,5,8],[3,6,9]], 5))   # True'},
+{id:160,cat:"链表",diff:"Easy",title:"相交链表",lc:"https://leetcode.cn/problems/intersection-of-two-linked-lists/",
+ desc:"找出两个单链表相交的起始节点。\n\n示例：listA=[4,1,8,4,5], listB=[5,6,1,8,4,5] → 相交于 8",
+ idea:"双指针。pA 走完走 B，pB 走完走 A。相遇点即交点。O(m+n)。",
+ code:`class Solution:
+    def getIntersectionNode(self, headA: ListNode, headB: ListNode) -> Optional[ListNode]:
+        a, b = headA, headB
+        while a != b:
+            a = a.next if a else headB
+            b = b.next if b else headA
+        return a`,
+ test:'# Linked list problems need ListNode setup\n# See helper functions below\nprint("Linked list — test with custom input")'},
+{id:206,cat:"链表",diff:"Easy",title:"反转链表",lc:"https://leetcode.cn/problems/reverse-linked-list/",
+ desc:"反转单链表。\n\n示例：[1,2,3,4,5] → [5,4,3,2,1]",
+ idea:"迭代三指针。prev, cur, nxt。cur.next=prev。O(n) O(1)。",
+ code:`class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        prev, cur = None, head
+        while cur:
+            nxt = cur.next
+            cur.next = prev
+            prev, cur = cur, nxt
+        return prev`,
+ test:'# Use build_list / to_list helpers\nhead = build_list([1,2,3,4,5])\nrev = Solution().reverseList(head)\nprint(to_list(rev))   # [5,4,3,2,1]'},
+{id:234,cat:"链表",diff:"Easy",title:"回文链表",lc:"https://leetcode.cn/problems/palindrome-linked-list/",
+ desc:"判断链表是否为回文。\n\n示例：[1,2,2,1] → true",
+ idea:"快慢指针找中点→反转后半→比较前后。O(n) O(1)。",
+ code:`class Solution:
+    def isPalindrome(self, head: Optional[ListNode]) -> bool:
+        if not head or not head.next: return True
+        slow = fast = head
+        while fast and fast.next:
+            slow, fast = slow.next, fast.next.next
+        def rev(h):
+            prev, cur = None, h
+            while cur:
+                nxt=cur.next; cur.next=prev; prev,cur=cur,nxt
+            return prev
+        slow = rev(slow)
+        while slow:
+            if slow.val != head.val: return False
+            slow, head = slow.next, head.next
+        return True`,
+ test:'head = build_list([1,2,2,1])\nprint(Solution().isPalindrome(head))   # True'},
+{id:141,cat:"链表",diff:"Easy",title:"环形链表",lc:"https://leetcode.cn/problems/linked-list-cycle/",
+ desc:"判断链表是否有环。\n\n示例：head=[3,2,0,-4],pos=1 → true",
+ idea:"快慢指针。slow走1步fast走2步。相遇则有环。O(n)。",
+ code:`class Solution:
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        if not head: return False
+        slow = fast = head
+        while slow and fast and fast.next:
+            slow, fast = slow.next, fast.next.next
+            if slow == fast: return True
+        return False`,
+ test:'# hasCycle needs a cycle — use manual setup\nprint("Test with cycle setup")'},
+{id:21,cat:"链表",diff:"Easy",title:"合并两个有序链表",lc:"https://leetcode.cn/problems/merge-two-sorted-lists/",
+ desc:"合并两个升序链表。\n\n示例：[1,2,4], [1,3,4] → [1,1,2,3,4,4]",
+ idea:"迭代+dummy节点。比较两链表值，较小者接入。O(m+n)。",
+ code:`class Solution:
+    def mergeTwoLists(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(-1)
+        cur = dummy
+        while l1 and l2:
+            if l1.val <= l2.val:
+                cur.next, l1 = l1, l1.next
+            else:
+                cur.next, l2 = l2, l2.next
+            cur = cur.next
+        cur.next = l1 if l1 else l2
+        return dummy.next`,
+ test:'l1 = build_list([1,2,4])\nl2 = build_list([1,3,4])\nprint(to_list(Solution().mergeTwoLists(l1,l2)))   # [1,1,2,3,4,4]'},
+{id:142,cat:"链表",diff:"Medium",title:"环形链表 II",lc:"https://leetcode.cn/problems/linked-list-cycle-ii/",
+ desc:"返回链表入环的第一个节点。\n\n示例：head=[3,2,0,-4],pos=1 → 节点(索引1)",
+ idea:"快慢指针相遇→slow重置head→同速走→再次相遇即入口。",
+ code:`class Solution:
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next: return None
+        slow = fast = head
+        while fast and fast.next:
+            slow,fast=slow.next,fast.next.next
+            if slow==fast: break
+        else: return None
+        slow = head
+        while slow != fast:
+            slow,fast=slow.next,fast.next
+        return slow`,
+ test:'# detectCycle needs cycle setup\nprint("Test with cycle setup")'},
+{id:2,cat:"链表",diff:"Medium",title:"两数相加",lc:"https://leetcode.cn/problems/add-two-numbers/",
+ desc:"两个逆序链表表示整数，返回和的链表。\n\n示例：[2,4,3],[5,6,4] → [7,0,8] (342+465=807)",
+ idea:"逐位相加+carry。dummy简化头部。最后carry>0追加节点。",
+ code:`class Solution:
+    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0)
+        cur, carry = dummy, 0
+        while l1 or l2:
+            s = (l1.val if l1 else 0)+(l2.val if l2 else 0)+carry
+            carry = s//10
+            cur.next = ListNode(s%10)
+            cur = cur.next
+            if l1: l1=l1.next
+            if l2: l2=l2.next
+        if carry>0: cur.next=ListNode(carry)
+        return dummy.next`,
+ test:'l1 = build_list([2,4,3])\nl2 = build_list([5,6,4])\nprint(to_list(Solution().addTwoNumbers(l1,l2)))   # [7,0,8]'},
+{id:19,cat:"链表",diff:"Medium",title:"删除链表的倒数第 N 个结点",lc:"https://leetcode.cn/problems/remove-nth-node-from-end-of-list/",
+ desc:"删除倒数第 n 个节点。\n\n示例：[1,2,3,4,5], n=2 → [1,2,3,5]",
+ idea:"快慢指针。fast先走n步，然后同时走到fast末尾。slow.next=slow.next.next。",
+ code:`class Solution:
+    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        fast = slow = dummy
+        for _ in range(n): fast = fast.next
+        while fast.next: fast, slow = fast.next, slow.next
+        slow.next = slow.next.next
+        return dummy.next`,
+ test:'h = build_list([1,2,3,4,5])\nprint(to_list(Solution().removeNthFromEnd(h,2)))   # [1,2,3,5]'},
+{id:24,cat:"链表",diff:"Medium",title:"两两交换链表中的节点",lc:"https://leetcode.cn/problems/swap-nodes-in-pairs/",
+ desc:"两两交换相邻节点。\n\n示例：[1,2,3,4] → [2,1,4,3]",
+ idea:"迭代。prev.next=second, first.next=second.next, second.next=first。",
+ code:`class Solution:
+    def swapPairs(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        prev = dummy
+        while head and head.next:
+            first, second = head, head.next
+            prev.next = second
+            first.next = second.next
+            second.next = first
+            prev, head = first, first.next
+        return dummy.next`,
+ test:'h = build_list([1,2,3,4])\nprint(to_list(Solution().swapPairs(h)))   # [2,1,4,3]'},
+{id:25,cat:"链表",diff:"Hard",title:"K 个一组翻转链表",lc:"https://leetcode.cn/problems/reverse-nodes-in-k-group/",
+ desc:"每 k 个节点一组翻转链表，不足 k 个保持原序。\n\n示例：[1,2,3,4,5], k=2 → [2,1,4,3,5]",
+ idea:"迭代。每组找到k个节点后翻转，用prev/tail连接。不足k个时直接返回。O(n)。",
+ code:`class Solution:
+    def reverseKGroup(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        prev = dummy
+        while True:
+            tail = prev
+            for _ in range(k):
+                tail = tail.next
+                if not tail: return dummy.next
+            nxt = tail.next
+            cur, p = prev.next, None
+            for _ in range(k):
+                tmp = cur.next
+                cur.next = p if p else nxt
+                p, cur = cur, tmp
+            old_head = prev.next
+            prev.next = p
+            prev = old_head`,
+ test:'h = build_list([1,2,3,4,5])\nprint(to_list(Solution().reverseKGroup(h,2)))'},
+{id:138,cat:"链表",diff:"Medium",title:"随机链表的复制",lc:"https://leetcode.cn/problems/copy-list-with-random-pointer/",
+ desc:"深拷贝带 random 指针的链表。\n\n示例：[[7,null],[13,0],[11,4],[10,2],[1,0]]",
+ idea:"三步：1)节点后插副本 2)设random 3)分离。O(n)O(1)。",
+ code:`class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head: return None
+        cur = head
+        while cur:
+            nn = Node(cur.val, cur.next, None)
+            cur.next, cur = nn, nn.next
+        cur = head
+        while cur:
+            if cur.random: cur.next.random = cur.random.next
+            cur = cur.next.next
+        old, new = head, head.next
+        o, n = old, new
+        while o:
+            o.next = o.next.next if o.next else None
+            n.next = n.next.next if n.next else None
+            o, n = o.next, n.next
+        return new`,
+ test:'# copyRandomList needs Node class setup\nprint("Test with custom setup")'},
+{id:148,cat:"链表",diff:"Medium",title:"排序链表",lc:"https://leetcode.cn/problems/sort-list/",
+ desc:"将链表按升序排序。\n\n示例：[4,2,1,3] → [1,2,3,4]",
+ idea:"归并排序。快慢找中点→递归排序左右→合并有序链表。O(n log n) O(1)。",
+ code:`class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next: return head
+        def mid(h):
+            s,f=h,h.next
+            while f and f.next: s,f=s.next,f.next.next
+            return s
+        def merge(l1,l2):
+            d=ListNode(); c=d
+            while l1 and l2:
+                if l1.val<l2.val: c.next,l1=l1,l1.next
+                else: c.next,l2=l2,l2.next
+                c=c.next
+            c.next=l1 if l1 else l2
+            return d.next
+        m=mid(head); r=m.next; m.next=None
+        return merge(self.sortList(head),self.sortList(r))`,
+ test:'h = build_list([4,2,1,3])\nprint(to_list(Solution().sortList(h)))   # [1,2,3,4]'},
+{id:23,cat:"链表",diff:"Hard",title:"合并 K 个升序链表",lc:"https://leetcode.cn/problems/merge-k-sorted-lists/",
+ desc:"合并 k 个升序链表为一个升序链表。\n\n示例：[[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6]",
+ idea:"最小堆。将每个链表头节点入堆，每次弹出最小节点接入结果，再将其next入堆。O(Nlogk)。",
+ code:`class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        import heapq
+        dummy = ListNode(0)
+        cur = dummy
+        heap = []
+        for i, l in enumerate(lists):
+            if l:
+                heapq.heappush(heap, (l.val, i, l))
+        while heap:
+            val, i, node = heapq.heappop(heap)
+            cur.next = node
+            cur = cur.next
+            if node.next:
+                heapq.heappush(heap, (node.next.val, i, node.next))
+        return dummy.next`,
+ test:'# mergeKLists needs multiple linked lists\nprint("Test with custom setup")'},
+{id:146,cat:"链表",diff:"Medium",title:"LRU 缓存",lc:"https://leetcode.cn/problems/lru-cache/",
+ desc:"实现 LRUCache 类，get/put O(1)。\n\nLRUCache(2); put(1,1); put(2,2); get(1)→1; put(3,3)→淘汰2",
+ idea:"OrderedDict。get move_to_end; put 满时 popitem(last=False)。",
+ code:`class LRUCache:
+    def __init__(self, capacity: int):
+        self.data = OrderedDict()
+        self.cap = capacity
+    def get(self, key: int) -> int:
+        if key in self.data:
+            self.data.move_to_end(key)
+            return self.data[key]
+        return -1
+    def put(self, key: int, value: int) -> None:
+        if key in self.data: self.data[key]=value
+        else:
+            if len(self.data)>=self.cap: self.data.popitem(last=False)
+            self.data[key]=value
+        self.data.move_to_end(key)`,
+ test:'cache = LRUCache(2)\ncache.put(1,1); cache.put(2,2)\nprint(cache.get(1))   # 1\ncache.put(3,3)\nprint(cache.get(2))   # -1'},
+{id:94,cat:"二叉树",diff:"Easy",title:"二叉树的中序遍历",lc:"https://leetcode.cn/problems/binary-tree-inorder-traversal/",
+ desc:"返回中序遍历（左→根→右）。\n\n示例：[1,null,2,3] → [1,3,2]",
+ idea:"栈迭代。一路向左压栈，弹出记录后处理右子树。",
+ code:`class Solution:
+    def inorderTraversal(self, root: Optional[TreeNode]) -> List[int]:
+        stack, res = [], []
+        cur = root
+        while cur or stack:
+            while cur:
+                stack.append(cur); cur = cur.left
+            cur = stack.pop()
+            res.append(cur.val)
+            cur = cur.right
+        return res`,
+ test:'root = build_tree([1,None,2,3])\nprint(Solution().inorderTraversal(root))   # [1,3,2]'},
+{id:104,cat:"二叉树",diff:"Easy",title:"二叉树的最大深度",lc:"https://leetcode.cn/problems/maximum-depth-of-binary-tree/",
+ desc:"返回二叉树最大深度。\n\n示例：[3,9,20,null,null,15,7] → 3",
+ idea:"递归：max(left,right)+1。BFS：层序遍历计数。",
+ code:`class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        if not root: return 0
+        return max(self.maxDepth(root.left), self.maxDepth(root.right)) + 1`,
+ test:'root = build_tree([3,9,20,None,None,15,7])\nprint(Solution().maxDepth(root))   # 3'},
+{id:226,cat:"二叉树",diff:"Easy",title:"翻转二叉树",lc:"https://leetcode.cn/problems/invert-binary-tree/",
+ desc:"翻转二叉树。\n\n示例：[4,2,7,1,3,6,9] → [4,7,2,9,6,3,1]",
+ idea:"递归交换左右子树。",
+ code:`class Solution:
+    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:
+        if not root: return None
+        root.left, root.right = root.right, root.left
+        self.invertTree(root.left)
+        self.invertTree(root.right)
+        return root`,
+ test:'# invertTree modifies in place\nprint("Use tree helpers for visual check")'},
+{id:101,cat:"二叉树",diff:"Easy",title:"对称二叉树",lc:"https://leetcode.cn/problems/symmetric-tree/",
+ desc:"判断二叉树是否轴对称。\n\n示例：[1,2,2,3,4,4,3] → true",
+ idea:"递归。check(left,right)：都空true，一空false，值不等false，递归check(l.left,r.right)和check(l.right,r.left)。",
+ code:`class Solution:
+    def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        def check(l, r):
+            if not l and not r: return True
+            if not l or not r: return False
+            return l.val == r.val and check(l.left, r.right) and check(l.right, r.left)
+        return check(root.left, root.right) if root else True`,
+ test:'root = build_tree([1,2,2,3,4,4,3])\nprint(Solution().isSymmetric(root))   # True'},
+{id:543,cat:"二叉树",diff:"Easy",title:"二叉树的直径",lc:"https://leetcode.cn/problems/diameter-of-binary-tree/",
+ desc:"返回二叉树的直径（最长路径边数）。\n\n示例：[1,2,3,4,5] → 3",
+ idea:"DFS。在每个节点计算 left+right 更新 maxD。返回 max(l,r)+1。",
+ code:`class Solution:
+    def diameterOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        maxD = 0
+        def depth(node):
+            nonlocal maxD
+            if not node: return 0
+            l, r = depth(node.left), depth(node.right)
+            maxD = max(maxD, l+r)
+            return max(l,r)+1
+        depth(root)
+        return maxD`,
+ test:'root = build_tree([1,2,3,4,5])\nprint(Solution().diameterOfBinaryTree(root))   # 3'},
+{id:108,cat:"二叉树",diff:"Easy",title:"有序数组转二叉搜索树",lc:"https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/",
+ desc:"将升序数组转为平衡BST。\n\n示例：[-10,-3,0,5,9] → [0,-3,9,-10,null,5]",
+ idea:"递归。取 mid 为根，左半建左子树，右半建右子树。",
+ code:`class Solution:
+    def sortedArrayToBST(self, nums: List[int]) -> Optional[TreeNode]:
+        def helper(l, r):
+            if l > r: return None
+            mid = (l+r)//2
+            root = TreeNode(nums[mid])
+            root.left = helper(l, mid-1)
+            root.right = helper(mid+1, r)
+            return root
+        return helper(0, len(nums)-1)`,
+ test:'# Returns TreeNode root\nprint("Use tree helpers for visual check")'},
+{id:102,cat:"二叉树",diff:"Medium",title:"二叉树的层序遍历",lc:"https://leetcode.cn/problems/binary-tree-level-order-traversal/",
+ desc:"逐层返回节点值。\n\n示例：[3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]",
+ idea:"BFS+队列。记录每层大小 level_size 分批处理。O(n)。",
+ code:`class Solution:
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root: return []
+        res, q = [], deque([root])
+        while q:
+            sz = len(q)
+            lvl = []
+            for _ in range(sz):
+                node = q.popleft()
+                lvl.append(node.val)
+                if node.left: q.append(node.left)
+                if node.right: q.append(node.right)
+            res.append(lvl)
+        return res`,
+ test:'root = build_tree([3,9,20,None,None,15,7])\nprint(Solution().levelOrder(root))'},
+{id:98,cat:"二叉树",diff:"Medium",title:"验证二叉搜索树",lc:"https://leetcode.cn/problems/validate-binary-search-tree/",
+ desc:"判断是否为有效BST。\n\n示例：[2,1,3] → true",
+ idea:"递归+范围。左子树 (min_v, node.val)，右子树 (node.val, max_v)。或中序检查递增。",
+ code:`class Solution:
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        def helper(node, lo=float('-inf'), hi=float('inf')):
+            if not node: return True
+            if not (lo < node.val < hi): return False
+            return helper(node.left,lo,node.val) and helper(node.right,node.val,hi)
+        return helper(root)`,
+ test:'root = build_tree([2,1,3])\nprint(Solution().isValidBST(root))   # True\nroot2 = build_tree([5,1,4,None,None,3,6])\nprint(Solution().isValidBST(root2))   # False'},
+{id:230,cat:"二叉树",diff:"Medium",title:"BST中第K小的元素",lc:"https://leetcode.cn/problems/kth-smallest-element-in-a-bst/",
+ desc:"找BST中第k小的元素。\n\n示例：[3,1,4,null,2], k=1 → 1",
+ idea:"中序遍历（栈）。每pop一个k--，k==0时返回。BST中序=升序。",
+ code:`class Solution:
+    def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
+        stack, cur = [], root
+        while cur or stack:
+            while cur:
+                stack.append(cur); cur=cur.left
+            cur=stack.pop()
+            k-=1
+            if k==0: return cur.val
+            cur=cur.right`,
+ test:'root = build_tree([3,1,4,None,2])\nprint(Solution().kthSmallest(root, 1))   # 1'},
+{id:199,cat:"二叉树",diff:"Medium",title:"二叉树的右视图",lc:"https://leetcode.cn/problems/binary-tree-right-side-view/",
+ desc:"从右侧能看到的所有节点值。\n\n示例：[1,2,3,null,5,null,4] → [1,3,4]",
+ idea:"BFS层序遍历。每层最后一个节点加入结果。",
+ code:`class Solution:
+    def rightSideView(self, root: Optional[TreeNode]) -> List[int]:
+        if not root: return []
+        res, q = [], deque([root])
+        while q:
+            sz = len(q)
+            for i in range(sz):
+                node = q.popleft()
+                if i==sz-1: res.append(node.val)
+                if node.left: q.append(node.left)
+                if node.right: q.append(node.right)
+        return res`,
+ test:'root = build_tree([1,2,3,None,5,None,4])\nprint(Solution().rightSideView(root))   # [1,3,4]'},
+{id:114,cat:"二叉树",diff:"Medium",title:"二叉树展开为链表",lc:"https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/",
+ desc:"按前序展开为右指针链表。\n\n示例：[1,2,5,3,4,null,6] → [1,null,2,null,3,null,4,null,5,null,6]",
+ idea:"后序。保存右子树→左子树移到right→找到最右→接上右子树。",
+ code:`class Solution:
+    def flatten(self, root: Optional[TreeNode]) -> None:
+        if not root: return
+        self.flatten(root.left)
+        self.flatten(root.right)
+        if root.left:
+            r = root.right
+            root.right = root.left
+            root.left = None
+            cur = root
+            while cur.right: cur = cur.right
+            cur.right = r`,
+ test:'# Modifies tree in place\nprint("Use tree helpers for visual check")'},
+{id:105,cat:"二叉树",diff:"Medium",title:"从前序与中序构造二叉树",lc:"https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/",
+ desc:"根据前序和中序构造二叉树。\n\n示例：pre=[3,9,20,15,7], in=[9,3,15,20,7] → [3,9,20,null,null,15,7]",
+ idea:"前序首元素=根。在中序找根位置，左边左子树右边右子树。递归。",
+ code:`class Solution:
+    def buildTree(self, preorder: List[int], inorder: List[int]) -> Optional[TreeNode]:
+        if not preorder or not inorder: return None
+        root = TreeNode(preorder[0])
+        idx = inorder.index(preorder[0])
+        root.left = self.buildTree(preorder[1:1+idx], inorder[:idx])
+        root.right = self.buildTree(preorder[1+idx:], inorder[idx+1:])
+        return root`,
+ test:'# Returns TreeNode root\nprint("Use tree helpers for visual check")'},
+{id:437,cat:"二叉树",diff:"Medium",title:"路径总和 III",lc:"https://leetcode.cn/problems/path-sum-iii/",
+ desc:"求节点值之和等于 targetSum 的路径数目（只能向下）。\n\n示例：[10,5,-3,3,2,null,11,...], target=8 → 3",
+ idea:"前缀和+哈希表。curSum 路径和，count += prefix.get(curSum-targetSum,0)。回溯清理。",
+ code:`class Solution:
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> int:
+        def dfs(node, cur):
+            if not node: return 0
+            cur += node.val
+            cnt = prefix.get(cur-targetSum, 0)
+            prefix[cur] = prefix.get(cur,0)+1
+            cnt += dfs(node.left, cur) + dfs(node.right, cur)
+            prefix[cur] -= 1
+            return cnt
+        prefix = {0:1}
+        return dfs(root, 0)`,
+ test:'root = build_tree([10,5,-3,3,2,None,11,3,-2,None,1])\nprint(Solution().pathSum(root, 8))   # 3'},
+{id:236,cat:"二叉树",diff:"Medium",title:"二叉树的最近公共祖先",lc:"https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/",
+ desc:"找两个节点的最近公共祖先。\n\n示例：[3,5,1,...], p=5, q=1 → 3",
+ idea:"递归。root为p/q/None返回root。递归左右。left和right都非空→root即LCA。",
+ code:`class Solution:
+    def lowestCommonAncestor(self, root, p, q):
+        if not root or root==p or root==q: return root
+        l = self.lowestCommonAncestor(root.left, p, q)
+        r = self.lowestCommonAncestor(root.right, p, q)
+        if l and r: return root
+        return l if l else r`,
+ test:'# LCA needs node references\nprint("Test with tree node references")'},
+{id:124,cat:"二叉树",diff:"Hard",title:"二叉树中的最大路径和",lc:"https://leetcode.cn/problems/binary-tree-maximum-path-sum/",
+ desc:"路径可从任意节点到任意节点，求最大路径和。\n\n示例：[-10,9,20,null,null,15,7] → 42（15→20→7）",
+ idea:"DFS后序。每个节点返回经过它的单侧最大贡献（负数取0）。全局更新 l+r+node.val。",
+ code:`class Solution:
+    def maxPathSum(self, root: Optional[TreeNode]) -> int:
+        self.ans = float('-inf')
+        def dfs(node):
+            if not node: return 0
+            l = max(0, dfs(node.left))
+            r = max(0, dfs(node.right))
+            self.ans = max(self.ans, l + r + node.val)
+            return max(l, r) + node.val
+        dfs(root)
+        return self.ans`,
+ test:'root = build_tree([-10,9,20,None,None,15,7])\nprint(Solution().maxPathSum(root))   # 42'},
+{id:200,cat:"图论",diff:"Medium",title:"岛屿数量",lc:"https://leetcode.cn/problems/number-of-islands/",
+ desc:"计算网格中岛屿数量（1=陆地0=水）。\n\n示例：[[\"1\",\"1\",\"1\"],[\"0\",\"1\",\"0\"],[\"1\",\"1\",\"1\"]] → 1",
+ idea:"DFS。遍历网格遇'1'计数+1，DFS将相连陆地标记为'0'。",
+ code:`class Solution:
+    def numIslands(self, grid: List[List[str]]) -> int:
+        if not grid: return 0
+        R,C = len(grid),len(grid[0])
+        cnt = 0
+        def dfs(r,c):
+            if r<0 or r>=R or c<0 or c>=C or grid[r][c]=='0': return
+            grid[r][c]='0'
+            dfs(r+1,c);dfs(r-1,c);dfs(r,c+1);dfs(r,c-1)
+        for r in range(R):
+            for c in range(C):
+                if grid[r][c]=='1': cnt+=1; dfs(r,c)
+        return cnt`,
+ test:'g = [["1","1","1"],["0","1","0"],["1","1","1"]]\nprint(Solution().numIslands(g))   # 1'},
+{id:994,cat:"图论",diff:"Medium",title:"腐烂的橘子",lc:"https://leetcode.cn/problems/rotting-oranges/",
+ desc:"每分钟腐烂橘子四向传染，求全部腐烂的最少分钟。\n\n示例：[[2,1,1],[1,1,0],[0,1,1]] → 4",
+ idea:"多源BFS。初始腐烂橘子入队，每轮处理并感染。检查剩余新鲜。",
+ code:`class Solution:
+    def orangesRotting(self, grid: List[List[int]]) -> int:
+        if not grid: return -1
+        R,C = len(grid),len(grid[0])
+        fresh = 0
+        q = deque()
+        for r in range(R):
+            for c in range(C):
+                if grid[r][c]==2: q.append((r,c))
+                elif grid[r][c]==1: fresh+=1
+        if fresh==0: return 0
+        mins = 0
+        dirs = [(1,0),(-1,0),(0,1),(0,-1)]
+        while q and fresh>0:
+            mins+=1
+            for _ in range(len(q)):
+                r,c = q.popleft()
+                for dr,dc in dirs:
+                    nr,nc = r+dr,c+dc
+                    if 0<=nr<R and 0<=nc<C and grid[nr][nc]==1:
+                        grid[nr][nc]=2; fresh-=1; q.append((nr,nc))
+        return mins if fresh==0 else -1`,
+ test:'g = [[2,1,1],[1,1,0],[0,1,1]]\nprint(Solution().orangesRotting(g))   # 4'},
+{id:207,cat:"图论",diff:"Medium",title:"课程表",lc:"https://leetcode.cn/problems/course-schedule/",
+ desc:"判断能否完成所有课程（有先修约束）。\n\n示例：numCourses=2, prereq=[[1,0]] → true",
+ idea:"拓扑排序BFS。构建邻接表+入度表。入度0入队，出队减后续入度。",
+ code:`class Solution:
+    def canFinish(self, numCourses: int, prerequisites: List[List[int]]) -> bool:
+        g = {i:[] for i in range(numCourses)}
+        ind = {i:0 for i in range(numCourses)}
+        for c,p in prerequisites: g[p].append(c); ind[c]+=1
+        q = deque([c for c in ind if ind[c]==0])
+        done = 0
+        while q:
+            cur = q.popleft(); done+=1
+            for nxt in g[cur]:
+                ind[nxt]-=1
+                if ind[nxt]==0: q.append(nxt)
+        return done==numCourses`,
+ test:'print(Solution().canFinish(2, [[1,0]]))   # True\nprint(Solution().canFinish(2, [[1,0],[0,1]]))   # False'},
+{id:208,cat:"图论",diff:"Medium",title:"实现 Trie 前缀树",lc:"https://leetcode.cn/problems/implement-trie-prefix-tree/",
+ desc:"实现插入、搜索、前缀搜索。\n\ninsert(\"apple\"); search(\"apple\")→true; startsWith(\"app\")→true",
+ idea:"字典嵌套。逐字符嵌套dict，结尾标'#'。search检查结尾标记。",
+ code:`class Trie:
+    def __init__(self):
+        self.root = {}
+    def insert(self, word: str) -> None:
+        node = self.root
+        for ch in word:
+            if ch not in node: node[ch]={}
+            node = node[ch]
+        node['#'] = True
+    def search(self, word: str) -> bool:
+        node = self.root
+        for ch in word:
+            if ch not in node: return False
+            node = node[ch]
+        return '#' in node
+    def startsWith(self, prefix: str) -> bool:
+        node = self.root
+        for ch in prefix:
+            if ch not in node: return False
+            node = node[ch]
+        return True`,
+ test:'t = Trie()\nt.insert("apple")\nprint(t.search("apple"))     # True\nprint(t.search("app"))       # False\nprint(t.startsWith("app"))   # True'},
+{id:46,cat:"回溯",diff:"Medium",title:"全排列",lc:"https://leetcode.cn/problems/permutations/",
+ desc:"返回数组所有全排列。\n\n示例：[1,2,3] → [[1,2,3],[1,3,2],[2,1,3],...]",
+ idea:"回溯。path存当前路径，remaining存剩余元素。remaining空时记录。",
+ code:`class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        def backtrack(path, rem):
+            if not rem:
+                res.append(path[:])
+                return
+            for i in range(len(rem)):
+                path.append(rem[i])
+                backtrack(path, rem[:i]+rem[i+1:])
+                path.pop()
+        res = []
+        backtrack([], nums)
+        return res`,
+ test:'print(Solution().permute([1,2,3]))'},
+{id:78,cat:"回溯",diff:"Medium",title:"子集",lc:"https://leetcode.cn/problems/subsets/",
+ desc:"返回所有子集。\n\n示例：[1,2,3] → [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]",
+ idea:"迭代。res=[[]]，每遇num加到已有子集后生成新子集。",
+ code:`class Solution:
+    def subsets(self, nums: List[int]) -> List[List[int]]:
+        res = [[]]
+        for num in nums:
+            res.extend(sub+[num] for sub in res)
+        return res`,
+ test:'print(Solution().subsets([1,2,3]))'},
+{id:17,cat:"回溯",diff:"Medium",title:"电话号码字母组合",lc:"https://leetcode.cn/problems/letter-combinations-of-a-phone-number/",
+ desc:"返回数字能表示的所有字母组合。\n\n示例：\"23\" → [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]",
+ idea:"迭代组合。每数字将result中每个串与该数字每个字母拼接。",
+ code:`class Solution:
+    def letterCombinations(self, digits: str) -> List[str]:
+        if not digits: return []
+        mp = {'2':'abc','3':'def','4':'ghi','5':'jkl','6':'mno','7':'pqrs','8':'tuv','9':'wxyz'}
+        res = ['']
+        for d in digits:
+            res = [c+l for c in res for l in mp[d]]
+        return res`,
+ test:'print(Solution().letterCombinations("23"))'},
+{id:39,cat:"回溯",diff:"Medium",title:"组合总和",lc:"https://leetcode.cn/problems/combination-sum/",
+ desc:"找出使和为target的所有组合，元素可无限重复。\n\n示例：candidates=[2,3,6,7], target=7 → [[2,2,3],[7]]",
+ idea:"回溯。remaining为目标剩余，start防重复。<0剪枝==0记录。",
+ code:`class Solution:
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        def backtrack(rem, path, start):
+            if rem==0: res.append(path[:]); return
+            if rem<0: return
+            for i in range(start, len(candidates)):
+                path.append(candidates[i])
+                backtrack(rem-candidates[i], path, i)
+                path.pop()
+        res = []
+        backtrack(target, [], 0)
+        return res`,
+ test:'print(Solution().combinationSum([2,3,6,7], 7))'},
+{id:22,cat:"回溯",diff:"Medium",title:"括号生成",lc:"https://leetcode.cn/problems/generate-parentheses/",
+ desc:"生成n对括号所有有效组合。\n\n示例：n=3 → [\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]",
+ idea:"回溯。left<n时加'('，right<left时加')'。len=2n记录。",
+ code:`class Solution:
+    def generateParenthesis(self, n: int) -> List[str]:
+        def bt(path, l, r):
+            if len(path)==2*n: res.append("".join(path)); return
+            if l<n: path.append('('); bt(path,l+1,r); path.pop()
+            if r<l: path.append(')'); bt(path,l,r+1); path.pop()
+        res = []
+        bt([],0,0)
+        return res`,
+ test:'print(Solution().generateParenthesis(3))'},
+{id:79,cat:"回溯",diff:"Medium",title:"单词搜索",lc:"https://leetcode.cn/problems/word-search/",
+ desc:"判断单词是否在二维字符网格中。\n\n示例：[[\"A\",\"B\",\"C\"],[\"S\",\"F\",\"C\"],[\"A\",\"D\",\"E\"]], \"ABCCED\" → true",
+ idea:"DFS回溯。四方向递归，'#'标记已访问，回溯恢复。",
+ code:`class Solution:
+    def exist(self, board: List[List[str]], word: str) -> bool:
+        R,C = len(board),len(board[0])
+        def dfs(r,c,i):
+            if i==len(word): return True
+            if r<0 or r>=R or c<0 or c>=C or board[r][c]!=word[i]: return False
+            tmp, board[r][c] = board[r][c], '#'
+            ok = dfs(r+1,c,i+1) or dfs(r-1,c,i+1) or dfs(r,c+1,i+1) or dfs(r,c-1,i+1)
+            board[r][c]=tmp
+            return ok
+        for r in range(R):
+            for c in range(C):
+                if dfs(r,c,0): return True
+        return False`,
+ test:'b = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]\nprint(Solution().exist(b,"ABCCED"))   # True'},
+{id:131,cat:"回溯",diff:"Medium",title:"分割回文串",lc:"https://leetcode.cn/problems/palindrome-partitioning/",
+ desc:"将字符串分割成回文子串，列出所有方案。\n\n示例：\"aab\" → [[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]",
+ idea:"回溯。枚举分割点end，s[start:end]是回文则加入path递归。",
+ code:`class Solution:
+    def partition(self, s: str) -> List[List[str]]:
+        def is_pal(x): return x==x[::-1]
+        def bt(start, path):
+            if start==len(s): res.append(path[:]); return
+            for end in range(start+1, len(s)+1):
+                sub = s[start:end]
+                if is_pal(sub):
+                    path.append(sub); bt(end, path); path.pop()
+        res = []
+        bt(0,[])
+        return res`,
+ test:'print(Solution().partition("aab"))'},
+{id:51,cat:"回溯",diff:"Hard",title:"N 皇后",lc:"https://leetcode.cn/problems/n-queens/",
+ desc:"将 n 个皇后放置在 n×n 棋盘上使彼此不能攻击，返回所有解。\n\n示例：n=4 → [['.Q..','...Q','Q...','..Q.'],['..Q.','Q...','...Q','.Q..']]",
+ idea:"回溯。逐行放置，用集合记录列/两条对角线是否被占用。O(n!)。",
+ code:`class Solution:
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        res = []
+        cols, d1, d2 = set(), set(), set()
+        board = [['.']*n for _ in range(n)]
+        def bt(r):
+            if r == n:
+                res.append([''.join(row) for row in board])
+                return
+            for c in range(n):
+                if c in cols or r-c in d1 or r+c in d2: continue
+                cols.add(c); d1.add(r-c); d2.add(r+c)
+                board[r][c] = 'Q'
+                bt(r+1)
+                board[r][c] = '.'
+                cols.discard(c); d1.discard(r-c); d2.discard(r+c)
+        bt(0)
+        return res`,
+ test:'print(Solution().solveNQueens(4))'},
+{id:35,cat:"二分查找",diff:"Easy",title:"搜索插入位置",lc:"https://leetcode.cn/problems/search-insert-position/",
+ desc:"排序数组中找target或插入位置。O(log n)。\n\n示例：[1,3,5,6], target=2 → 1",
+ idea:"标准二分。while l<=r。未找到时left即插入位置。",
+ code:`class Solution:
+    def searchInsert(self, nums: List[int], target: int) -> int:
+        l, r = 0, len(nums)-1
+        while l<=r:
+            m = l+(r-l)//2
+            if nums[m]==target: return m
+            elif nums[m]>target: r=m-1
+            else: l=m+1
+        return l`,
+ test:'print(Solution().searchInsert([1,3,5,6], 2))   # 1\nprint(Solution().searchInsert([1,3,5,6], 7))   # 4'},
+{id:74,cat:"二分查找",diff:"Medium",title:"搜索二维矩阵",lc:"https://leetcode.cn/problems/search-a-2d-matrix/",
+ desc:"每行升序，每行首 > 前行尾。搜索target。\n\n示例：[[1,3,5],[10,11,16],[23,30,60]], target=3 → true",
+ idea:"右上角O(m+n) 或一维二分O(log mn)。",
+ code:`class Solution:
+    def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:
+        if not matrix or not matrix[0]: return False
+        R,C = len(matrix),len(matrix[0])
+        r,c = 0, C-1
+        while r<R and c>=0:
+            if matrix[r][c]==target: return True
+            elif matrix[r][c]>target: c-=1
+            else: r+=1
+        return False`,
+ test:'print(Solution().searchMatrix([[1,3,5],[10,11,16],[23,30,60]], 3))   # True'},
+{id:34,cat:"二分查找",diff:"Medium",title:"在排序数组中查找第一个和最后一个位置",lc:"https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/",
+ desc:"找target起始和结束位置。O(log n)。\n\n示例：[5,7,7,8,8,10], target=8 → [3,4]",
+ idea:"两次二分。找左边界遇target时r=m-1；右边界遇target时l=m+1。",
+ code:`class Solution:
+    def searchRange(self, nums: List[int], target: int) -> List[int]:
+        def bs(find_first):
+            l,r,ans=0,len(nums)-1,-1
+            while l<=r:
+                m=(l+r)//2
+                if nums[m]==target:
+                    ans=m
+                    if find_first: r=m-1
+                    else: l=m+1
+                elif nums[m]<target: l=m+1
+                else: r=m-1
+            return ans
+        s = bs(True)
+        e = bs(False)
+        return [s,e] if s!=-1 else [-1,-1]`,
+ test:'print(Solution().searchRange([5,7,7,8,8,10], 8))   # [3,4]'},
+{id:33,cat:"二分查找",diff:"Medium",title:"搜索旋转排序数组",lc:"https://leetcode.cn/problems/search-in-rotated-sorted-array/",
+ desc:"旋转后升序数组中搜索target。O(log n)。\n\n示例：[4,5,6,7,0,1,2], target=0 → 4",
+ idea:"二分。判断哪半有序，target在有序半则搜那半，否则搜另一半。",
+ code:`class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        l,r = 0,len(nums)-1
+        while l<=r:
+            m=(l+r)//2
+            if nums[m]==target: return m
+            if nums[l]<=nums[m]:
+                if nums[l]<=target<nums[m]: r=m-1
+                else: l=m+1
+            else:
+                if nums[m]<target<=nums[r]: l=m+1
+                else: r=m-1
+        return -1`,
+ test:'print(Solution().search([4,5,6,7,0,1,2], 0))   # 4'},
+{id:153,cat:"二分查找",diff:"Medium",title:"寻找旋转排序数组最小值",lc:"https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/",
+ desc:"找旋转升序数组最小值。O(log n)。\n\n示例：[3,4,5,1,2] → 1",
+ idea:"二分。nums[m]>nums[r]→最小值在右半 l=m+1；否则在左半 r=m。",
+ code:`class Solution:
+    def findMin(self, nums: List[int]) -> int:
+        l,r = 0,len(nums)-1
+        while l<r:
+            m=(l+r)//2
+            if nums[m]>nums[r]: l=m+1
+            else: r=m
+        return nums[l]`,
+ test:'print(Solution().findMin([3,4,5,1,2]))   # 1'},
+{id:4,cat:"二分查找",diff:"Hard",title:"寻找两个正序数组的中位数",lc:"https://leetcode.cn/problems/median-of-two-sorted-arrays/",
+ desc:"给定两个正序数组，找出中位数。要求 O(log(m+n))。\n\n示例：nums1=[1,3], nums2=[2] → 2.0",
+ idea:"二分查找较短数组的分割位置。确保左半所有元素<=右半所有元素。O(log(min(m,n)))。",
+ code:`class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        if len(nums1) > len(nums2):
+            nums1, nums2 = nums2, nums1
+        m, n = len(nums1), len(nums2)
+        lo, hi = 0, m
+        while lo <= hi:
+            i = (lo + hi) // 2
+            j = (m + n + 1) // 2 - i
+            left1 = nums1[i-1] if i > 0 else float('-inf')
+            right1 = nums1[i] if i < m else float('inf')
+            left2 = nums2[j-1] if j > 0 else float('-inf')
+            right2 = nums2[j] if j < n else float('inf')
+            if left1 <= right2 and left2 <= right1:
+                if (m + n) % 2:
+                    return max(left1, left2)
+                return (max(left1, left2) + min(right1, right2)) / 2
+            elif left1 > right2:
+                hi = i - 1
+            else:
+                lo = i + 1`,
+ test:'sol = Solution()\nprint(sol.findMedianSortedArrays([1,3], [2]))   # 2.0'},
+{id:20,cat:"栈",diff:"Easy",title:"有效的括号",lc:"https://leetcode.cn/problems/valid-parentheses/",
+ desc:"判断括号是否有效。\n\n示例：\"()[]{}\" → true",
+ idea:"栈匹配。左括号入栈，右括号检查栈顶。最后栈空则有效。",
+ code:`class Solution:
+    def isValid(self, s: str) -> bool:
+        stack = []
+        mp = {'(':')','[':']','{':'}'}
+        for ch in s:
+            if ch in mp: stack.append(ch)
+            else:
+                if not stack or mp[stack.pop()]!=ch: return False
+        return len(stack)==0`,
+ test:'print(Solution().isValid("()[]{}"))   # True\nprint(Solution().isValid("(]"))       # False'},
+{id:155,cat:"栈",diff:"Medium",title:"最小栈",lc:"https://leetcode.cn/problems/min-stack/",
+ desc:"实现 MinStack，push/pop/top/getMin 均 O(1)。\n\npush(-2);push(0);push(-3);getMin()→-3",
+ idea:"双栈。主栈+辅助栈存当前最小值。push时val<=min_stack顶才入；pop时相等则也pop。",
+ code:`class MinStack:
+    def __init__(self):
+        self.s = []; self.ms = []
+    def push(self, val):
+        self.s.append(val)
+        if not self.ms or val<=self.ms[-1]: self.ms.append(val)
+    def pop(self):
+        if self.s.pop()==self.ms[-1]: self.ms.pop()
+    def top(self): return self.s[-1]
+    def getMin(self): return self.ms[-1]`,
+ test:'ms = MinStack()\nms.push(-2); ms.push(0); ms.push(-3)\nprint(ms.getMin())   # -3\nms.pop()\nprint(ms.top())      # 0\nprint(ms.getMin())    # -2'},
+{id:394,cat:"栈",diff:"Medium",title:"字符串解码",lc:"https://leetcode.cn/problems/decode-string/",
+ desc:"解码 k[encoded_string]。\n\n示例：\"3[a]2[bc]\" → \"aaabcbc\"",
+ idea:"栈。遇'['压栈(cur_string,cur_num)并重置；遇']'弹栈拼接。",
+ code:`class Solution:
+    def decodeString(self, s: str) -> str:
+        st = []; cur_n=0; cur_s=''
+        for ch in s:
+            if ch.isdigit(): cur_n=cur_n*10+int(ch)
+            elif ch=='[': st.append((cur_s,cur_n)); cur_s,cur_n='',0
+            elif ch==']': p,n=st.pop(); cur_s=p+n*cur_s
+            else: cur_s+=ch
+        return cur_s`,
+ test:'print(Solution().decodeString("3[a]2[bc]"))     # aaabcbc\nprint(Solution().decodeString("2[abc]3[cd]ef")) # abcabccdcdcdef'},
+{id:739,cat:"栈",diff:"Medium",title:"每日温度",lc:"https://leetcode.cn/problems/daily-temperatures/",
+ desc:"返回下一个更高温度在几天后。\n\n示例：[73,74,75,71,69,72,76,73] → [1,1,4,2,1,1,0,0]",
+ idea:"单调递减栈（存索引）。当前温度>栈顶时弹出计算天数差。O(n)。",
+ code:`class Solution:
+    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        n = len(temperatures)
+        ans = [0]*n
+        st = []
+        for i in range(n):
+            while st and temperatures[i]>temperatures[st[-1]]:
+                idx = st.pop()
+                ans[idx] = i-idx
+            st.append(i)
+        return ans`,
+ test:'print(Solution().dailyTemperatures([73,74,75,71,69,72,76,73]))'},
+{id:84,cat:"栈",diff:"Hard",title:"柱状图中最大的矩形",lc:"https://leetcode.cn/problems/largest-rectangle-in-histogram/",
+ desc:"给定柱状图的高度数组，找出最大矩形面积。\n\n示例：[2,1,5,6,2,3] → 10",
+ idea:"单调递增栈。栈中存索引，遇到更矮的柱子时弹栈计算面积。末尾追加0清空栈。O(n)。",
+ code:`class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        stack = []
+        max_area = 0
+        heights.append(0)
+        for i, h in enumerate(heights):
+            while stack and heights[stack[-1]] > h:
+                height = heights[stack.pop()]
+                width = i if not stack else i - stack[-1] - 1
+                max_area = max(max_area, height * width)
+            stack.append(i)
+        heights.pop()
+        return max_area`,
+ test:'print(Solution().largestRectangleArea([2,1,5,6,2,3]))   # 10'},
+{id:215,cat:"堆",diff:"Medium",title:"数组中第K个最大元素",lc:"https://leetcode.cn/problems/kth-largest-element-in-an-array/",
+ desc:"找排序后第k个最大元素。\n\n示例：[3,2,1,5,6,4], k=2 → 5",
+ idea:"大小为k的最小堆。遍历后堆顶即第k大。O(n log k) 或快速选择O(n)。",
+ code:`class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        heap = []
+        for num in nums:
+            heapq.heappush(heap, num)
+            if len(heap)>k: heapq.heappop(heap)
+        return heap[0]`,
+ test:'print(Solution().findKthLargest([3,2,1,5,6,4], 2))   # 5'},
+{id:347,cat:"堆",diff:"Medium",title:"前 K 个高频元素",lc:"https://leetcode.cn/problems/top-k-frequent-elements/",
+ desc:"返回频率前k高的元素。\n\n示例：[1,1,1,2,2,3], k=2 → [1,2]",
+ idea:"Counter统计→大小为k的最小堆按频率排序。",
+ code:`class Solution:
+    def topKFrequent(self, nums: List[int], k: int) -> List[int]:
+        cnt = Counter(nums)
+        heap = []
+        for num,freq in cnt.items():
+            heapq.heappush(heap, (freq,num))
+            if len(heap)>k: heapq.heappop(heap)
+        return [num for freq,num in heap]`,
+ test:'print(Solution().topKFrequent([1,1,1,2,2,3], 2))   # [1,2]'},
+{id:295,cat:"堆",diff:"Hard",title:"数据流的中位数",lc:"https://leetcode.cn/problems/find-median-from-data-stream/",
+ desc:"设计数据结构支持 addNum 和 findMedian。\n\naddNum(1); addNum(2); findMedian()→1.5; addNum(3); findMedian()→2.0",
+ idea:"大顶堆存较小一半，小顶堆存较大一半。保持两堆大小差<=1。中位数取堆顶。",
+ code:`class MedianFinder:
+    def __init__(self):
+        self.lo = []  # max-heap (negated)
+        self.hi = []  # min-heap
+    def addNum(self, num: int) -> None:
+        heapq.heappush(self.lo, -num)
+        heapq.heappush(self.hi, -heapq.heappop(self.lo))
+        if len(self.hi) > len(self.lo):
+            heapq.heappush(self.lo, -heapq.heappop(self.hi))
+    def findMedian(self) -> float:
+        if len(self.lo) > len(self.hi):
+            return -self.lo[0]
+        return (-self.lo[0] + self.hi[0]) / 2`,
+ test:'mf = MedianFinder()\nmf.addNum(1); mf.addNum(2)\nprint(mf.findMedian())   # 1.5\nmf.addNum(3)\nprint(mf.findMedian())   # 2.0'},
+{id:121,cat:"贪心算法",diff:"Easy",title:"买卖股票最佳时机",lc:"https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/",
+ desc:"选一天买一天卖求最大利润。\n\n示例：[7,1,5,3,6,4] → 5（1买6卖）",
+ idea:"贪心。维护min_price，每天计算profit=price-min_price，更新max_profit。",
+ code:`class Solution:
+    def maxProfit(self, prices: List[int]) -> int:
+        if len(prices)==1: return 0
+        min_p = prices[0]
+        max_profit = 0
+        for p in prices[1:]:
+            min_p = min(min_p, p)
+            max_profit = max(max_profit, p-min_p)
+        return max_profit`,
+ test:'print(Solution().maxProfit([7,1,5,3,6,4]))   # 5'},
+{id:55,cat:"贪心算法",diff:"Medium",title:"跳跃游戏",lc:"https://leetcode.cn/problems/jump-game/",
+ desc:"判断能否到达最后下标。\n\n示例：[2,3,1,1,4] → true",
+ idea:"贪心。维护max_reachable。i>max_reachable则false。",
+ code:`class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        mr = 0
+        for i in range(len(nums)):
+            if i>mr: return False
+            mr = max(mr, i+nums[i])
+        return True`,
+ test:'print(Solution().canJump([2,3,1,1,4]))   # True\nprint(Solution().canJump([3,2,1,0,4]))   # False'},
+{id:45,cat:"贪心算法",diff:"Medium",title:"跳跃游戏 II",lc:"https://leetcode.cn/problems/jump-game-ii/",
+ desc:"返回到达最后下标的最少跳跃次数。\n\n示例：[2,3,1,1,4] → 2",
+ idea:"贪心。cur_end当前跳跃可达最远，cur_far下一步最远。i达cur_end时jump++。",
+ code:`class Solution:
+    def jump(self, nums: List[int]) -> int:
+        if len(nums)==1: return 0
+        jumps = cur_end = cur_far = 0
+        for i in range(len(nums)-1):
+            cur_far = max(cur_far, i+nums[i])
+            if i==cur_end:
+                jumps+=1; cur_end=cur_far
+        return jumps`,
+ test:'print(Solution().jump([2,3,1,1,4]))   # 2'},
+{id:763,cat:"贪心算法",diff:"Medium",title:"划分字母区间",lc:"https://leetcode.cn/problems/partition-labels/",
+ desc:"划分使同一字母只在一个片段，返回长度列表。\n\n示例：\"ababcbacadefegdehijhklij\" → [9,7,8]",
+ idea:"贪心。记录字母最后位置。遍历更新end，i==end时切分。",
+ code:`class Solution:
+    def partitionLabels(self, s: str) -> List[int]:
+        last = {ch:i for i,ch in enumerate(s)}
+        res = []
+        start = end = 0
+        for i,ch in enumerate(s):
+            end = max(end, last[ch])
+            if i==end:
+                res.append(end-start+1)
+                start = i+1
+        return res`,
+ test:'print(Solution().partitionLabels("ababcbacadefegdehijhklij"))'},
+{id:70,cat:"动态规划",diff:"Easy",title:"爬楼梯",lc:"https://leetcode.cn/problems/climbing-stairs/",
+ desc:"每次1或2阶，求n阶方法数。\n\n示例：n=2 → 2（1+1或2）",
+ idea:"斐波那契。a,b=b,a+b。O(n) O(1)。",
+ code:`class Solution:
+    def climbStairs(self, n: int) -> int:
+        if n<=2: return n
+        a,b = 1,2
+        for _ in range(3,n+1): a,b = b,a+b
+        return b`,
+ test:'print(Solution().climbStairs(2))   # 2\nprint(Solution().climbStairs(3))   # 3'},
+{id:118,cat:"动态规划",diff:"Easy",title:"杨辉三角",lc:"https://leetcode.cn/problems/pascals-triangle/",
+ desc:"生成前numRows行杨辉三角。\n\n示例：numRows=5 → [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]",
+ idea:"逐行生成。每行首尾1，中间=上行[j-1]+上行[j]。",
+ code:`class Solution:
+    def generate(self, numRows: int) -> List[List[int]]:
+        if numRows==0: return []
+        res = [[1]]
+        for i in range(1,numRows):
+            row = [1]
+            for j in range(1,i): row.append(res[i-1][j-1]+res[i-1][j])
+            row.append(1)
+            res.append(row)
+        return res`,
+ test:'print(Solution().generate(5))'},
+{id:198,cat:"动态规划",diff:"Medium",title:"打家劫舍",lc:"https://leetcode.cn/problems/house-robber/",
+ desc:"不能偷相邻，求最大金额。\n\n示例：[1,2,3,1] → 4（偷1和3=4）",
+ idea:"DP。dp[i]=max(dp[i-1],dp[i-2]+nums[i])。用两个变量优化O(1)。",
+ code:`class Solution:
+    def rob(self, nums: List[int]) -> int:
+        if not nums: return 0
+        if len(nums)==1: return nums[0]
+        p1,p2 = nums[0], max(nums[0],nums[1])
+        for i in range(2,len(nums)):
+            p1,p2 = p2, max(p2, p1+nums[i])
+        return p2`,
+ test:'print(Solution().rob([1,2,3,1]))     # 4\nprint(Solution().rob([2,7,9,3,1]))   # 12'},
+{id:279,cat:"动态规划",diff:"Medium",title:"完全平方数",lc:"https://leetcode.cn/problems/perfect-squares/",
+ desc:"求和为n的最少完全平方数个数。\n\n示例：n=12 → 3（12=4+4+4）",
+ idea:"DP。dp[i]=min(dp[i],dp[i-j²]+1)。dp[0]=0，其余inf。",
+ code:`class Solution:
+    def numSquares(self, n: int) -> int:
+        dp = [float('inf')]*(n+1)
+        dp[0]=0
+        for i in range(1,n+1):
+            j=1
+            while j*j<=i:
+                dp[i]=min(dp[i],dp[i-j*j]+1)
+                j+=1
+        return dp[n]`,
+ test:'print(Solution().numSquares(12))   # 3\nprint(Solution().numSquares(13))   # 2'},
+{id:322,cat:"动态规划",diff:"Medium",title:"零钱兑换",lc:"https://leetcode.cn/problems/coin-change/",
+ desc:"凑成amount最少硬币数。\n\n示例：coins=[1,2,5], amount=11 → 3（5+5+1）",
+ idea:"DP。dp[i]=min(dp[i],dp[i-coin]+1)。不可达返回-1。",
+ code:`class Solution:
+    def coinChange(self, coins: List[int], amount: int) -> int:
+        dp = [float('inf')]*(amount+1)
+        dp[0]=0
+        for i in range(1,amount+1):
+            for c in coins:
+                if i-c>=0: dp[i]=min(dp[i],dp[i-c]+1)
+        return dp[amount] if dp[amount]!=float('inf') else -1`,
+ test:'print(Solution().coinChange([1,2,5], 11))   # 3'},
+{id:139,cat:"动态规划",diff:"Medium",title:"单词拆分",lc:"https://leetcode.cn/problems/word-break/",
+ desc:"判断字符串能否由字典单词拼接。\n\n示例：s=\"leetcode\", dict=[\"leet\",\"code\"] → true",
+ idea:"DP。dp[i]=dp[j] and s[j:i] in wordSet。dp[0]=True。",
+ code:`class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+        ws = set(wordDict)
+        dp = [False]*(len(s)+1)
+        dp[0]=True
+        for i in range(1,len(s)+1):
+            for j in range(i):
+                if dp[j] and s[j:i] in ws:
+                    dp[i]=True; break
+        return dp[len(s)]`,
+ test:'print(Solution().wordBreak("leetcode",["leet","code"]))   # True'},
+{id:300,cat:"动态规划",diff:"Medium",title:"最长递增子序列",lc:"https://leetcode.cn/problems/longest-increasing-subsequence/",
+ desc:"找最长严格递增子序列长度。\n\n示例：[10,9,2,5,3,7,101,18] → 4（[2,3,7,101]）",
+ idea:"贪心+二分。tails存各长度LIS最小结尾。新元素>所有则追加否则二分替换。O(n log n)。",
+ code:`class Solution:
+    def lengthOfLIS(self, nums: List[int]) -> int:
+        tails = []
+        for num in nums:
+            l,r=0,len(tails)-1
+            while l<=r:
+                m=(l+r)//2
+                if tails[m]<num: l=m+1
+                else: r=m-1
+            if l==len(tails): tails.append(num)
+            else: tails[l]=num
+        return len(tails)`,
+ test:'print(Solution().lengthOfLIS([10,9,2,5,3,7,101,18]))   # 4'},
+{id:152,cat:"动态规划",diff:"Medium",title:"乘积最大子数组",lc:"https://leetcode.cn/problems/maximum-product-subarray/",
+ desc:"找出乘积最大连续子数组。\n\n示例：[2,3,-2,4] → 6（[2,3]）",
+ idea:"同时维护cur_max和cur_min（负数反转）。cur_max=max(num,cm*num,cmn*num)。",
+ code:`class Solution:
+    def maxProduct(self, nums: List[int]) -> int:
+        cm = cmn = gm = nums[0]
+        for num in nums[1:]:
+            tmp = cm
+            cm = max(num, cm*num, cmn*num)
+            cmn = min(num, tmp*num, cmn*num)
+            gm = max(gm, cm)
+        return gm`,
+ test:'print(Solution().maxProduct([2,3,-2,4]))   # 6'},
+{id:416,cat:"动态规划",diff:"Medium",title:"分割等和子集",lc:"https://leetcode.cn/problems/partition-equal-subset-sum/",
+ desc:"能否将数组分成两个和相等的子集。\n\n示例：[1,5,11,5] → true（[1,5,5]和[11]）",
+ idea:"0/1背包。target=sum/2。dp[j]=dp[j] or dp[j-num]，逆序遍历。",
+ code:`class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        s = sum(nums)
+        if s%2: return False
+        target = s//2
+        dp = [False]*(target+1)
+        dp[0] = True
+        for num in nums:
+            for j in range(target, num-1, -1):
+                dp[j] = dp[j] or dp[j-num]
+        return dp[target]`,
+ test:'print(Solution().canPartition([1,5,11,5]))   # True'},
+{id:32,cat:"动态规划",diff:"Hard",title:"最长有效括号",lc:"https://leetcode.cn/problems/longest-valid-parentheses/",
+ desc:"找最长有效括号子串长度。\n\n示例：\"(()\" → 2；\")()())\" → 4",
+ idea:"DP。s[i]==')'：若s[i-1]=='('则dp[i]=dp[i-2]+2；若s[i-1]==')'且匹配则更复杂转移。",
+ code:`class Solution:
+    def longestValidParentheses(self, s: str) -> int:
+        dp = [0]*len(s)
+        mx = 0
+        for i in range(1,len(s)):
+            if s[i]==')':
+                if s[i-1]=='(':
+                    dp[i]=(dp[i-2] if i>=2 else 0)+2
+                elif i-dp[i-1]-1>=0 and s[i-dp[i-1]-1]=='(':
+                    dp[i]=dp[i-1]+(dp[i-dp[i-1]-2] if i-dp[i-1]-2>=0 else 0)+2
+                mx=max(mx,dp[i])
+        return mx`,
+ test:'print(Solution().longestValidParentheses("(()"))      # 2\nprint(Solution().longestValidParentheses(")()())"))   # 4'},
+{id:62,cat:"多维动态规划",diff:"Medium",title:"不同路径",lc:"https://leetcode.cn/problems/unique-paths/",
+ desc:"机器人从左上到右下多少路径（只能右/下）。\n\n示例：m=3,n=7 → 28",
+ idea:"组合数学 C(m+n-2,m-1)。DP: dp[i][j]=dp[i-1][j]+dp[i][j-1]。",
+ code:`class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        return math.comb(m+n-2, m-1)`,
+ test:'print(Solution().uniquePaths(3,7))   # 28'},
+{id:64,cat:"多维动态规划",diff:"Medium",title:"最小路径和",lc:"https://leetcode.cn/problems/minimum-path-sum/",
+ desc:"从网格左上到右下最小路径和。\n\n示例：[[1,3,1],[1,5,1],[4,2,1]] → 7（1→3→1→1→1）",
+ idea:"DP。dp[i][j]=grid[i][j]+min(dp[i-1][j],dp[i][j-1])。处理第一行/列边界。",
+ code:`class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        m,n = len(grid),len(grid[0])
+        dp = [[0]*n for _ in range(m)]
+        dp[0][0]=grid[0][0]
+        for j in range(1,n): dp[0][j]=dp[0][j-1]+grid[0][j]
+        for i in range(1,m): dp[i][0]=dp[i-1][0]+grid[i][0]
+        for i in range(1,m):
+            for j in range(1,n):
+                dp[i][j]=grid[i][j]+min(dp[i-1][j],dp[i][j-1])
+        return dp[m-1][n-1]`,
+ test:'print(Solution().minPathSum([[1,3,1],[1,5,1],[4,2,1]]))   # 7'},
+{id:5,cat:"多维动态规划",diff:"Medium",title:"最长回文子串",lc:"https://leetcode.cn/problems/longest-palindromic-substring/",
+ desc:"找最长回文子串。\n\n示例：\"babad\" → \"bab\"或\"aba\"",
+ idea:"中心扩展法。每个字符/间隙为中心向两边扩。O(n²)。Manacher可O(n)。",
+ code:`class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        if len(s)<2: return s
+        def expand(l,r):
+            while l>=0 and r<len(s) and s[l]==s[r]:
+                l-=1; r+=1
+            return l+1,r-1
+        start,end=0,0
+        for i in range(len(s)):
+            l1,r1=expand(i,i)
+            l2,r2=expand(i,i+1)
+            if r1-l1>end-start: start,end=l1,r1
+            if r2-l2>end-start: start,end=l2,r2
+        return s[start:end+1]`,
+ test:'print(Solution().longestPalindrome("babad"))   # bab or aba'},
+{id:1143,cat:"多维动态规划",diff:"Medium",title:"最长公共子序列",lc:"https://leetcode.cn/problems/longest-common-subsequence/",
+ desc:"两字符串最长公共子序列长度。\n\n示例：\"abcde\",\"ace\" → 3（\"ace\"）",
+ idea:"DP。相同dp[i][j]=dp[i-1][j-1]+1；不同max(dp[i-1][j],dp[i][j-1])。",
+ code:`class Solution:
+    def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+        m,n = len(text1),len(text2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(1,m+1):
+            for j in range(1,n+1):
+                if text1[i-1]==text2[j-1]: dp[i][j]=dp[i-1][j-1]+1
+                else: dp[i][j]=max(dp[i-1][j],dp[i][j-1])
+        return dp[m][n]`,
+ test:'print(Solution().longestCommonSubsequence("abcde","ace"))   # 3'},
+{id:72,cat:"多维动态规划",diff:"Medium",title:"编辑距离",lc:"https://leetcode.cn/problems/edit-distance/",
+ desc:"word1转word2最少操作数（插入/删除/替换）。\n\n示例：\"horse\",\"ros\" → 3",
+ idea:"DP。相同dp[i][j]=dp[i-1][j-1]；不同min(删+1,插+1,替+1)。",
+ code:`class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        m,n = len(word1),len(word2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(1,m+1): dp[i][0]=i
+        for j in range(1,n+1): dp[0][j]=j
+        for i in range(1,m+1):
+            for j in range(1,n+1):
+                if word1[i-1]==word2[j-1]: dp[i][j]=dp[i-1][j-1]
+                else: dp[i][j]=min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])+1
+        return dp[m][n]`,
+ test:'print(Solution().minDistance("horse","ros"))   # 3'},
+{id:136,cat:"技巧",diff:"Easy",title:"只出现一次的数字",lc:"https://leetcode.cn/problems/single-number/",
+ desc:"数组中除一个数外均出现两次，找出它。\n\n示例：[2,2,1] → 1",
+ idea:"位运算XOR。全异或，相同抵消为0，剩下即只出现一次的数。O(n)O(1)。",
+ code:`class Solution:
+    def singleNumber(self, nums: List[int]) -> int:
+        res = 0
+        for num in nums: res ^= num
+        return res`,
+ test:'print(Solution().singleNumber([2,2,1]))        # 1\nprint(Solution().singleNumber([4,1,2,1,2]))  # 4'},
+{id:169,cat:"技巧",diff:"Easy",title:"多数元素",lc:"https://leetcode.cn/problems/majority-element/",
+ desc:"找出现次数>n/2的元素。\n\n示例：[3,2,3] → 3",
+ idea:"Boyer-Moore投票。candidate+count，相同+1不同-1，count=0换候选。",
+ code:`class Solution:
+    def majorityElement(self, nums: List[int]) -> int:
+        cand = nums[0]; cnt = 0
+        for num in nums:
+            if cnt==0: cand=num
+            cnt += 1 if num==cand else -1
+        return cand`,
+ test:'print(Solution().majorityElement([3,2,3]))       # 3\nprint(Solution().majorityElement([2,2,1,1,1,2,2])) # 2'},
+{id:75,cat:"技巧",diff:"Medium",title:"颜色分类",lc:"https://leetcode.cn/problems/sort-colors/",
+ desc:"原地排序0/1/2。\n\n示例：[2,0,2,1,1,0] → [0,0,1,1,2,2]",
+ idea:"荷兰国旗三指针。low/mid/high。mid=0与low换；mid=1前进；mid=2与high换。",
+ code:`class Solution:
+    def sortColors(self, nums: List[int]) -> None:
+        lo,mid,hi = 0,0,len(nums)-1
+        while mid<=hi:
+            if nums[mid]==0:
+                nums[lo],nums[mid]=nums[mid],nums[lo]
+                lo+=1; mid+=1
+            elif nums[mid]==1: mid+=1
+            else:
+                nums[mid],nums[hi]=nums[hi],nums[mid]
+                hi-=1`,
+ test:'nums=[2,0,2,1,1,0]; Solution().sortColors(nums); print(nums)   # [0,0,1,1,2,2]'},
+{id:31,cat:"技巧",diff:"Medium",title:"下一个排列",lc:"https://leetcode.cn/problems/next-permutation/",
+ desc:"原地找下一个字典序更大的排列。\n\n示例：[1,2,3] → [1,3,2]",
+ idea:"1)右找首个nums[i]<nums[i+1] 2)右找首个nums[j]>nums[i]交换 3)反转i+1后。",
+ code:`class Solution:
+    def nextPermutation(self, nums: List[int]) -> None:
+        i = len(nums)-2
+        while i>=0 and nums[i]>=nums[i+1]: i-=1
+        if i>=0:
+            j=len(nums)-1
+            while nums[j]<=nums[i]: j-=1
+            nums[i],nums[j]=nums[j],nums[i]
+        nums[i+1:]=reversed(nums[i+1:])`,
+ test:'nums=[1,2,3]; Solution().nextPermutation(nums); print(nums)   # [1,3,2]'},
+{id:287,cat:"技巧",diff:"Medium",title:"寻找重复数",lc:"https://leetcode.cn/problems/find-the-duplicate-number/",
+ desc:"找[1,n]中唯一重复数。不修改数组O(1)空间。\n\n示例：[1,3,4,2,2] → 2",
+ idea:"快慢指针（链表环入口）。slow=nums[slow],fast=nums[nums[fast]]。相遇后slow重置同速走。",
+ code:`class Solution:
+    def findDuplicate(self, nums: List[int]) -> int:
+        slow = fast = nums[0]
+        while True:
+            slow=nums[slow]; fast=nums[nums[fast]]
+            if slow==fast: break
+        slow=nums[0]
+        while slow!=fast:
+            slow=nums[slow]; fast=nums[fast]
+        return slow`,
+ test:'print(Solution().findDuplicate([1,3,4,2,2]))   # 2'},
+];
+
+// ================================================================
+// STRUCTURED TEST CASES  {id: [[arg1, arg2, ...], ...]}
+// ================================================================
+const TEST_CASES = {
+  1:[['[2,7,11,15]','9'],['[3,2,4]','6'],['[3,3]','6']],
+  49:[['["eat","tea","tan","ate","nat","bat"]']],
+  128:[['[100,4,200,1,3,2]'],['[0,3,7,2,5,8,4,6,0,1]']],
+  283:[['[0,1,0,3,12]'],['[0]']],
+  11:[['[1,8,6,2,5,4,8,3,7]']],
+  15:[['[-1,0,1,2,-1,-4]']],
+  3:[['"abcabcbb"'],['"bbbbb"'],['"pwwkew"']],
+  438:[['"cbaebabacd"','"abc"']],
+  560:[['[1,1,1]','2'],['[1,2,3]','3']],
+  53:[['[-2,1,-3,4,-1,2,1,-5,4]']],
+  56:[['[[1,3],[2,6],[8,10],[15,18]]']],
+  189:[['[1,2,3,4,5,6,7]','3']],
+  238:[['[1,2,3,4]']],
+  73:[['[[1,1,1],[1,0,1],[1,1,1]]']],
+  54:[['[[1,2,3],[4,5,6],[7,8,9]]']],
+  48:[['[[1,2,3],[4,5,6],[7,8,9]]']],
+  240:[['[[1,4,7],[2,5,8],[3,6,9]]','5']],
+  206:[['[1,2,3,4,5]'],['[1,2]']],
+  234:[['[1,2,2,1]'],['[1,2]']],
+  21:[['[1,2,4]','[1,3,4]']],
+  2:[['[2,4,3]','[5,6,4]']],
+  19:[['[1,2,3,4,5]','2']],
+  24:[['[1,2,3,4]']],
+  148:[['[4,2,1,3]']],
+  94:[['[1,null,2,3]']],
+  104:[['[3,9,20,null,null,15,7]']],
+  226:[['[4,2,7,1,3,6,9]']],
+  543:[['[1,2,3,4,5]']],
+  108:[['[-10,-3,0,5,9]']],
+  102:[['[3,9,20,null,null,15,7]']],
+  98:[['[2,1,3]'],['[5,1,4,null,null,3,6]']],
+  230:[['[3,1,4,null,2]','1']],
+  199:[['[1,2,3,null,5,null,4]']],
+  114:[['[1,2,5,3,4,null,6]']],
+  105:[['[3,9,20,15,7]','[9,3,15,20,7]']],
+  437:[['[10,5,-3,3,2,null,11,3,-2,null,1]','8']],
+  200:[['[["1","1","1"],["0","1","0"],["1","1","1"]]']],
+  994:[['[[2,1,1],[1,1,0],[0,1,1]]']],
+  207:[['2','[[1,0]]'],['2','[[1,0],[0,1]]']],
+  46:[['[1,2,3]']],
+  78:[['[1,2,3]']],
+  17:[['"23"']],
+  39:[['[2,3,6,7]','7']],
+  22:[['3']],
+  79:[['[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]','"ABCCED"']],
+  131:[['"aab"']],
+  35:[['[1,3,5,6]','2'],['[1,3,5,6]','7']],
+  74:[['[[1,3,5],[10,11,16],[23,30,60]]','3']],
+  34:[['[5,7,7,8,8,10]','8']],
+  33:[['[4,5,6,7,0,1,2]','0']],
+  153:[['[3,4,5,1,2]']],
+  20:[['"()[]{}"'],['"(]"']],
+  394:[['"3[a]2[bc]"'],['"2[abc]3[cd]ef"']],
+  739:[['[73,74,75,71,69,72,76,73]']],
+  215:[['[3,2,1,5,6,4]','2']],
+  347:[['[1,1,1,2,2,3]','2']],
+  121:[['[7,1,5,3,6,4]']],
+  55:[['[2,3,1,1,4]'],['[3,2,1,0,4]']],
+  45:[['[2,3,1,1,4]']],
+  763:[['"ababcbacadefegdehijhklij"']],
+  70:[['2'],['3']],
+  118:[['5']],
+  198:[['[1,2,3,1]'],['[2,7,9,3,1]']],
+  279:[['12'],['13']],
+  322:[['[1,2,5]','11']],
+  139:[['"leetcode"','["leet","code"]']],
+  300:[['[10,9,2,5,3,7,101,18]']],
+  152:[['[2,3,-2,4]']],
+  416:[['[1,5,11,5]']],
+  32:[['"(()"'],['"")()())"']],
+  62:[['3','7']],
+  64:[['[[1,3,1],[1,5,1],[4,2,1]]']],
+  5:[['"babad"'],['"cbbd"']],
+  1143:[['"abcde"','"ace"']],
+  72:[['"horse"','"ros"']],
+  136:[['[2,2,1]'],['[4,1,2,1,2]']],
+  169:[['[3,2,3]'],['[2,2,1,1,1,2,2]']],
+  75:[['[2,0,2,1,1,0]']],
+  31:[['[1,2,3]']],
+  287:[['[1,3,4,2,2]']],
+  42:[['[0,1,0,2,1,0,1,3,2,1,2,1]'],['[4,2,0,3,2,5]']],
+  239:[['[1,3,-1,-3,5,3,6,7]','3']],
+  76:[['"ADOBECODEBANC"','"ABC"']],
+  41:[['[3,4,-1,1]'],['[1,2,0]']],
+  25:[['[1,2,3,4,5]','2'],['[1,2,3,4,5]','3']],
+  101:[['[1,2,2,3,4,4,3]'],['[1,2,2,null,3,null,3]']],
+  124:[['[-10,9,20,null,null,15,7]']],
+  51:[['4']],
+  4:[['[1,3]','[2]'],['[1,2]','[3,4]']],
+  84:[['[2,1,5,6,2,3]']],
+};
+
+// Class-based / special problems: use textarea fallback
+const TEXTAREA_PROBLEMS = new Set([146, 155, 208, 160, 141, 142, 138, 236, 23, 295]);
