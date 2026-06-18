@@ -4,131 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SFT & 微调面试题 — 从 LoRA 到 RLHF</title>
-<style>
-:root {
-  --bg: #fafafa; --white: #ffffff; --border: #e2e2e2; --border-light: #eff0f0;
-  --text: #262626; --text2: #595959; --text3: #8c8c8c;
-  --accent: #0071e3; --accent-bg: rgba(0,113,227,0.06); --accent-glow: rgba(0,113,227,0.1);
-  --claude: #da7756; --claude-glow: rgba(218,119,86,0.08);
-  --radius: 10px; --radius-sm: 6px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
-  --mono: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-
-.page-header {
-  text-align: center; padding: 64px 20px 40px;
-  background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
-  border-bottom: 1px solid var(--border);
-}
-.page-header .icon { font-size: 3em; margin-bottom: 12px; display: block; }
-.page-header h1 { font-size: 2.4em; font-weight: 800; letter-spacing: -0.03em; color: var(--text); }
-.page-header h1 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, #c4704a 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.page-header .subtitle { font-size: 1em; color: var(--text3); margin-top: 8px; }
-.page-header .back-link { display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none; font-size: 0.88em; font-weight: 500; }
-.page-header .back-link:hover { text-decoration: underline; }
-
-.stats-bar { max-width: 900px; margin: 0 auto; padding: 24px 24px 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-.stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; text-align: center; min-width: 90px; }
-.stat-item .stat-num { font-size: 1.4em; font-weight: 700; color: var(--accent); }
-.stat-item .stat-label { font-size: 0.72em; color: var(--text3); margin-top: 2px; }
-
-.container { max-width: 900px; margin: 0 auto; padding: 24px 24px 80px; }
-
-.section { margin-bottom: 40px; }
-.section-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
-.section-title .s-icon { font-size: 1.2em; }
-.section-title .s-count { font-size: 0.72em; color: var(--text3); font-weight: 500; background: var(--border-light); padding: 2px 10px; border-radius: 12px; }
-
-.q-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: all 0.2s; }
-.q-card:hover { border-color: #d0d0cc; }
-.q-card.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-.q-header { padding: 16px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; user-select: none; transition: background 0.12s; }
-.q-header:hover { background: #fafaf9; }
-.q-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-bg); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-.q-text { flex: 1; min-width: 0; }
-.q-text h4 { font-size: 1em; font-weight: 600; color: var(--text); line-height: 1.5; }
-.q-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-.q-tag { font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: 500; background: #f0f0ee; color: var(--text3); }
-.q-tag.core { background: var(--accent-bg); color: var(--accent); }
-.q-tag.hot { background: var(--claude-glow); color: var(--claude); }
-.q-arrow { font-size: 0.8em; color: var(--text3); transition: transform 0.25s; flex-shrink: 0; margin-top: 4px; }
-.q-card.open .q-arrow { transform: rotate(90deg); }
-.q-body { display: none; padding: 0 20px 20px 60px; }
-.q-card.open .q-body { display: block; }
-.q-body .answer-section { margin-bottom: 16px; }
-.q-body .answer-section:last-child { margin-bottom: 0; }
-.q-body .answer-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 6px; }
-.q-body p, .q-body li { font-size: 0.9em; color: var(--text2); line-height: 1.75; }
-.q-body ul, .q-body ol { padding-left: 20px; margin: 6px 0; }
-.q-body li { margin-bottom: 4px; }
-.q-body pre { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: var(--radius-sm); font-family: var(--mono); font-size: 0.82em; line-height: 1.65; overflow-x: auto; margin: 8px 0; }
-.q-body code { background: #f0f0ee; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 0.85em; color: var(--accent); }
-.q-body pre code { background: none; padding: 0; color: inherit; }
-.q-body .highlight-box { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0; font-size: 0.88em; color: #92400e; line-height: 1.6; }
-.q-body table { width: 100%; border-collapse: collapse; font-size: 0.88em; color: var(--text2); margin: 8px 0; }
-.q-body table th { text-align: left; padding: 6px 8px; color: var(--text); border-bottom: 1px solid var(--border); }
-.q-body table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); }
-
-.toc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 32px; }
-.toc h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 12px; color: var(--text); }
-.toc-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
-.toc-list li { font-size: 0.85em; }
-.toc-list a { color: var(--accent); text-decoration: none; }
-.toc-list a:hover { text-decoration: underline; }
-.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); }
-.footer a { color: var(--accent); text-decoration: none; }
-
-@media (max-width: 640px) {
-  .page-header h1 { font-size: 1.6em; }
-  .q-body { padding: 0 16px 16px 16px; }
-  .q-header { padding: 14px 16px; }
-}
-</style>
+<link rel="stylesheet" href="assets/common.css">
+<style>:root{--accent:#0071e3;--accent-bg:rgba(0,113,227,0.06);--accent-glow:rgba(0,113,227,0.1);}</style>
 </head>
 <body>
-
-<div class="page-header">
-  <span class="icon">📚</span>
-  <h1>SFT & 微调 <span class="gradient-text">面试题精选</span></h1>
-  <p class="subtitle">LoRA · QLoRA · Instruction Tuning · Data Pipeline · PEFT · 训练与评估</p>
-  <a href="index.html" class="back-link">← 返回 Study Hub</a>
-</div>
-
-<div class="stats-bar">
-  <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">精选题目</div></div>
-  <div class="stat-item"><div class="stat-num">6</div><div class="stat-label">知识模块</div></div>
-  <div class="stat-item"><div class="stat-num">★★★★★</div><div class="stat-label">LLM 工程师必考</div></div>
-</div>
-
-<div class="container">
-
-<div class="toc">
-  <h3>📑 目录</h3>
-  <ul class="toc-list">
-    <li><a href="#s1">一、微调基础与 SFT</a></li>
-    <li><a href="#s2">二、LoRA 与 QLoRA</a></li>
-    <li><a href="#s3">三、PEFT 方法全景</a></li>
-    <li><a href="#s4">四、指令微调与数据</a></li>
-    <li><a href="#s5">五、训练 Pipeline</a></li>
-    <li><a href="#s6">六、评估与部署</a></li>
-  </ul>
-</div>
-
-<!-- ====== SECTION 1 ====== -->
-<div class="section" id="s1">
-  <div class="section-title"><span class="s-icon">🔧</span> 一、微调基础与 SFT<span class="s-count">5 题</span></div>
-
-  <div class="q-card" id="q1"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">1</span><div class="q-text"><h4>什么是 SFT（Supervised Fine-Tuning）？它在 LLM 训练流程中处于什么位置？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+<div id="app"></div>
+<script src="assets/interview.js"></script>
+<script>
+const DATA = {
+  icon: "📚",
+  title: "SFT & 微调",
+  highlight: "面试题精选",
+  subtitle: "LoRA · QLoRA · Instruction Tuning · Data Pipeline · PEFT · 训练与评估",
+  stats: [{num:"28",label:"精选题目"}, {num:"6",label:"知识模块"}, {num:"★★★★★",label:"LLM 工程师必考"}],
+  sections: [
+    {
+      id: "s1", icon: "🔧", title: "一、微调基础与 SFT", count: "5 题", toc: "一、微调基础与 SFT",
+      questions: [
+        {
+          id: "q1", num: "1",
+          title: "什么是 SFT（Supervised Fine-Tuning）？它在 LLM 训练流程中处于什么位置？",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"核心概念",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>SFT</strong> 是在预训练（Pre-training）的 Base Model 基础上，用<strong>高质量的人工标注数据</strong>（指令-回答对）进行监督学习，让模型学会遵循指令、生成符合人类期望的回答。</p>
     <pre><code>LLM 训练全流程：
 
@@ -149,13 +46,13 @@ RLHF: 10万~100万条 人类偏好比较对</code></pre>
       <li>为后续 RLHF 提供一个稳定的初始策略</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q2"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">2</span><div class="q-text"><h4>全量微调（Full Fine-Tuning）和参数高效微调（PEFT）的核心区别是什么？什么场景用哪个？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">选型决策</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q2", num: "2",
+          title: "全量微调（Full Fine-Tuning）和参数高效微调（PEFT）的核心区别是什么？什么场景用哪个？",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"选型决策",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>维度</th><th>Full Fine-Tuning</th><th>PEFT</th></tr>
       <tr><td>训练参数</td><td>所有参数</td><td>仅少量额外参数 / 部分参数</td></tr>
@@ -173,13 +70,13 @@ RLHF: 10万~100万条 人类偏好比较对</code></pre>
     </ul>
     <div class="highlight-box">💡 目前业界趋势：绝大多数应用场景都用 PEFT（尤其是 LoRA），Full FT 一般只在预训练机构做大规模训练时使用。</div>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q3"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">3</span><div class="q-text"><h4>SFT 中的损失函数是什么？与预训练的损失函数有什么异同？为什么要 Mask 掉 Prompt 部分的 Loss？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">训练细节</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q3", num: "3",
+          title: "SFT 中的损失函数是什么？与预训练的损失函数有什么异同？为什么要 Mask 掉 Prompt 部分的 Loss？",
+          tags: [{text:"高频",cls:"hot"}, {text:"训练细节",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p>SFT 和 Pre-training 都使用<strong>交叉熵损失（Cross-Entropy Loss）</strong>，即 Next Token Prediction：</p>
     <pre><code># 统一的 Next Token Prediction Loss
 L = - Σ_t log P(y_t | x, y_1, ..., y_{t-1})
@@ -197,13 +94,13 @@ tokens = ["<|user|>", "你好", "请", "介绍", "北京", "<|assistant|>", "北
 labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", "..."]
 #         ↑ 全部忽略                                        ↑ 从这里开始计算 Loss</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q4"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">4</span><div class="q-text"><h4>什么是灾难性遗忘（Catastrophic Forgetting）？微调时如何缓解？</h4>
-    <div class="q-tags"><span class="q-tag hot">核心问题</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q4", num: "4",
+          title: "什么是灾难性遗忘（Catastrophic Forgetting）？微调时如何缓解？",
+          tags: [{text:"核心问题",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>灾难性遗忘</strong>：在微调过程中，模型为了适应新任务的数据分布，过度调整参数，导致在预训练阶段学到的通用知识和能力被覆盖或丢失。</p>
     <p><strong>缓解策略：</strong></p>
     <ol>
@@ -215,13 +112,13 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
       <li><strong>渐进式解冻（Gradual Unfreezing）</strong>：先解冻顶层，逐层向下解冻。</li>
     </ol>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q5"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">5</span><div class="q-text"><h4>多任务微调（Multi-Task Fine-Tuning）与单任务微调有什么不同？有什么优缺点？</h4>
-    <div class="q-tags"><span class="q-tag core">策略选择</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q5", num: "5",
+          title: "多任务微调（Multi-Task Fine-Tuning）与单任务微调有什么不同？有什么优缺点？",
+          tags: [{text:"策略选择",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>维度</th><th>单任务微调</th><th>多任务微调</th></tr>
       <tr><td>数据</td><td>一个任务的数据</td><td>多个任务的数据混合</td></tr>
@@ -238,18 +135,18 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
       <li><strong>Task-Specific Adapters</strong>：共享主干 + 每任务一个 LoRA Adapter（组合 PEFT 的多任务方案）。</li>
     </ul>
     </div>
-  </div></div>
-</div>
-
-<!-- ====== SECTION 2 ====== -->
-<div class="section" id="s2">
-  <div class="section-title"><span class="s-icon">🎯</span> 二、LoRA 与 QLoRA<span class="s-count">5 题</span></div>
-
-  <div class="q-card" id="q6"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">6</span><div class="q-text"><h4>LoRA（Low-Rank Adaptation）的核心原理是什么？为什么低秩分解能有效微调大模型？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心算法</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+      ]
+    },
+    {
+      id: "s2", icon: "🎯", title: "二、LoRA 与 QLoRA", count: "5 题", toc: "二、LoRA 与 QLoRA",
+      questions: [
+        {
+          id: "q6", num: "6",
+          title: "LoRA（Low-Rank Adaptation）的核心原理是什么？为什么低秩分解能有效微调大模型？",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"核心算法",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>核心假设：</strong>模型适配过程中的权重更新 ΔW 是<strong>低秩的（Low-Rank）</strong>——即可以用两个小矩阵的乘积来近似。这个假设来自 Aghajanyan et al. (2020) 的 Intrinsic Dimensionality 研究。</p>
     <pre><code># LoRA 核心公式
 h = W₀·x + ΔW·x
@@ -274,13 +171,13 @@ LoRA 参数：131K   ← 减少了 99.2%</code></pre>
       <li>LoRA 通过低秩分解显式地约束更新在这些低维子空间中进行。</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q7"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">7</span><div class="q-text"><h4>LoRA 中的秩 r 和 α（scaling factor）分别控制什么？如何选择这些超参数？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">调参实践</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q7", num: "7",
+          title: "LoRA 中的秩 r 和 α（scaling factor）分别控制什么？如何选择这些超参数？",
+          tags: [{text:"高频",cls:"hot"}, {text:"调参实践",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code># LoRA 实际更新的公式
 ΔW = (α / r) · B·A
 #     ↑ scaling factor
@@ -302,13 +199,13 @@ r — 秩（Rank）：控制 LoRA 的表达能力
       <li>α 增大 ≠ 学习率增大。实际有效学习率 ≈ lr × (α/r)</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q8"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">8</span><div class="q-text"><h4>LoRA 通常加在 Transformer 的哪些层？为什么主要加在 Attention 权重上？</h4>
-    <div class="q-tags"><span class="q-tag core">实现细节</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q8", num: "8",
+          title: "LoRA 通常加在 Transformer 的哪些层？为什么主要加在 Attention 权重上？",
+          tags: [{text:"实现细节",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>最常见的加 LoRA 的位置：</strong></p>
     <pre><code>Transformer 层中可加 LoRA 的权重矩阵：
 
@@ -329,13 +226,13 @@ Feed Forward Network:
     </ul>
     <p><strong>现代实践：</strong>大多数开源微调项目（如 LLaMA-Factory）默认对 Attention 的 Q、K、V、O 全部加 LoRA，即 <code>target_modules=["q_proj","k_proj","v_proj","o_proj"]</code>。</p>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q9"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">9</span><div class="q-text"><h4>QLoRA 是如何在 LoRA 基础上进一步降低显存占用的？NF4 + 双重量化是什么？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">前沿技术</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q9", num: "9",
+          title: "QLoRA 是如何在 LoRA 基础上进一步降低显存占用的？NF4 + 双重量化是什么？",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"前沿技术",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>QLoRA</strong> 在 LoRA 的基础上，通过<strong>量化主干模型（Base Model）</strong>进一步压缩显存：</p>
     <pre><code>显存占用对比（以 LLaMA-7B 为例）：
 
@@ -360,13 +257,13 @@ QLoRA:             ~ 10 GB  (NF4 量化模型 + LoRA 梯度)
     </ol>
     <p>QLoRA 让在<strong>单张 24GB 消费级 GPU（RTX 3090/4090）上微调 33B 甚至 65B 模型</strong>成为可能。</p>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q10"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">10</span><div class="q-text"><h4>如何合并（Merge）LoRA 权重到主模型？什么情况下应该 Merge，什么情况下不该 Merge？</h4>
-    <div class="q-tags"><span class="q-tag hot">工程实践</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q10", num: "10",
+          title: "如何合并（Merge）LoRA 权重到主模型？什么情况下应该 Merge，什么情况下不该 Merge？",
+          tags: [{text:"工程实践",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code># LoRA Merge 公式
 W_merged = W₀ + (α/r) · B·A
 
@@ -386,18 +283,18 @@ W_merged = W₀ + (α/r) · B·A
       <li><strong>隐私/安全隔离</strong>：不同用户使用不同的 LoRA，逻辑上隔离。</li>
     </ul>
     </div>
-  </div></div>
-</div>
-
-<!-- ====== SECTION 3 ====== -->
-<div class="section" id="s3">
-  <div class="section-title"><span class="s-icon">🔬</span> 三、PEFT 方法全景<span class="s-count">4 题</span></div>
-
-  <div class="q-card" id="q11"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">11</span><div class="q-text"><h4>除了 LoRA，还有哪些主流的 PEFT 方法？请至少介绍三种并对比。</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">方法全景</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+      ]
+    },
+    {
+      id: "s3", icon: "🔬", title: "三、PEFT 方法全景", count: "4 题", toc: "三、PEFT 方法全景",
+      questions: [
+        {
+          id: "q11", num: "11",
+          title: "除了 LoRA，还有哪些主流的 PEFT 方法？请至少介绍三种并对比。",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"方法全景",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>方法</th><th>核心思想</th><th>额外参数</th><th>推理开销</th><th>典型性能</th></tr>
       <tr>
@@ -438,13 +335,13 @@ W_merged = W₀ + (α/r) · B·A
     </table>
     <p><strong>为什么 LoRA 最流行：</strong>无推理开销（Merge 后等价于原始模型）+ 实现简单 + 性能优秀 + 社区生态成熟（PEFT 库、LLaMA-Factory）。</p>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q12"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">12</span><div class="q-text"><h4>Adapter 和 LoRA 在架构上有什么本质区别？各有什么优劣？</h4>
-    <div class="q-tags"><span class="q-tag hot">对比分析</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q12", num: "12",
+          title: "Adapter 和 LoRA 在架构上有什么本质区别？各有什么优劣？",
+          tags: [{text:"对比分析",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code># Adapter 架构
 x → [Self-Attention] → Add&Norm → [Adapter Layer] → Add&Norm → FFN → ...
 
@@ -465,13 +362,13 @@ x → [Self-Attention + LoRA] → Add&Norm → FFN → ...
       <tr><td>多任务</td><td>需要切换 Adapter 层</td><td>可动态热加载 LoRA 权重</td></tr>
     </table>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q13"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">13</span><div class="q-text"><h4>什么是 Prefix Tuning 和 Prompt Tuning？它们与 LoRA 有什么本质不同？</h4>
-    <div class="q-tags"><span class="q-tag core">方法理解</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q13", num: "13",
+          title: "什么是 Prefix Tuning 和 Prompt Tuning？它们与 LoRA 有什么本质不同？",
+          tags: [{text:"方法理解",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p>Prefix Tuning 和 Prompt Tuning 的核心思想：<strong>不修改模型权重，而是在输入空间中学习"软提示"</strong>。</p>
     <pre><code># Prompt Tuning (Lester et al., 2021)
 Input = [Soft_Prompt_1, ..., Soft_Prompt_k,  User_Input]
@@ -491,13 +388,13 @@ for layer in transformer_layers:
       <li>Prompt Tuning 的参数量是最少的（仅 Embedding 层）但效果也最弱</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q14"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">14</span><div class="q-text"><h4>如何组合多种 PEFT 方法？例如 LoRA + Prefix Tuning 的场景和价值是什么？</h4>
-    <div class="q-tags"><span class="q-tag core">进阶实践</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q14", num: "14",
+          title: "如何组合多种 PEFT 方法？例如 LoRA + Prefix Tuning 的场景和价值是什么？",
+          tags: [{text:"进阶实践",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p>不同 PEFT 方法作用在不同位置，<strong>可以正交地组合</strong>使用：</p>
     <pre><code>组合方案示例：
 
@@ -520,18 +417,18 @@ for layer in transformer_layers:
       <li><strong>LoRA 叠加多个 LoRA</strong>：将多个 LoRA 合并——如"医学 LoRA" + "友善语气 LoRA" → 友善的医学助手。</li>
     </ul>
     </div>
-  </div></div>
-</div>
-
-<!-- ====== SECTION 4 ====== -->
-<div class="section" id="s4">
-  <div class="section-title"><span class="s-icon">📝</span> 四、指令微调与数据<span class="s-count">5 题</span></div>
-
-  <div class="q-card" id="q15"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">15</span><div class="q-text"><h4>什么是 Instruction Tuning（指令微调）？它与传统 SFT 有什么不同？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">核心概念</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+      ]
+    },
+    {
+      id: "s4", icon: "📝", title: "四、指令微调与数据", count: "5 题", toc: "四、指令微调与数据",
+      questions: [
+        {
+          id: "q15", num: "15",
+          title: "什么是 Instruction Tuning（指令微调）？它与传统 SFT 有什么不同？",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"核心概念",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>Instruction Tuning</strong> 是 SFT 的一种特殊形式，其训练数据格式为 <strong>(Instruction, Input, Output)</strong> 三元组，目标是让模型学会"遵循指令"而非简单"映射输入到输出"。</p>
     <table>
       <tr><th>维度</th><th>传统 SFT</th><th>Instruction Tuning</th></tr>
@@ -556,13 +453,13 @@ for layer in transformer_layers:
 }</code></pre>
     <div class="highlight-box">💡 Instruction Tuning 是 ChatGPT 成功的核心要素之一：FLAN 论文表明，指令多样化的微调可以让模型获得零样本遵循新指令的能力。</div>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q16"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">16</span><div class="q-text"><h4>如何构建高质量的 SFT 数据集？数据质量 vs 数据数量，哪个更重要？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">数据工程</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q16", num: "16",
+          title: "如何构建高质量的 SFT 数据集？数据质量 vs 数据数量，哪个更重要？",
+          tags: [{text:"高频",cls:"hot"}, {text:"数据工程",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>数据质量 > 数据数量。</strong>LIMA 论文（2023）表明：仅用 1000 条精心挑选的高质量 SFT 数据，就能让模型达到接近 GPT-4 级别的指令遵循能力。</p>
     <p><strong>高质量 SFT 数据的特征：</strong></p>
     <ol>
@@ -578,13 +475,13 @@ for layer in transformer_layers:
 3. 强模型生成回答 (GPT-4 / Claude) → 4. 人工审核/修正 →
 5. 质量过滤 (去重、去低质、安全检查) → 6. 格式统一化</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q17"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">17</span><div class="q-text"><h4>Self-Instruct 和 Evol-Instruct 分别是什么？它们如何自动生成指令数据？</h4>
-    <div class="q-tags"><span class="q-tag hot">数据增强</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q17", num: "17",
+          title: "Self-Instruct 和 Evol-Instruct 分别是什么？它们如何自动生成指令数据？",
+          tags: [{text:"数据增强",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>Self-Instruct（自我指令生成）：</strong></p>
     <ol>
       <li>从一个种子池（175 条人工写的指令）开始</li>
@@ -607,13 +504,13 @@ for layer in transformer_layers:
 
 # 两者互补：Self-Instruct 负责广度，Evol-Instruct 负责深度</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q18"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">18</span><div class="q-text"><h4>Chat Template 在 SFT 中起什么作用？不同模型的 Chat Template 有什么差异？</h4>
-    <div class="q-tags"><span class="q-tag hot">工程细节</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q18", num: "18",
+          title: "Chat Template 在 SFT 中起什么作用？不同模型的 Chat Template 有什么差异？",
+          tags: [{text:"工程细节",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p>Chat Template 定义了<strong>如何将对话结构化为 Token 序列</strong>——不同的 Base Model 使用不同的特殊 Token 和格式约定。</p>
     <pre><code># Llama 3 Chat Template
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>
@@ -641,13 +538,13 @@ def quicksort(arr):
     </ul>
     <p>HuggingFace 的 <code>tokenizer.apply_chat_template()</code> 可以自动应用每个模型对应的 Template。</p>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q19"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">19</span><div class="q-text"><h4>SFT 数据中如何处理多轮对话（Multi-turn Conversation）？与单轮有什么不同？</h4>
-    <div class="q-tags"><span class="q-tag core">数据处理</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q19", num: "19",
+          title: "SFT 数据中如何处理多轮对话（Multi-turn Conversation）？与单轮有什么不同？",
+          tags: [{text:"数据处理",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code># 多轮对话数据格式
 {
   "messages": [
@@ -668,18 +565,18 @@ def quicksort(arr):
     </ol>
     <p><strong>最佳实践：</strong>训练数据中混合单轮和多轮（如 30% 单轮 + 70% 多轮），让模型既能处理快速问答，也能胜任深度对话。</p>
     </div>
-  </div></div>
-</div>
-
-<!-- ====== SECTION 5 ====== -->
-<div class="section" id="s5">
-  <div class="section-title"><span class="s-icon">⚡</span> 五、训练 Pipeline<span class="s-count">5 题</span></div>
-
-  <div class="q-card" id="q20"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">20</span><div class="q-text"><h4>请描述一个完整的 SFT 训练 Pipeline，从数据准备到模型保存。</h4>
-    <div class="q-tags"><span class="q-tag hot">高频必考</span><span class="q-tag core">工程全景</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+      ]
+    },
+    {
+      id: "s5", icon: "⚡", title: "五、训练 Pipeline", count: "5 题", toc: "五、训练 Pipeline",
+      questions: [
+        {
+          id: "q20", num: "20",
+          title: "请描述一个完整的 SFT 训练 Pipeline，从数据准备到模型保存。",
+          tags: [{text:"高频必考",cls:"hot"}, {text:"工程全景",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code>完整 SFT Pipeline：
 
 1. 数据收集与清洗
@@ -714,13 +611,13 @@ def quicksort(arr):
    ├── 量化（GPTQ / AWQ，可选）
    └── 最终评估 → 部署</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q21"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">21</span><div class="q-text"><h4>SFT 的关键训练超参数有哪些？如何设置学习率、Batch Size、Epoch 数？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">调参指南</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q21", num: "21",
+          title: "SFT 的关键训练超参数有哪些？如何设置学习率、Batch Size、Epoch 数？",
+          tags: [{text:"高频",cls:"hot"}, {text:"调参指南",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>超参数</th><th>常用范围</th><th>设置建议</th></tr>
       <tr>
@@ -761,13 +658,13 @@ def quicksort(arr):
     </table>
     <div class="highlight-box">💡 <strong>经验之谈：</strong>LoRA 微调最关键的三个超参数 — Learning Rate（调得对不对看 Loss 曲线）、Rank r（太小欠拟合太大过拟合）、Epoch 数（多 Epoch 往往过拟合）。</div>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q22"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">22</span><div class="q-text"><h4>什么是 Gradient Checkpointing 和 Gradient Accumulation？各解决什么问题？</h4>
-    <div class="q-tags"><span class="q-tag hot">显存优化</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q22", num: "22",
+          title: "什么是 Gradient Checkpointing 和 Gradient Accumulation？各解决什么问题？",
+          tags: [{text:"显存优化",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>Gradient Checkpointing（梯度检查点）</strong></p>
     <ul>
       <li><strong>问题：</strong>反向传播需要保存前向传播的中间激活值，显存消耗巨大。</li>
@@ -793,13 +690,13 @@ for i, batch in enumerate(dataloader):
         optimizer.step()
         optimizer.zero_grad()</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q23"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">23</span><div class="q-text"><h4>DeepSpeed ZeRO 的三个阶段分别做了什么？LLM 微调通常用哪个阶段？</h4>
-    <div class="q-tags"><span class="q-tag hot">高频</span><span class="q-tag core">分布式训练</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q23", num: "23",
+          title: "DeepSpeed ZeRO 的三个阶段分别做了什么？LLM 微调通常用哪个阶段？",
+          tags: [{text:"高频",cls:"hot"}, {text:"分布式训练",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>阶段</th><th>分片（Shard）的内容</th><th>显存节省</th><th>通信开销</th><th>适用</th></tr>
       <tr>
@@ -832,13 +729,13 @@ for i, batch in enumerate(dataloader):
       <li><strong>QLoRA</strong>：单卡 + Gradient Checkpointing 即可，接近不需 DeepSpeed。</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q24"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">24</span><div class="q-text"><h4>如何判断 SFT 训练是否过拟合？有哪些监控指标？</h4>
-    <div class="q-tags"><span class="q-tag core">训练监控</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q24", num: "24",
+          title: "如何判断 SFT 训练是否过拟合？有哪些监控指标？",
+          tags: [{text:"训练监控",cls:"core"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>过拟合的信号：</strong></p>
     <ol>
       <li><strong>Train Loss 持续下降但 Eval Loss 上升</strong>：经典过拟合。Loss 分开走时可以停止训练。</li>
@@ -855,18 +752,18 @@ for i, batch in enumerate(dataloader):
     </ul>
     <div class="highlight-box">💡 <strong>核心原则：</strong>SFT 通常是 1-2 Epoch 就够了。不要追求 Training Loss 降到最低——Eval Loss 和实际生成质量才是你真正关心的指标。</div>
     </div>
-  </div></div>
-</div>
-
-<!-- ====== SECTION 6 ====== -->
-<div class="section" id="s6">
-  <div class="section-title"><span class="s-icon">📊</span> 六、评估与部署<span class="s-count">4 题</span></div>
-
-  <div class="q-card" id="q25"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">25</span><div class="q-text"><h4>如何评估 SFT 模型的质量？有哪些主流的评估基准和方法？</h4>
-    <div class="q-tags"><span class="q-tag hot">评估体系</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+      ]
+    },
+    {
+      id: "s6", icon: "📊", title: "六、评估与部署", count: "4 题", toc: "六、评估与部署",
+      questions: [
+        {
+          id: "q25", num: "25",
+          title: "如何评估 SFT 模型的质量？有哪些主流的评估基准和方法？",
+          tags: [{text:"评估体系",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p><strong>评估层次体系：</strong></p>
     <ol>
       <li>
@@ -898,13 +795,13 @@ for i, batch in enumerate(dataloader):
     </ol>
     <div class="highlight-box">💡 <strong>现实建议：</strong>自动化 Benchmark 只能做初步筛选。生产级模型必须结合<strong>业务场景的 A/B 测试 + 人工评估</strong>来做最终判断。</div>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q26"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">26</span><div class="q-text"><h4>LLM-as-Judge 是如何评估模型输出的？有什么优缺点？</h4>
-    <div class="q-tags"><span class="q-tag hot">评估方法</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q26", num: "26",
+          title: "LLM-as-Judge 是如何评估模型输出的？有什么优缺点？",
+          tags: [{text:"评估方法",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <p>LLM-as-Judge 是让一个<strong>强 LLM（如 GPT-4、Claude Opus）</strong>作为裁判，给目标模型的输出打分或比较。</p>
     <pre><code># 单模型打分
 Judge Prompt:
@@ -930,13 +827,13 @@ Judge Prompt:
       <li><strong>不一致性</strong>：同一对答案问两次可能得到不同结果</li>
     </ul>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q27"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">27</span><div class="q-text"><h4>微调后的模型如何做量化部署？GPTQ 和 AWQ 有什么区别？</h4>
-    <div class="q-tags"><span class="q-tag hot">部署优化</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q27", num: "27",
+          title: "微调后的模型如何做量化部署？GPTQ 和 AWQ 有什么区别？",
+          tags: [{text:"部署优化",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <table>
       <tr><th>维度</th><th>GPTQ</th><th>AWQ</th></tr>
       <tr><td>核心思想</td><td>逐列量化 + Hessian 信息修正剩余权重</td><td>识别重要权重通道并保留精度</td></tr>
@@ -959,13 +856,13 @@ LoRA → Merge 到 Base → GPTQ/AWQ 量化 → 部署
 Base (已量化) → 推理时动态加载 LoRA (FP16) → 实时 Merge 计算
 # 适合多 LoRA 服务场景</code></pre>
     </div>
-  </div></div>
-
-  <div class="q-card" id="q28"><div class="q-header" onclick="toggleQ(this)">
-    <span class="q-num">28</span><div class="q-text"><h4>从预训练到部署，LLM 的全生命周期涉及哪些关键技术点？请给出一个完整的端到端概览。</h4>
-    <div class="q-tags"><span class="q-tag hot">全景总结</span></div></div><span class="q-arrow">▶</span>
-  </div><div class="q-body">
-    <div class="answer-section"><div class="answer-label">核心回答</div>
+  `
+        },
+        {
+          id: "q28", num: "28",
+          title: "从预训练到部署，LLM 的全生命周期涉及哪些关键技术点？请给出一个完整的端到端概览。",
+          tags: [{text:"全景总结",cls:"hot"}],
+          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
     <pre><code>LLM 全生命周期技术栈：
 
 ┌─────────────────────────────────────────────────────┐
@@ -997,25 +894,14 @@ Base (已量化) → 推理时动态加载 LoRA (FP16) → 实时 Merge 计算
 └─────────────────────────────────────────────────────┘</code></pre>
     <p>这六个阶段形成了一个<strong>数据飞轮</strong>——部署后的用户反馈不断回流到数据构建阶段，驱动模型持续改进。</p>
     </div>
-  </div></div>
-</div>
-
-</div>
-
-<div class="footer">SFT & 微调面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a></div>
-
-<script>
-function toggleQ(header) {
-  header.parentElement.classList.toggle('open');
-}
-document.addEventListener('DOMContentLoaded', function() {
-  const hash = window.location.hash;
-  if (hash) {
-    const target = document.querySelector(hash);
-    if (target) target.classList.add('open');
-  }
-});
+  `
+        },
+      ]
+    },
+  ],
+  footer: `SFT & 微调面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>`
+};
+initInterview(DATA);
 </script>
-
 </body>
 </html>
