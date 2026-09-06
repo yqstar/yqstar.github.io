@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { gzipSync, gunzipSync } from "node:zlib";
+import { patchRuntimeLoader } from "./leetcode-runtime.mjs";
 
 // Update the revision and checksum together when adopting a new upstream build.
 const revision = "7227b9f9c3d000b8dcb70c80e2d092146996d280";
@@ -23,9 +24,9 @@ if (application.split(marker).length !== 2 || !application.includes('class="hero
   throw new Error("上游启动结构已改变，请检查站点适配逻辑");
 }
 const adapter = await readFile(new URL("./leetcode-site.js", import.meta.url), "utf8");
-const adapted = application.replace(marker, () => `${adapter}\n${marker}`);
+const adapted = patchRuntimeLoader(application).replace(marker, () => `${adapter}\n${marker}`);
 const compressed = gzipSync(Buffer.from(adapted), { level: 9 }).toString("base64");
 const output = shell.replace(payload[0], () => `const COMPRESSED_APP = "${compressed}";`)
-  .replace("<head>", `<head>\n  <!-- Source: ${upstream}\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-leetcode.mjs; site changes: scripts/leetcode-site.js -->`);
+  .replace("<head>", `<head>\n  <!-- Source: ${upstream}\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-leetcode.mjs; site changes: scripts/leetcode-site.js, scripts/leetcode-runtime.mjs -->`);
 await writeFile(new URL("../leetcode.html", import.meta.url), output);
 console.log(`已更新 leetcode.html：${(Buffer.byteLength(output) / 1024 / 1024).toFixed(2)} MiB，来源 ${revision.slice(0, 7)}`);

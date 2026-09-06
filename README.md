@@ -19,4 +19,10 @@ curl -sS -L --fail https://raw.githubusercontent.com/yqstar/leetcode_hot100_html
 node scripts/sync-leetcode.mjs /tmp/lc_offline_compact.html
 ```
 
-同步脚本校验来源文件，解压后加入 `scripts/leetcode-site.js` 中的站点导航和旧进度迁移，再生成独立的 `leetcode.html`，运行时不依赖外部脚本。升级上游版本时先检查适配点，再一起更新脚本中的提交号与校验值；题库和评测器继续在上游项目维护。
+同步脚本校验来源文件，解压后加入 `scripts/leetcode-site.js` 中的站点导航和旧进度迁移，并通过 `scripts/leetcode-runtime.mjs` 适配 Python 加载：JavaScript 模块使用内嵌 data URL，Wasm 和标准库直接从内存读取，避免 Worker 中的 `blob:null` 模块导入失败。生成的 `leetcode.html` 仍是独立文件，运行时不依赖外部脚本。升级上游版本时先检查适配点，再一起更新脚本中的提交号与校验值；题库和评测器继续在上游项目维护。
+
+运行时适配的回归测试（使用支持原生 Base64 的 Node.js）：
+
+```bash
+node --test scripts/leetcode-runtime.test.mjs
+```
