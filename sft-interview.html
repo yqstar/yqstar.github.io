@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-topic="sft">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
 <meta name="description" content="28 道 SFT & 微调精选面试题 — LoRA · QLoRA · Instruction Tuning · PEFT · 训练与评估全覆盖。">
 <title>SFT & 微调面试题 — 从 LoRA 到 RLHF</title>
+<link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/common.css">
-<style>:root{--accent:#0071e3;--accent-bg:rgba(0,113,227,0.06);--accent-glow:rgba(0,113,227,0.1);}</style>
 </head>
 <body>
 <div id="app"></div>
+<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
 <script src="assets/interview.js"></script>
 <script>
 const DATA = {
@@ -26,7 +28,7 @@ const DATA = {
           id: "q1", num: "1",
           title: "什么是 SFT（Supervised Fine-Tuning）？它在 LLM 训练流程中处于什么位置？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心概念",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>SFT</strong> 是在预训练（Pre-training）的 Base Model 基础上，用<strong>高质量的人工标注数据</strong>（指令-回答对）进行监督学习，让模型学会遵循指令、生成符合人类期望的回答。</p>
     <pre><code>LLM 训练全流程：
 
@@ -40,7 +42,7 @@ Base Model              SFT Model           RM                Aligned Model
 Pre-training: 数万亿 Token（如 LLaMA 1T+）
 SFT: 1万~100万条 高质量指令-回答对
 RLHF: 10万~100万条 人类偏好比较对</code></pre>
-    <p><strong>SFT 的核心目标：</strong></p>
+    <h5 class="answer-subheading">SFT 的核心目标：</h5>
     <ul>
       <li>让模型从"补全文本"转变为"回答指令"</li>
       <li>注入特定的格式、风格和安全行为</li>
@@ -53,7 +55,7 @@ RLHF: 10万~100万条 人类偏好比较对</code></pre>
           id: "q2", num: "2",
           title: "全量微调（Full Fine-Tuning）和参数高效微调（PEFT）的核心区别是什么？什么场景用哪个？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"选型决策",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>维度</th><th>Full Fine-Tuning</th><th>PEFT</th></tr>
       <tr><td>训练参数</td><td>所有参数</td><td>仅少量额外参数 / 部分参数</td></tr>
@@ -64,7 +66,7 @@ RLHF: 10万~100万条 人类偏好比较对</code></pre>
       <tr><td>最终性能</td><td>理论上最优</td><td>接近 Full FT（差距 < 1%）</td></tr>
       <tr><td>硬件门槛</td><td>需要多卡 / 高端 GPU</td><td>单卡可微调 7B 模型</td></tr>
     </table>
-    <p><strong>决策框架：</strong></p>
+    <h5 class="answer-subheading">决策框架：</h5>
     <ul>
       <li><strong>Full FT</strong>：你有充足 GPU、数据量大、需要极致性能、只有一个任务</li>
       <li><strong>PEFT</strong>：资源受限、需要服务多个任务、需要快速迭代、想保留预训练能力</li>
@@ -77,21 +79,21 @@ RLHF: 10万~100万条 人类偏好比较对</code></pre>
           id: "q3", num: "3",
           title: "SFT 中的损失函数是什么？与预训练的损失函数有什么异同？为什么要 Mask 掉 Prompt 部分的 Loss？",
           tags: [{text:"高频",cls:"hot"}, {text:"训练细节",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>SFT 和 Pre-training 都使用<strong>交叉熵损失（Cross-Entropy Loss）</strong>，即 Next Token Prediction：</p>
     <pre><code># 统一的 Next Token Prediction Loss
 L = - Σ_t log P(y_t | x, y_1, ..., y_{t-1})
 
 Pre-training: 对所有 token 计算 Loss
 SFT: 只对 Response 部分的 token 计算 Loss（Mask 掉 Prompt）</code></pre>
-    <p><strong>为什么 Mask 掉 Prompt 部分：</strong></p>
+    <h5 class="answer-subheading">为什么 Mask 掉 Prompt 部分：</h5>
     <ul>
       <li>SFT 的目标是<strong>学会"给这个指令，应该这样回答"</strong>，而不是"学会预测指令文本"。</li>
       <li>如果对 Prompt 也计算 Loss，模型会浪费容量去学习重复/补全指令，而非学习指令-回答的映射。</li>
       <li>不 Mask 的情况下，Prompt 和 Response 的 Loss 混合会稀释关键的学习信号。</li>
     </ul>
     <pre><code># 实现：labels 中 Prompt 部分设为 -100（PyTorch CrossEntropy 忽略 -100）
-tokens = ["<|user|>", "你好", "请", "介绍", "北京", "<|assistant|>", "北京", "是", "..."]
+tokens = ["&lt;|user|&gt;", "你好", "请", "介绍", "北京", "&lt;|assistant|&gt;", "北京", "是", "..."]
 labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", "..."]
 #         ↑ 全部忽略                                        ↑ 从这里开始计算 Loss</code></pre>
     </div>
@@ -101,9 +103,9 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
           id: "q4", num: "4",
           title: "什么是灾难性遗忘（Catastrophic Forgetting）？微调时如何缓解？",
           tags: [{text:"核心问题",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>灾难性遗忘</strong>：在微调过程中，模型为了适应新任务的数据分布，过度调整参数，导致在预训练阶段学到的通用知识和能力被覆盖或丢失。</p>
-    <p><strong>缓解策略：</strong></p>
+    <h5 class="answer-subheading">缓解策略：</h5>
     <ol>
       <li><strong>PEFT（LoRA / Adapter）</strong>：冻结主干参数，只训练少量新增参数。最有效的防遗忘方法。</li>
       <li><strong>较小的学习率</strong>：通常 SFT LR ≈ 2e-5（预训练的 1/10 ~ 1/100），减少参数更新幅度。</li>
@@ -119,7 +121,7 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
           id: "q5", num: "5",
           title: "多任务微调（Multi-Task Fine-Tuning）与单任务微调有什么不同？有什么优缺点？",
           tags: [{text:"策略选择",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>维度</th><th>单任务微调</th><th>多任务微调</th></tr>
       <tr><td>数据</td><td>一个任务的数据</td><td>多个任务的数据混合</td></tr>
@@ -129,7 +131,7 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
       <tr><td>维护成本</td><td>高（每个任务一个模型）</td><td>低（一个模型服务所有任务）</td></tr>
       <tr><td>适用场景</td><td>追求极致性能的单一场景</td><td>通用助手、平台级服务</td></tr>
     </table>
-    <p><strong>关键技巧：</strong></p>
+    <h5 class="answer-subheading">关键技巧：</h5>
     <ul>
       <li><strong>Task Prompting</strong>：每个任务前加任务描述（"请翻译："、"请总结："），帮助模型区分任务。</li>
       <li><strong>Data Balancing</strong>：不同任务的数据量要平衡，防止模型偏向数据量多的任务。常用 Temperature Sampling 或手动调整采样比例。</li>
@@ -147,7 +149,7 @@ labels = [-100,      -100, -100, -100, -100, -100,             "北京", "是", 
           id: "q6", num: "6",
           title: "LoRA（Low-Rank Adaptation）的核心原理是什么？为什么低秩分解能有效微调大模型？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心算法",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>核心假设：</strong>模型适配过程中的权重更新 ΔW 是<strong>低秩的（Low-Rank）</strong>——即可以用两个小矩阵的乘积来近似。这个假设来自 Aghajanyan et al. (2020) 的 Intrinsic Dimensionality 研究。</p>
     <pre><code># LoRA 核心公式
 h = W₀·x + ΔW·x
@@ -166,7 +168,7 @@ LoRA：r × (d + k)   ← 当 r 很小时，参数量大幅减少
 例如：d=4096, k=4096, r=16
 原始参数：16.7M
 LoRA 参数：131K   ← 减少了 99.2%</code></pre>
-    <p><strong>为什么有效：</strong></p>
+    <h5 class="answer-subheading">为什么有效：</h5>
     <ul>
       <li>Aghajanyan 等人发现，大模型适应新任务时，参数更新的"内在维度"（intrinsic dimension）远小于参数空间维度。微调实际上只改变了少数"方向"。</li>
       <li>LoRA 通过低秩分解显式地约束更新在这些低维子空间中进行。</li>
@@ -178,7 +180,7 @@ LoRA 参数：131K   ← 减少了 99.2%</code></pre>
           id: "q7", num: "7",
           title: "LoRA 中的秩 r 和 α（scaling factor）分别控制什么？如何选择这些超参数？",
           tags: [{text:"高频",cls:"hot"}, {text:"调参实践",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># LoRA 实际更新的公式
 ΔW = (α / r) · B·A
 #     ↑ scaling factor
@@ -191,7 +193,7 @@ r — 秩（Rank）：控制 LoRA 的表达能力
       <tr><td>r</td><td>低秩分解的秩 — 决定能捕获多少"变化维度"</td><td>欠拟合，学不到足够知识</td><td>过拟合 + 增加计算量</td><td>8, 16, 32, 64</td></tr>
       <tr><td>α</td><td>缩放因子 — 放大/缩小 LoRA 更新的影响</td><td>学得太慢</td><td>训练不稳定</td><td>通常 α = 2r（如 r=16, α=32）</td></tr>
     </table>
-    <p><strong>选参指导：</strong></p>
+    <h5 class="answer-subheading">选参指导：</h5>
     <ul>
       <li><strong>简单任务</strong>（单轮 QA、分类）：r=8, α=16</li>
       <li><strong>中等复杂度</strong>（多轮对话、指令遵循）：r=16, α=32</li>
@@ -206,8 +208,8 @@ r — 秩（Rank）：控制 LoRA 的表达能力
           id: "q8", num: "8",
           title: "LoRA 通常加在 Transformer 的哪些层？为什么主要加在 Attention 权重上？",
           tags: [{text:"实现细节",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>最常见的加 LoRA 的位置：</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">最常见的加 LoRA 的位置：</h5>
     <pre><code>Transformer 层中可加 LoRA 的权重矩阵：
 
 Multi-Head Attention:
@@ -218,7 +220,7 @@ Multi-Head Attention:
 
 Feed Forward Network:
   W_up, W_gate, W_down  ← 可选，部分工作也加在这里</code></pre>
-    <p><strong>为什么侧重 Attention 权重：</strong></p>
+    <h5 class="answer-subheading">为什么侧重 Attention 权重：</h5>
     <ul>
       <li>Attention 权重是"信息路由"的关键——微调主要是改变模型"关注什么"和"如何组合信息"。</li>
       <li>原论文实验表明，只对 W_Q 和 W_V 加 LoRA 就能达到接近 Full FT 的效果。</li>
@@ -233,7 +235,7 @@ Feed Forward Network:
           id: "q9", num: "9",
           title: "QLoRA 是如何在 LoRA 基础上进一步降低显存占用的？NF4 + 双重量化是什么？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"前沿技术",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>QLoRA</strong> 在 LoRA 的基础上，通过<strong>量化主干模型（Base Model）</strong>进一步压缩显存：</p>
     <pre><code>显存占用对比（以 LLaMA-7B 为例）：
 
@@ -241,7 +243,7 @@ Full Fine-Tuning:  ~ 56 GB  (FP16 模型 + 梯度 + 优化器状态)
 LoRA:              ~ 16 GB  (FP16 模型 + LoRA 梯度)
 QLoRA:             ~ 10 GB  (NF4 量化模型 + LoRA 梯度)
                                            ↑ 单张消费级 GPU 即可</code></pre>
-    <p><strong>QLoRA 的三大技术：</strong></p>
+    <h5 class="answer-subheading">QLoRA 的三大技术：</h5>
     <ol>
       <li>
         <strong>NF4（4-bit NormalFloat）</strong>
@@ -264,20 +266,20 @@ QLoRA:             ~ 10 GB  (NF4 量化模型 + LoRA 梯度)
           id: "q10", num: "10",
           title: "如何合并（Merge）LoRA 权重到主模型？什么情况下应该 Merge，什么情况下不该 Merge？",
           tags: [{text:"工程实践",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># LoRA Merge 公式
 W_merged = W₀ + (α/r) · B·A
 
 # 矩阵加法，将低秩适配器"融入"原始权重
 # 合并后与普通模型完全一样，可以正常加载和推理</code></pre>
-    <p><strong>应该 Merge 的场景：</strong></p>
+    <h5 class="answer-subheading">应该 Merge 的场景：</h5>
     <ul>
       <li><strong>生产部署</strong>：合并后不需要额外的 LoRA 加载逻辑，减少推理延迟。</li>
       <li><strong>需要做量化部署</strong>：如 GPTQ / AWQ 量化通常需要完整的权重矩阵。</li>
       <li><strong>模型共享/分发</strong>：合并后的模型更易用（用户不需要知道 LoRA）。</li>
       <li><strong>多 LoRA 叠加</strong>：将多个 LoRA 逐个 merge 进同一个基底，实现能力组合。</li>
     </ul>
-    <p><strong>不应该 Merge 的场景：</strong></p>
+    <h5 class="answer-subheading">不应该 Merge 的场景：</h5>
     <ul>
       <li><strong>需要服务多任务</strong>：保留基底 + 动态加载不同 LoRA 适配器，节省存储和显存。</li>
       <li><strong>快速实验/迭代</strong>：LoRA 小文件（几 MB），可以快速切换和对比不同版本。</li>
@@ -295,7 +297,7 @@ W_merged = W₀ + (α/r) · B·A
           id: "q11", num: "11",
           title: "除了 LoRA，还有哪些主流的 PEFT 方法？请至少介绍三种并对比。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"方法全景",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>方法</th><th>核心思想</th><th>额外参数</th><th>推理开销</th><th>典型性能</th></tr>
       <tr>
@@ -342,16 +344,16 @@ W_merged = W₀ + (α/r) · B·A
           id: "q12", num: "12",
           title: "Adapter 和 LoRA 在架构上有什么本质区别？各有什么优劣？",
           tags: [{text:"对比分析",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># Adapter 架构
-x → [Self-Attention] → Add&Norm → [Adapter Layer] → Add&Norm → FFN → ...
+x → [Self-Attention] → Add&amp;Norm → [Adapter Layer] → Add&amp;Norm → FFN → ...
 
 Adapter Layer = W_up(ReLU(W_down(x))) + x
 #  W_down: d → bottleneck → W_up: bottleneck → d
 #  ↑ 串行插入，增加推理延迟
 
 # LoRA 架构
-x → [Self-Attention + LoRA] → Add&Norm → FFN → ...
+x → [Self-Attention + LoRA] → Add&amp;Norm → FFN → ...
 #  ΔW = B·A 直接加到 W 上
 #  ↑ 并行计算（可 Merge），不增加推理延迟</code></pre>
     <table>
@@ -369,20 +371,20 @@ x → [Self-Attention + LoRA] → Add&Norm → FFN → ...
           id: "q13", num: "13",
           title: "什么是 Prefix Tuning 和 Prompt Tuning？它们与 LoRA 有什么本质不同？",
           tags: [{text:"方法理解",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>Prefix Tuning 和 Prompt Tuning 的核心思想：<strong>不修改模型权重，而是在输入空间中学习"软提示"</strong>。</p>
     <pre><code># Prompt Tuning (Lester et al., 2021)
 Input = [Soft_Prompt_1, ..., Soft_Prompt_k,  User_Input]
 #        ↑ 可训练的虚拟 Embedding（k 个 token）
 # 只在 Embedding 层加可训练参数，最简单但能力有限
 
-# Prefix Tuning (Li & Liang, 2021)
+# Prefix Tuning (Li &amp; Liang, 2021)
 # 在每一层都插入可训练的 Prefix 向量
 for layer in transformer_layers:
     layer.attention.K = concat([Prefix_K, K])
     layer.attention.V = concat([Prefix_V, V])
 # 每层都有 Prefix，表达能力更强</code></pre>
-    <p><strong>与 LoRA 的本质区别：</strong></p>
+    <h5 class="answer-subheading">与 LoRA 的本质区别：</h5>
     <ul>
       <li>LoRA 修改的是<strong>权重空间</strong>（改变模型的计算方式）</li>
       <li>Prefix/Prompt Tuning 修改的是<strong>输入/激活空间</strong>（改变模型的输入表示）</li>
@@ -395,7 +397,7 @@ for layer in transformer_layers:
           id: "q14", num: "14",
           title: "如何组合多种 PEFT 方法？例如 LoRA + Prefix Tuning 的场景和价值是什么？",
           tags: [{text:"进阶实践",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>不同 PEFT 方法作用在不同位置，<strong>可以正交地组合</strong>使用：</p>
     <pre><code>组合方案示例：
 
@@ -412,7 +414,7 @@ for layer in transformer_layers:
 │ → 快速调整任务偏好                     │
 │ → 对 K, V, FFN 激活值缩放              │
 └────────────────────────────────────────┘</code></pre>
-    <p><strong>实用场景：</strong></p>
+    <h5 class="answer-subheading">实用场景：</h5>
     <ul>
       <li><strong>LoRA（知识） + Prompt Tuning（风格）</strong>：LoRA 注入领域知识（如医学诊断），Prompt Tuning 微调输出风格（如"对儿童解释" vs "对医生解释"）。</li>
       <li><strong>LoRA 叠加多个 LoRA</strong>：将多个 LoRA 合并——如"医学 LoRA" + "友善语气 LoRA" → 友善的医学助手。</li>
@@ -429,7 +431,7 @@ for layer in transformer_layers:
           id: "q15", num: "15",
           title: "什么是 Instruction Tuning（指令微调）？它与传统 SFT 有什么不同？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心概念",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>Instruction Tuning</strong> 是 SFT 的一种特殊形式，其训练数据格式为 <strong>(Instruction, Input, Output)</strong> 三元组，目标是让模型学会"遵循指令"而非简单"映射输入到输出"。</p>
     <table>
       <tr><th>维度</th><th>传统 SFT</th><th>Instruction Tuning</th></tr>
@@ -460,9 +462,9 @@ for layer in transformer_layers:
           id: "q16", num: "16",
           title: "如何构建高质量的 SFT 数据集？数据质量 vs 数据数量，哪个更重要？",
           tags: [{text:"高频",cls:"hot"}, {text:"数据工程",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>数据质量 > 数据数量。</strong>LIMA 论文（2023）表明：仅用 1000 条精心挑选的高质量 SFT 数据，就能让模型达到接近 GPT-4 级别的指令遵循能力。</p>
-    <p><strong>高质量 SFT 数据的特征：</strong></p>
+    <h5 class="answer-subheading">高质量 SFT 数据的特征：</h5>
     <ol>
       <li><strong>指令多样</strong>：覆盖不同任务类型（生成、推理、分类、创作、代码等），不同难度。</li>
       <li><strong>回答准确</strong>：事实正确、逻辑自洽、无幻觉。</li>
@@ -471,7 +473,7 @@ for layer in transformer_layers:
       <li><strong>安全无害</strong>：拒绝有害请求、不输出不安全内容。</li>
       <li><strong>多样性</strong>：覆盖不同领域（科技、人文、生活、法律等），不同语言。</li>
     </ol>
-    <p><strong>数据构建 Pipeline：</strong></p>
+    <h5 class="answer-subheading">数据构建 Pipeline：</h5>
     <pre><code>1. 种子指令 → 2. 指令扩增 (Self-Instruct / Evol-Instruct) →
 3. 强模型生成回答 (GPT-4 / Claude) → 4. 人工审核/修正 →
 5. 质量过滤 (去重、去低质、安全检查) → 6. 格式统一化</code></pre>
@@ -482,15 +484,15 @@ for layer in transformer_layers:
           id: "q17", num: "17",
           title: "Self-Instruct 和 Evol-Instruct 分别是什么？它们如何自动生成指令数据？",
           tags: [{text:"数据增强",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>Self-Instruct（自我指令生成）：</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">Self-Instruct（自我指令生成）：</h5>
     <ol>
       <li>从一个种子池（175 条人工写的指令）开始</li>
       <li>每次随机采样 8 条作为 Few-shot 示例</li>
       <li>让 LLM 生成新的指令 → 判断是否为分类任务 → 生成回答 → 过滤低质量 → 加入池</li>
       <li>迭代重复，最终从 175 条种子生成 82K 条指令（Alpaca 数据集）</li>
     </ol>
-    <p><strong>Evol-Instruct（进化指令生成）：</strong></p>
+    <h5 class="answer-subheading">Evol-Instruct（进化指令生成）：</h5>
     <ol>
       <li>对简单指令进行"进化"——让 LLM 将其变复杂</li>
       <li>进化维度：加约束条件、深化推理、增加步骤、泛化场景、增加输入</li>
@@ -511,27 +513,27 @@ for layer in transformer_layers:
           id: "q18", num: "18",
           title: "Chat Template 在 SFT 中起什么作用？不同模型的 Chat Template 有什么差异？",
           tags: [{text:"工程细节",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>Chat Template 定义了<strong>如何将对话结构化为 Token 序列</strong>——不同的 Base Model 使用不同的特殊 Token 和格式约定。</p>
     <pre><code># Llama 3 Chat Template
-<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-你是专业的Python编程助手。<|eot_id|>
-<|start_header_id|>user<|end_header_id|>
-请用Python实现快速排序。<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
+&lt;|begin_of_text|&gt;&lt;|start_header_id|&gt;system&lt;|end_header_id|&gt;
+你是专业的Python编程助手。&lt;|eot_id|&gt;
+&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;
+请用Python实现快速排序。&lt;|eot_id|&gt;
+&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;
 以下是快速排序的Python实现：
 def quicksort(arr):
-    ...<|eot_id|>
+    ...&lt;|eot_id|&gt;
 
 # ChatML (Qwen / DeepSeek 等)
-<|im_start|>system
-你是专业的Python编程助手。<|im_end|>
-<|im_start|>user
-请用Python实现快速排序。<|im_end|>
-<|im_start|>assistant
+&lt;|im_start|&gt;system
+你是专业的Python编程助手。&lt;|im_end|&gt;
+&lt;|im_start|&gt;user
+请用Python实现快速排序。&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
 以下是快速排序的Python实现：
-...<|im_end|></code></pre>
-    <p><strong>为什么重要：</strong></p>
+...&lt;|im_end|&gt;</code></pre>
+    <h5 class="answer-subheading">为什么重要：</h5>
     <ul>
       <li>用错 Template → 模型"看不懂"对话结构 → 性能大幅下降。</li>
       <li>SFT 训练和推理必须使用<strong>完全一致</strong>的 Template。</li>
@@ -545,7 +547,7 @@ def quicksort(arr):
           id: "q19", num: "19",
           title: "SFT 数据中如何处理多轮对话（Multi-turn Conversation）？与单轮有什么不同？",
           tags: [{text:"数据处理",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># 多轮对话数据格式
 {
   "messages": [
@@ -557,7 +559,7 @@ def quicksort(arr):
     {"role": "assistant", "content": "比如存储坐标点..."}
   ]
 }</code></pre>
-    <p><strong>与单轮的关键区别：</strong></p>
+    <h5 class="answer-subheading">与单轮的关键区别：</h5>
     <ol>
       <li><strong>Loss 计算</strong>：每轮 assistant 回答都计算 Loss，所有 user 消息 Mask 掉。</li>
       <li><strong>上下文累积</strong>：每轮 assistant 的输出成为下一轮的输入上下文的一部分。</li>
@@ -577,7 +579,7 @@ def quicksort(arr):
           id: "q20", num: "20",
           title: "请描述一个完整的 SFT 训练 Pipeline，从数据准备到模型保存。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"工程全景",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code>完整 SFT Pipeline：
 
 1. 数据收集与清洗
@@ -618,7 +620,7 @@ def quicksort(arr):
           id: "q21", num: "21",
           title: "SFT 的关键训练超参数有哪些？如何设置学习率、Batch Size、Epoch 数？",
           tags: [{text:"高频",cls:"hot"}, {text:"调参指南",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>超参数</th><th>常用范围</th><th>设置建议</th></tr>
       <tr>
@@ -665,14 +667,14 @@ def quicksort(arr):
           id: "q22", num: "22",
           title: "什么是 Gradient Checkpointing 和 Gradient Accumulation？各解决什么问题？",
           tags: [{text:"显存优化",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>Gradient Checkpointing（梯度检查点）</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">Gradient Checkpointing（梯度检查点）</h5>
     <ul>
       <li><strong>问题：</strong>反向传播需要保存前向传播的中间激活值，显存消耗巨大。</li>
       <li><strong>方案：</strong>只保存部分层的激活值（检查点），反向传播时重新计算中间激活。用<strong>时间换空间</strong>。</li>
       <li><strong>代价：</strong>训练速度降低约 20-30%。</li>
     </ul>
-    <p><strong>Gradient Accumulation（梯度累积）</strong></p>
+    <h5 class="answer-subheading">Gradient Accumulation（梯度累积）</h5>
     <ul>
       <li><strong>问题：</strong>GPU 显存不够 → 无法用足够大的 Batch Size → 训练不稳定。</li>
       <li><strong>方案：</strong>将一个大 Batch 拆分为多个 Micro-Batch，每个 Micro-Batch 前向+反向（但不更新），累积 N 个 Micro-Batch 的梯度后再做一次参数更新。</li>
@@ -697,7 +699,7 @@ for i, batch in enumerate(dataloader):
           id: "q23", num: "23",
           title: "DeepSpeed ZeRO 的三个阶段分别做了什么？LLM 微调通常用哪个阶段？",
           tags: [{text:"高频",cls:"hot"}, {text:"分布式训练",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>阶段</th><th>分片（Shard）的内容</th><th>显存节省</th><th>通信开销</th><th>适用</th></tr>
       <tr>
@@ -722,7 +724,7 @@ for i, batch in enumerate(dataloader):
         <td>超大模型（100B+）训练</td>
       </tr>
     </table>
-    <p><strong>LLM 微调的推荐：</strong></p>
+    <h5 class="answer-subheading">LLM 微调的推荐：</h5>
     <ul>
       <li><strong>LoRA 微调</strong>：通常<strong>不需要 DeepSpeed</strong>，单卡 FSDP / DDP 就够。因为只有 LoRA 参数需要优化器状态。</li>
       <li><strong>Full FT (7B)</strong>：ZeRO-2 足够，4×A100(80G) 可以跑。</li>
@@ -736,15 +738,15 @@ for i, batch in enumerate(dataloader):
           id: "q24", num: "24",
           title: "如何判断 SFT 训练是否过拟合？有哪些监控指标？",
           tags: [{text:"训练监控",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>过拟合的信号：</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">过拟合的信号：</h5>
     <ol>
       <li><strong>Train Loss 持续下降但 Eval Loss 上升</strong>：经典过拟合。Loss 分开走时可以停止训练。</li>
       <li><strong>生成重复/退化</strong>：模型开始输出重复短语、循环输出，或对所有问题都给出类似回答。</li>
       <li><strong>Eval Loss 平坦</strong>：Eval Loss 不再下降，继续训练徒增过拟合风险。</li>
       <li><strong>多样性下降</strong>：对同一问题的不同问法，模型输出几乎相同。</li>
     </ol>
-    <p><strong>监控体系：</strong></p>
+    <h5 class="answer-subheading">监控体系：</h5>
     <ul>
       <li><strong>定量指标</strong>：Train/Eval Loss、Perplexity、Token Accuracy。</li>
       <li><strong>定期生成检查</strong>：每 N 步用固定的一组 Prompt 生成回答，人工/LLM-as-Judge 检查质量。</li>
@@ -764,8 +766,8 @@ for i, batch in enumerate(dataloader):
           id: "q25", num: "25",
           title: "如何评估 SFT 模型的质量？有哪些主流的评估基准和方法？",
           tags: [{text:"评估体系",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>评估层次体系：</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">评估层次体系：</h5>
     <ol>
       <li>
         <strong>知识/能力基准（Benchmark）</strong>
@@ -802,7 +804,7 @@ for i, batch in enumerate(dataloader):
           id: "q26", num: "26",
           title: "LLM-as-Judge 是如何评估模型输出的？有什么优缺点？",
           tags: [{text:"评估方法",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>LLM-as-Judge 是让一个<strong>强 LLM（如 GPT-4、Claude Opus）</strong>作为裁判，给目标模型的输出打分或比较。</p>
     <pre><code># 单模型打分
 Judge Prompt:
@@ -818,9 +820,9 @@ Judge Prompt:
 回答 A：{answer_a}
 回答 B：{answer_b}
 哪个更好？A 还是 B？为什么？"</code></pre>
-    <p><strong>优点：</strong></p>
+    <h5 class="answer-subheading">优点：</h5>
     <ul><li>自动化，成本低于人工评估</li><li>可扩展，能评估大量样本</li><li>与人类偏好有一定相关性</li></ul>
-    <p><strong>缺点：</strong></p>
+    <h5 class="answer-subheading">缺点：</h5>
     <ul>
       <li><strong>位置偏差</strong>：倾向于选第一个/第二个（需做位置交换做两次取平均）</li>
       <li><strong>长度偏差</strong>：倾向于给长回答高分</li>
@@ -834,7 +836,7 @@ Judge Prompt:
           id: "q27", num: "27",
           title: "微调后的模型如何做量化部署？GPTQ 和 AWQ 有什么区别？",
           tags: [{text:"部署优化",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>维度</th><th>GPTQ</th><th>AWQ</th></tr>
       <tr><td>核心思想</td><td>逐列量化 + Hessian 信息修正剩余权重</td><td>识别重要权重通道并保留精度</td></tr>
@@ -863,7 +865,7 @@ Base (已量化) → 推理时动态加载 LoRA (FP16) → 实时 Merge 计算
           id: "q28", num: "28",
           title: "从预训练到部署，LLM 的全生命周期涉及哪些关键技术点？请给出一个完整的端到端概览。",
           tags: [{text:"全景总结",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code>LLM 全生命周期技术栈：
 
 ┌─────────────────────────────────────────────────────┐

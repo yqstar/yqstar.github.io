@@ -1,134 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="算法与 AI 学习平台 — LeetCode Hot 100 Python 题解、Transformer / RL / SFT / Agent 面试题集，在线代码运行。">
-<title>Algorithm & AI Study Hub</title>
-<style>
-:root {
-  --bg: #fafafa;
-  --text: #262626;
-  --text2: #595959;
-  --text3: #8c8c8c;
-  --claude: #da7756;
-  --claude-glow: rgba(218,119,86,0.08);
-  --blue: #0071e3;
-  --blue-glow: rgba(0,113,227,0.06);
-  --green: #30a14e;
-  --green-glow: rgba(48,161,78,0.08);
-  --border: #e2e2e2;
-  --card-bg: #ffffff;
-  --radius: 10px;
-  --radius-sm: 6px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: var(--font);
-  background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased;
-}
-
-.header {
-  text-align: center; padding: 80px 20px 56px; position: relative; z-index: 1;
-}
-.header h1 {
-  font-size: 3em; font-weight: 700; letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #1a1a1a 0%, var(--claude) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px;
-}
-.header p { font-size: 1.15em; color: var(--text2); font-weight: 400; }
-
-.container { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; position: relative; z-index: 1; }
-
-.section-label {
-  font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--text3); margin-bottom: 16px; font-weight: 600;
-}
-
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 56px; }
-
-.card {
-  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 28px; transition: all 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
-  text-decoration: none; color: inherit; display: block; position: relative; overflow: hidden;
-  box-shadow: var(--shadow);
-}
-.card:hover { transform: translateY(-2px); border-color: #d0d0d0; box-shadow: var(--shadow-md); }
-.card.available:hover { border-color: rgba(218,119,86,0.3); box-shadow: 0 4px 16px rgba(218,119,86,0.1); }
-.card .icon { font-size: 2em; margin-bottom: 14px; display: block; }
-.card h3 { font-size: 1.2em; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: -0.01em; }
-.card p { font-size: 0.88em; color: var(--text2); line-height: 1.6; }
-.card .badge {
-  position: absolute; top: 18px; right: 18px; padding: 4px 10px; border-radius: 20px;
-  font-size: 0.68em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-}
-.badge.ready { background: var(--claude-glow); color: var(--claude); }
-.badge.soon { background: var(--green-glow); color: var(--text3); }
-.card.coming { opacity: 0.45; cursor: not-allowed; }
-.card.coming:hover { transform: none; box-shadow: var(--shadow); border-color: var(--border); }
-
-.footer { text-align: center; padding: 32px; color: var(--text3); font-size: 0.8em; border-top: 1px solid var(--border); position: relative; z-index: 1; }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1a1a1a; --text: #e0e0e0; --text2: #aaa; --text3: #777;
-    --claude: #e8956f; --claude-glow: rgba(232,149,111,0.12);
-    --border: #383838; --card-bg: #232323;
-  }
-  .header h1 { background: linear-gradient(135deg, #e0e0e0 0%, var(--claude) 100%); -webkit-background-clip: text; background-clip: text; }
-  .card:hover { border-color: #444; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="算法与 AI 学习空间：100 道 LeetCode Python 离线练习，以及 Transformer、强化学习、SFT 和 Agent 的 114 道精选面试题。">
+  <title>Algorithm &amp; AI · Study Hub</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/home.css">
 </head>
-<body>
-<div class="header">
-  <h1>Algorithm & AI Study Hub</h1>
-  <p>LeetCode Hot 100 &middot; AI 面试题集 &middot; Transformer &middot; RL &middot; SFT &middot; Agent</p>
-</div>
+<body class="site-shell">
+  <a class="skip-link" href="#main">跳转到学习内容</a>
+  <aside class="site-sidebar" aria-label="学习空间导航">
+    <a class="brand" href="index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub<span class="brand-caption">ALGORITHM &amp; AI</span></span></a>
+    <nav class="sidebar-nav" aria-label="学习专题">
+      <a class="sidebar-link" href="index.html" aria-label="学习概览" title="学习概览" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-text">学习概览</span></a>
+      <p class="nav-label">算法实战</p>
+      <a class="sidebar-link" href="leetcode.html" aria-label="LeetCode Hot 100" title="LeetCode Hot 100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg><span class="nav-text">LeetCode Hot 100</span><span class="nav-count">100</span></a>
+      <p class="nav-label">AI 面试专题</p>
+      <a class="sidebar-link" href="transformer-interview.html" aria-label="Transformer" title="Transformer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg><span class="nav-text">Transformer</span><span class="nav-count">28</span></a>
+      <a class="sidebar-link" href="rl-interview.html" aria-label="强化学习" title="强化学习"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8"/></svg><span class="nav-text">强化学习</span><span class="nav-count">28</span></a>
+      <a class="sidebar-link" href="sft-interview.html" aria-label="SFT & 微调" title="SFT & 微调"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z"/></svg><span class="nav-text">SFT & 微调</span><span class="nav-count">28</span></a>
+      <a class="sidebar-link" href="agent-interview.html" aria-label="AI Agent" title="AI Agent"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="6" rx="2"/><rect x="2" y="16" width="7" height="5" rx="1.5"/><rect x="15" y="16" width="7" height="5" rx="1.5"/><path d="M12 9v4m-6.5 3v-3h13v3"/></svg><span class="nav-text">AI Agent</span><span class="nav-count">30</span></a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-note"><strong>理解原理，也动手实践。</strong><p>从一道题开始，<br>积累自己的知识体系。</p></div><div class="sidebar-signature">BUILT FOR LEARNING</div></div>
+  </aside>
+  <main id="main" class="page-width">
+    <div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><span>学习空间</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg><span aria-current="page">概览</span></nav><span class="workspace-label">ALGORITHM / AI</span></div>
+    <section class="intro" aria-labelledby="page-title">
+      <div class="intro-copy">
+        <p class="eyebrow"><span aria-hidden="true"></span> YOUR LEARNING WORKSPACE</p>
+        <h1 id="page-title">算法与 AI <span>学习空间</span></h1>
+        <p class="intro-description">写代码、读原理，为下一次技术面试做准备。</p>
+      </div>
+      <div class="intro-stats" aria-label="学习内容概览"><div><strong>100</strong><span>道算法练习</span></div><div><strong>114</strong><span>道 AI 面试题</span></div></div>
+    </section>
 
-<div class="container">
-  <div class="section-label">Algorithm</div>
-  <div class="cards">
-    <a href="leetcode.html" class="card available">
-      <span class="badge ready">Ready</span>
-      <span class="icon">&#x1f4bb;</span>
-      <h3>LeetCode Hot 100</h3>
-      <p>100 道精选题目 · 17 个专题 · 内嵌 Python 离线评测，支持核心 / ACM 模式、代码与笔记自动保存、JSON 备份恢复。</p>
-    </a>
-  </div>
+    <section id="algorithm" aria-labelledby="algorithm-title">
+      <div class="section-heading"><h2 id="algorithm-title"><span class="section-number" aria-hidden="true">01</span>算法实战</h2><span class="section-caption">思考 · 编码 · 验证</span></div>
+      <a class="practice-card" href="leetcode.html" aria-labelledby="practice-title" aria-describedby="practice-description">
+        <div class="practice-copy">
+          <div class="practice-topline"><span class="code-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></span><span class="practice-eyebrow">PYTHON PRACTICE</span></div>
+          <h3 id="practice-title">LeetCode <span>Hot 100</span></h3>
+          <p id="practice-description">从一道题开始，把解题思路<br>变成可运行的代码。</p>
+          <div class="practice-features"><span>17 个专题</span><span>核心 / ACM 模式</span><span>笔记与备份</span></div>
+          <div class="practice-bottom"><span class="practice-cta">进入训练场 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span><span class="offline-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>支持完全离线</span></div>
+        </div>
+        <div class="code-preview" aria-hidden="true">
+          <div class="code-caption"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><span>two_sum.py</span><span class="code-language">Python 3</span></div>
+          <pre><code><span class="code-line" data-line="1"><span class="syntax-keyword">def</span> <span class="syntax-function">two_sum</span>(nums, target):</span><span class="code-line" data-line="2">    seen = {}</span><span class="code-line" data-line="3">    <span class="syntax-keyword">for</span> i, n <span class="syntax-keyword">in</span> <span class="syntax-function">enumerate</span>(nums):</span><span class="code-line" data-line="4">        <span class="syntax-keyword">if</span> target - n <span class="syntax-keyword">in</span> seen:</span><span class="code-line" data-line="5">            <span class="syntax-keyword">return</span> [seen[target-n], i]</span><span class="code-line" data-line="6">        seen[n] = i</span></code></pre>
+          <div class="code-status"><span></span> O(n) time · O(n) space<small>two sum</small></div>
+        </div>
+      </a>
+    </section>
 
-  <div class="section-label">AI / Deep Learning</div>
-  <div class="cards">
-    <a href="transformer-interview.html" class="card available">
-      <span class="badge ready">Ready</span>
-      <span class="icon">&#x1f9e0;</span>
-      <h3>Transformer</h3>
-      <p>28 道面试题 — Self-Attention · Multi-Head · Positional Encoding · Encoder-Decoder 全覆盖</p>
-    </a>
-    <a href="rl-interview.html" class="card available">
-      <span class="badge ready">Ready</span>
-      <span class="icon">&#x1f3af;</span>
-      <h3>Reinforcement Learning</h3>
-      <p>28 道面试题 — MDP · Q-Learning · Policy Gradient · PPO · RLHF 全覆盖</p>
-    </a>
-    <a href="sft-interview.html" class="card available">
-      <span class="badge ready">Ready</span>
-      <span class="icon">&#x1f4da;</span>
-      <h3>SFT &amp; Fine-Tuning</h3>
-      <p>28 道面试题 — LoRA · QLoRA · Instruction Tuning · PEFT · 训练与评估</p>
-    </a>
-    <a href="agent-interview.html" class="card available">
-      <span class="badge ready">Ready</span>
-      <span class="icon">&#x1f680;</span>
-      <h3>AI Agent</h3>
-      <p>30 道面试题 — ReAct · Tool Use · Planning · Memory · Multi-Agent 全覆盖</p>
-    </a>
-  </div>
-</div>
-
-<div class="footer">Algorithm & AI Study Hub &copy; 2026</div>
+    <section id="interviews" class="interview-section" aria-labelledby="interview-title">
+      <div class="section-heading"><h2 id="interview-title"><span class="section-number" aria-hidden="true">02</span>AI 面试专题</h2><span class="section-caption">4 个专题 · 114 道精选题</span></div>
+      <div class="interview-grid">
+        <a class="topic-card topic-transformer" href="transformer-interview.html" aria-labelledby="transformer-title">
+          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span>
+          <div class="topic-copy">
+            <div class="topic-topline"><p class="topic-label">模型架构</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
+            <h3 id="transformer-title">Transformer</h3>
+            <p class="topic-description">从注意力机制到预训练，理解大模型的基础架构。</p>
+            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">Attention · 位置编码</span></div>
+          </div>
+        </a>
+        <a class="topic-card topic-rl" href="rl-interview.html" aria-labelledby="rl-title">
+          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8"/></svg></span>
+          <div class="topic-copy">
+            <div class="topic-topline"><p class="topic-label">奖励与决策</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
+            <h3 id="rl-title">强化学习</h3>
+            <p class="topic-description">理解策略优化与价值估计，掌握模型对齐的方法。</p>
+            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">MDP · PPO · RLHF</span></div>
+          </div>
+        </a>
+        <a class="topic-card topic-sft" href="sft-interview.html" aria-labelledby="sft-title">
+          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z"/></svg></span>
+          <div class="topic-copy">
+            <div class="topic-topline"><p class="topic-label">训练与实践</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
+            <h3 id="sft-title">SFT &amp; 微调</h3>
+            <p class="topic-description">从指令微调到参数高效训练，串联数据、训练与评估。</p>
+            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">LoRA · QLoRA · PEFT</span></div>
+          </div>
+        </a>
+        <a class="topic-card topic-agent" href="agent-interview.html" aria-labelledby="agent-title">
+          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="6" rx="2"/><rect x="2" y="16" width="7" height="5" rx="1.5"/><rect x="15" y="16" width="7" height="5" rx="1.5"/><path d="M12 9v4m-6.5 3v-3h13v3"/></svg></span>
+          <div class="topic-copy">
+            <div class="topic-topline"><p class="topic-label">智能体与应用</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
+            <h3 id="agent-title">AI Agent</h3>
+            <p class="topic-description">理解工具调用、规划与记忆，构建协作的智能体。</p>
+            <div class="topic-bottom"><span class="question-count">30 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">ReAct · Tools · Memory</span></div>
+          </div>
+        </a>
+      </div>
+    </section>
+    <footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>专注练习，持续积累。</span><span class="copyright">© 2026 · Algorithm &amp; AI</span></footer>
+  </main>
 </body>
 </html>

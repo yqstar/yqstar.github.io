@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-topic="rl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
 <meta name="description" content="28 道强化学习精选面试题 — MDP · Q-Learning · Policy Gradient · PPO · RLHF 全覆盖。">
 <title>强化学习面试题 — 从 MDP 到 RLHF</title>
+<link rel="stylesheet" href="assets/site.css">
 <link rel="stylesheet" href="assets/common.css">
-<style>:root{--accent:#30a14e;--accent-bg:rgba(48,161,78,0.06);--accent-glow:rgba(48,161,78,0.1);}</style>
 </head>
 <body>
 <div id="app"></div>
+<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
 <script src="assets/interview.js"></script>
 <script>
 const DATA = {
@@ -26,7 +28,7 @@ const DATA = {
           id: "q1", num: "1",
           title: "什么是强化学习？它与监督学习、无监督学习的核心区别是什么？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心概念",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>强化学习（RL）</strong>是让智能体（Agent）在环境（Environment）中通过<strong>试错交互</strong>来学习最优策略的机器学习范式。Agent 执行动作 → 环境给出奖励和下一状态 → Agent 调整策略以最大化累积奖励。</p>
     <table>
       <tr><th>维度</th><th>监督学习</th><th>无监督学习</th><th>强化学习</th></tr>
@@ -43,7 +45,7 @@ const DATA = {
           id: "q2", num: "2",
           title: "请详细解释 MDP（马尔可夫决策过程）的五个核心要素。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"理论基础",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>MDP 是 RL 的数学框架，由五元组 (S, A, P, R, γ) 定义：</p>
     <ol>
       <li><strong>S (State Space，状态空间)</strong>：所有可能状态的集合。状态必须满足马尔可夫性质——当前状态包含了预测未来所需的全部信息，与历史无关。</li>
@@ -60,7 +62,7 @@ const DATA = {
           id: "q3", num: "3",
           title: "状态价值函数 V(s) 和动作价值函数 Q(s,a) 的区别是什么？请写出 Bellman 方程。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心公式",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>V(s) — 状态价值函数：</strong>在状态 s 开始，遵循策略 π 时，能获得的<strong>期望累积折扣奖励</strong>。回答"在这个状态有多好？"</p>
     <p><strong>Q(s,a) — 动作价值函数：</strong>在状态 s 执行动作 a，之后遵循策略 π 时，能获得的期望累积折扣奖励。回答"在这个状态做这个动作有多好？"</p>
     <pre><code>V^π(s) = E_π[ Σ_{t=0}^∞ γ^t · R_{t+1} | S₀ = s ]
@@ -68,11 +70,11 @@ const DATA = {
 Q^π(s,a) = E_π[ Σ_{t=0}^∞ γ^t · R_{t+1} | S₀ = s, A₀ = a ]
 
 关系：V^π(s) = Σ_a π(a|s) · Q^π(s,a)     (V 是 Q 的加权平均)</code></pre>
-    <p><strong>Bellman 期望方程：</strong></p>
+    <h5 class="answer-subheading">Bellman 期望方程：</h5>
     <pre><code>V^π(s) = Σ_a π(a|s) · Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · V^π(s')]
 
 Q^π(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · Σ_{a'} π(a'|s') · Q^π(s',a')]</code></pre>
-    <p><strong>Bellman 最优方程：</strong></p>
+    <h5 class="answer-subheading">Bellman 最优方程：</h5>
     <pre><code>V*(s) = max_a Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · V*(s')]
 
 Q*(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · max_{a'} Q*(s',a')]</code></pre>
@@ -83,13 +85,13 @@ Q*(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · max_{a'} Q*(s',a')]</code></pr
           id: "q4", num: "4",
           title: "什么是\"探索-利用困境\"（Exploration-Exploitation Dilemma）？有哪些解决策略？",
           tags: [{text:"核心概念",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
-    <p><strong>困境定义：</strong></p>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
+    <h5 class="answer-subheading">困境定义：</h5>
     <ul>
       <li><strong>利用（Exploitation）</strong>：选择当前认为最好的动作，获得已知的高奖励。短期最优。</li>
       <li><strong>探索（Exploration）</strong>：尝试不确定的动作，可能发现更好的策略。长期最优但短期可能受损。</li>
     </ul>
-    <p><strong>解决策略：</strong></p>
+    <h5 class="answer-subheading">解决策略：</h5>
     <ol>
       <li><strong>ε-Greedy</strong>：以 1-ε 概率利用（选最优），ε 概率随机探索。可让 ε 随时间衰减。</li>
       <li><strong>UCB (Upper Confidence Bound)</strong>：选 a_t = argmax [Q(a) + c·√(ln t / N(a))]。直觉：除了估计值，还考虑不确定性——少试过的动作加一个奖励探索的 bonus。</li>
@@ -104,7 +106,7 @@ Q*(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · max_{a'} Q*(s',a')]</code></pr
           id: "q5", num: "5",
           title: "On-Policy 和 Off-Policy 学习的区别是什么？各自的优缺点？",
           tags: [{text:"高频对比",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>维度</th><th>On-Policy</th><th>Off-Policy</th></tr>
       <tr><td>数据来源</td><td>当前策略自己产生的数据</td><td>任何策略（包括历史策略）产生的数据</td></tr>
@@ -127,13 +129,13 @@ Q*(s,a) = Σ_{s'} P(s'|s,a) · [R(s,a,s') + γ · max_{a'} Q*(s',a')]</code></pr
           id: "q6", num: "6",
           title: "Q-Learning 和 SARSA 的区别是什么？请写出两者的更新公式。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"经典算法",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># Q-Learning (Off-Policy) — 用 max 选择下一动作
 Q(s,a) ← Q(s,a) + α [ R + γ·max_{a'}Q(s',a') - Q(s,a) ]
 
 # SARSA (On-Policy) — 用实际执行的下一动作
 Q(s,a) ← Q(s,a) + α [ R + γ·Q(s',a') - Q(s,a) ]</code></pre>
-    <p><strong>核心区别：</strong></p>
+    <h5 class="answer-subheading">核心区别：</h5>
     <ul>
       <li><strong>Q-Learning</strong> 是 Off-Policy——学习最优策略（target policy），即使当前在探索（behavior policy）时也会用 max 来计算 TD Target。更激进，可能高估 Q 值。</li>
       <li><strong>SARSA</strong> 是 On-Policy——学到的是带有探索的策略（ε-greedy 的最优）。更保守，会考虑探索带来的风险。</li>
@@ -146,14 +148,14 @@ Q(s,a) ← Q(s,a) + α [ R + γ·Q(s',a') - Q(s,a) ]</code></pre>
           id: "q7", num: "7",
           title: "DQN（Deep Q-Network）的两个核心创新是什么？解决了什么问题？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"深度学习 RL",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>DQN 使用神经网络来近似 Q(s,a)，面临两大问题：</p>
-    <p><strong>创新 1 — Experience Replay（经验回放）</strong></p>
+    <h5 class="answer-subheading">创新 1 — Experience Replay（经验回放）</h5>
     <ul>
       <li><strong>解决的问题：</strong>连续样本之间的强相关性破坏 i.i.d. 假设；数据只用一次效率低。</li>
       <li><strong>做法：</strong>将每次交互的 (s,a,r,s') 存入 Replay Buffer，训练时随机采样 mini-batch。</li>
     </ul>
-    <p><strong>创新 2 — Target Network（目标网络）</strong></p>
+    <h5 class="answer-subheading">创新 2 — Target Network（目标网络）</h5>
     <ul>
       <li><strong>解决的问题：</strong>用同一个 Q 网络计算 TD Target（max Q）和当前 Q，类似"追自己的尾巴"——目标不断变化导致训练不稳定。</li>
       <li><strong>做法：</strong>维护一个 Target Network（参数 θ⁻），定期（如每 C 步）从主网络复制参数。TD Target 用 Target Network 计算。</li>
@@ -169,7 +171,7 @@ L(θ) = E[(R + γ·max_{a'}Q(s',a'; θ⁻) - Q(s,a; θ))²]
           id: "q8", num: "8",
           title: "什么是 Q 值高估问题（Overestimation Bias）？Double DQN 如何解决？",
           tags: [{text:"算法改进",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>问题根源：</strong>Q-Learning 的 TD Target 使用 <code>max_{a'} Q(s',a')</code>。由于 Q 函数有估计误差，<strong>取 max 会系统性地选择正误差最大的动作</strong>，导致 Q 值被持续高估。这会导致次优的策略选择。</p>
     <p><strong>Double DQN 解决方案：</strong>将"选择最优动作"和"评估该动作的 Q 值"<strong>解耦到两个网络</strong>：</p>
     <pre><code># DQN: 同一个网络先选动作再估值
@@ -187,7 +189,7 @@ TD Target = R + γ · Q(s', argmax Q(s',a'; θ); θ⁻)
           id: "q9", num: "9",
           title: "Dueling DQN 的架构创新是什么？Advantage Function 起到了什么作用？",
           tags: [{text:"架构改进",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>Dueling DQN 将 Q 网络拆分为<strong>两个并行的流</strong>（共享特征提取层后分叉）：</p>
     <pre><code>Q(s,a) = V(s) + A(s,a) - 1/|A| · Σ_{a'} A(s,a')
 
@@ -195,7 +197,7 @@ TD Target = R + γ · Q(s', argmax Q(s',a'; θ); θ⁻)
 V(s)  — 状态本身的价值（与动作无关）
 A(s,a) — 动作的优势（Advantage）：这个动作比平均水平好多少
 减均值 — 确保 V 和 A 的可辨识性（identifiability）</code></pre>
-    <p><strong>优势：</strong></p>
+    <h5 class="answer-subheading">优势：</h5>
     <ul>
       <li>在某些状态下，动作选择不重要（如等红灯时，所有操作都不影响结果）→ V(s) 可以被高效学习，不必为每个动作都精确估计 Q 值。</li>
       <li>同样的 V(s) 学习信号可以泛化到所有动作上，提高样本效率。</li>
@@ -213,16 +215,16 @@ A(s,a) — 动作的优势（Advantage）：这个动作比平均水平好多少
           id: "q10", num: "10",
           title: "Policy Gradient 的核心思想是什么？请推导 REINFORCE 算法的梯度公式。",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心算法",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>核心思想：</strong>不估计 Q 值再推导策略，而是<strong>直接对策略参数求梯度</strong>，朝"增加好动作概率、降低坏动作概率"的方向更新。</p>
-    <p><strong>Policy Gradient Theorem：</strong></p>
+    <h5 class="answer-subheading">Policy Gradient Theorem：</h5>
     <pre><code>∇J(θ) = E_π[ ∇log π_θ(a|s) · Q^π(s,a) ]
 
 直观解释：
 - ∇log π(a|s)：策略对参数的变化方向
 - Q^π(s,a)：该动作的好坏程度（相当于"权重"或"学习信号"）
 → 好的动作（Q 大）被强化，差的动作被抑制</code></pre>
-    <p><strong>REINFORCE 算法（蒙特卡洛 Policy Gradient）：</strong></p>
+    <h5 class="answer-subheading">REINFORCE 算法（蒙特卡洛 Policy Gradient）：</h5>
     <pre><code># 收集一条完整轨迹
 τ = (s₀, a₀, r₁, s₁, a₁, r₂, ..., s_T)
 
@@ -239,7 +241,7 @@ G_t = Σ_{k=t}^T γ^{k-t} · r_{k+1}    # 从 t 开始的实际累积奖励
           id: "q11", num: "11",
           title: "Value-Based 方法和 Policy-Based 方法各自的适用场景是什么？为什么连续动作空间不适合 Q-Learning？",
           tags: [{text:"选型对比",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>维度</th><th>Value-Based</th><th>Policy-Based</th></tr>
       <tr><td>输出</td><td>Q(s,a) 值</td><td>直接输出动作分布 π(a|s)</td></tr>
@@ -258,9 +260,9 @@ G_t = Σ_{k=t}^T γ^{k-t} · r_{k+1}    # 从 t 开始的实际累积奖励
           id: "q12", num: "12",
           title: "什么是 REINFORCE 的高方差问题？引入 Baseline 为什么能减小方差？",
           tags: [{text:"理论理解",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>高方差来源：</strong>REINFORCE 用 <strong>G_t（整个轨迹的实际累积奖励）</strong> 作为 Q 的估计。G_t = r_1 + γr_2 + ... + γ^{T-t}r_{T-t+1} 是多个随机变量的和，方差极大。</p>
-    <p><strong>Baseline 的方差缩减原理：</strong></p>
+    <h5 class="answer-subheading">Baseline 的方差缩减原理：</h5>
     <pre><code># 原始 Policy Gradient
 ∇J = E[ ∇log π(a|s) · G_t ]
 
@@ -278,15 +280,15 @@ G_t = Σ_{k=t}^T γ^{k-t} · r_{k+1}    # 从 t 开始的实际累积奖励
           id: "q13", num: "13",
           title: "什么是信任域（Trust Region）问题？TRPO 和 PPO 分别如何解决它？",
           tags: [{text:"高频",cls:"hot"}, {text:"策略优化",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>问题：</strong>Policy Gradient 的一个更新步长太大可能导致策略突变，新策略在旧策略没探索过的区域表现很差→ 训练崩溃（Performance Collapse）。</p>
-    <p><strong>TRPO（Trust Region Policy Optimization）的解决方案：</strong></p>
+    <h5 class="answer-subheading">TRPO（Trust Region Policy Optimization）的解决方案：</h5>
     <ul>
       <li>为每次策略更新加一个<strong>硬约束</strong>：KL(π_old || π_new) ≤ δ ——新旧策略的 KL 散度不能超过阈值。</li>
       <li>用共轭梯度法求解带约束的优化问题。</li>
       <li><strong>缺点：</strong>计算复杂（需要计算 Hessian-vector product），难以实现。</li>
     </ul>
-    <p><strong>PPO（Proximal Policy Optimization）的解决方案：</strong></p>
+    <h5 class="answer-subheading">PPO（Proximal Policy Optimization）的解决方案：</h5>
     <ul>
       <li>用 <strong>Clipping</strong> 替代硬约束：如果概率比值 r(θ) = π_new/π_old 偏离 1 太远，直接剪掉梯度。</li>
       <li>实现简单（几行代码），效果与 TRPO 相当甚至更好。</li>
@@ -294,8 +296,8 @@ G_t = Σ_{k=t}^T γ^{k-t} · r_{k+1}    # 从 t 开始的实际累积奖励
     <pre><code># PPO Clipped Objective
 r_t(θ) = π_θ(a_t|s_t) / π_old(a_t|s_t)
 L_CLIP = E[ min( r_t·A_t,   clip(r_t, 1-ε, 1+ε)·A_t ) ]
-#             如果 A>0→ 不鼓励 r>1+ε (别太激进)
-#             如果 A<0→ 不鼓励 r<1-ε (别太保守)</code></pre>
+#             如果 A&gt;0→ 不鼓励 r&gt;1+ε (别太激进)
+#             如果 A&lt;0→ 不鼓励 r&lt;1-ε (别太保守)</code></pre>
     </div>
   `
         },
@@ -308,7 +310,7 @@ L_CLIP = E[ min( r_t·A_t,   clip(r_t, 1-ε, 1+ε)·A_t ) ]
           id: "q14", num: "14",
           title: "Actor-Critic 架构如何结合 Value-Based 和 Policy-Based 方法的优点？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"核心架构",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>Actor-Critic 由两个网络组成：</p>
     <ul>
       <li><strong>Actor（演员 — Policy Network）</strong>：输出策略 π(a|s)，决定做什么动作。对应 Policy-Based。</li>
@@ -334,7 +336,7 @@ for each step:
           id: "q15", num: "15",
           title: "PPO（Proximal Policy Optimization）的目标函数是什么？Clip 机制是如何运作的？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"LLM 对齐核心",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>PPO 是 RLHF 和大多数现代 RL 应用的首选算法。完整目标函数：</p>
     <pre><code># PPO-Clip 目标函数
 L(θ) = E[ L_CLIP(θ) + c₁·L_VF(θ) + c₂·S[π_θ](s) ]
@@ -345,7 +347,7 @@ L_CLIP = min(r_t(θ)·A_t, clip(r_t(θ), 1-ε, 1+ε)·A_t)   # 策略损失
 
 L_VF = (V_θ(s) - V_target)²    # Critic 损失（价值函数拟合）
 S[π] = -Σ π(a|s) log π(a|s)    # 熵正则项（鼓励探索）</code></pre>
-    <p><strong>Clip 机制的直观理解：</strong></p>
+    <h5 class="answer-subheading">Clip 机制的直观理解：</h5>
     <ul>
       <li>如果 <strong>A_t > 0</strong>（这个动作是好的）→ 想增大 π_new/π_old，但不能超过 1+ε（防止"过犹不及"）</li>
       <li>如果 <strong>A_t < 0</strong>（这个动作是坏的）→ 想减小 π_new/π_old，但不能低于 1-ε（防止"过度打压"）</li>
@@ -358,7 +360,7 @@ S[π] = -Σ π(a|s) log π(a|s)    # 熵正则项（鼓励探索）</code></pre>
           id: "q16", num: "16",
           title: "什么是 GAE（Generalized Advantage Estimation）？λ 参数的作用是什么？",
           tags: [{text:"高频",cls:"hot"}, {text:"技术细节",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>GAE 是一种在<strong>偏差和方差之间平衡</strong>的 Advantage 估计方法：</p>
     <pre><code># 单步 TD Error
 δ_t = r_t + γ·V(s_{t+1}) - V(s_t)
@@ -368,7 +370,7 @@ A_t^GAE(λ) = Σ_{l=0}^∞ (γλ)^l · δ_{t+l}
 
 展开：
 A_t^GAE = δ_t + (γλ)·δ_{t+1} + (γλ)²·δ_{t+2} + ...</code></pre>
-    <p><strong>λ 的作用（0 ≤ λ ≤ 1）：</strong></p>
+    <h5 class="answer-subheading">λ 的作用（0 ≤ λ ≤ 1）：</h5>
     <ul>
       <li><strong>λ = 0：</strong>A_t = δ_t（单步 TD Error）——低方差，高偏差（过度依赖不准确的 V 函数）</li>
       <li><strong>λ = 1：</strong>A_t = G_t - V(s_t)（蒙特卡洛估计）——无偏差，高方差</li>
@@ -382,13 +384,13 @@ A_t^GAE = δ_t + (γλ)·δ_{t+1} + (γλ)²·δ_{t+2} + ...</code></pre>
           id: "q17", num: "17",
           title: "PPO 中的 Critic 网络如何训练？Value Function Clipping 是什么？",
           tags: [{text:"实现细节",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>Critic 的训练目标：</strong>让 V(s) 尽可能准确地估计实际回报。</p>
     <pre><code># 标准 Value Loss
 L_VF = (V_θ(s) - V_target)²
 
 其中 V_target = A_t^GAE + V_old(s)    # 用 GAE + 旧 V 值构造</code></pre>
-    <p><strong>Value Function Clipping（PPO 论文中的技巧）：</strong></p>
+    <h5 class="answer-subheading">Value Function Clipping（PPO 论文中的技巧）：</h5>
     <pre><code># 约束 V 的更新幅度
 V_clipped = V_old(s) + clip(V_θ(s) - V_old(s), -ε, ε)
 L_VF_clipped = max((V_θ(s) - V_target)², (V_clipped - V_target)²)
@@ -402,7 +404,7 @@ L_VF_clipped = max((V_θ(s) - V_target)², (V_clipped - V_target)²)
           id: "q18", num: "18",
           title: "PPO 在实现中有哪些关键的工程细节（Hyperparameters & Tricks）？",
           tags: [{text:"工程实践",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <ol>
       <li><strong>Clip 范围 ε</strong>：通常 0.1~0.2。太大 → 策略不稳定；太小 → 学习太慢。</li>
       <li><strong>GAE λ</strong>：通常 0.95~0.98。接近 1 时方差大，接近 0 时偏差大。</li>
@@ -424,7 +426,7 @@ L_VF_clipped = max((V_θ(s) - V_target)², (V_clipped - V_target)²)
           id: "q19", num: "19",
           title: "RLHF（RL from Human Feedback）的完整流程是怎样的？每个阶段的目标是什么？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"LLM 对齐核心",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p>RLHF 是 ChatGPT / Claude 等对齐的核心技术，分为三个阶段：</p>
     <pre><code>Phase 1 — SFT (Supervised Fine-Tuning)
 ┌─────────────────────────────────────────┐
@@ -438,10 +440,10 @@ L_VF_clipped = max((V_θ(s) - V_target)², (V_clipped - V_target)²)
 Phase 2 — Reward Model (RM) Training
 ┌─────────────────────────────────────────┐
 │ 对每个 Prompt 生成多个回答，人类排序    │
-│ Answer A > Answer B > Answer C          │
+│ Answer A &gt; Answer B &gt; Answer C          │
 │         ↓                               │
 │ 用 Bradley-Terry 偏好模型训练 RM        │
-│ P(A > B) = σ(r_A - r_B)                │
+│ P(A &gt; B) = σ(r_A - r_B)                │
 │ Loss = -log σ(r_win - r_lose)          │
 │ 目标：得到能模拟人类偏好的打分函数      │
 └─────────────────────────────────────────┘
@@ -462,13 +464,13 @@ Phase 3 — PPO 强化学习
           id: "q20", num: "20",
           title: "RLHF 中的 Reward Model 是如何训练的？Bradley-Terry 模型是什么？",
           tags: [{text:"高频",cls:"hot"}, {text:"核心组件",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>Reward Model 结构：</strong>通常是 SFT Model 去掉最后的 LM Head，换成一个输出标量的线性层。输入 prompt + response，输出一个分数 r。</p>
     <p><strong>训练数据格式：</strong>每个 prompt 有 K 个回答，人类标注排序（A > B > C > D）。从排序中抽取所有两两比较对。</p>
-    <p><strong>Bradley-Terry 偏好模型：</strong></p>
+    <h5 class="answer-subheading">Bradley-Terry 偏好模型：</h5>
     <pre><code>假设人类选择回答 A 而非 B 的概率取决于它们的"真实质量"r_A 和 r_B：
 
-P(A > B | r_A, r_B) = exp(r_A) / (exp(r_A) + exp(r_B))
+P(A &gt; B | r_A, r_B) = exp(r_A) / (exp(r_A) + exp(r_B))
                      = σ(r_A - r_B)      # sigmoid 形式
 
 其中 r = RewardModel(prompt, response)
@@ -484,7 +486,7 @@ L = -log σ(r_chosen - r_rejected)
           id: "q21", num: "21",
           title: "RLHF 中 KL 散度惩罚的作用是什么？为什么要防止策略偏离 SFT Model 太远？",
           tags: [{text:"高频",cls:"hot"}, {text:"对齐关键",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <pre><code># RLHF 完整的奖励信号
 R_total = R_RM(prompt, response) - β · KL(π_θ || π_SFT)
 
@@ -492,7 +494,7 @@ R_total = R_RM(prompt, response) - β · KL(π_θ || π_SFT)
 R_RM：Reward Model 给的奖励（人类偏好）
 KL 惩罚：当前策略与 SFT Model 的差异
 β：KL 惩罚系数（通常 0.01~0.1）</code></pre>
-    <p><strong>为什么需要 KL 惩罚：</strong></p>
+    <h5 class="answer-subheading">为什么需要 KL 惩罚：</h5>
     <ol>
       <li><strong>防止 Reward Hacking</strong>：没有 KL，PPO 会学会"钻 Reward Model 的空子"——输出格式怪异但 RM 打分高。</li>
       <li><strong>保持语言流畅性</strong>：SFT Model 经过了大量训练，其输出分布保证了基本的流畅性和语法正确性。偏离太远 → 输出可能变得不自然。</li>
@@ -506,7 +508,7 @@ KL 惩罚：当前策略与 SFT Model 的差异
           id: "q22", num: "22",
           title: "DPO（Direct Preference Optimization）与 RLHF 的核心区别是什么？为什么 DPO 更简单？",
           tags: [{text:"高频必考",cls:"hot"}, {text:"前沿方法",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>RLHF 的问题：</strong>需要训练 Reward Model + PPO 在线采样，流程复杂、不稳定、计算成本高。</p>
     <p><strong>DPO 的核心洞察：</strong>在 Bradley-Terry 偏好模型下，最优的 RLHF 策略有一个<strong>闭式解</strong>——可以直接从偏好数据中学习策略，完全跳过 Reward Model 和 PPO。</p>
     <pre><code># DPO Loss（直接优化策略，无需 RM + PPO）
@@ -535,7 +537,7 @@ L_DPO(π_θ; π_ref) = -log σ(
           id: "q23", num: "23",
           title: "RLHF 在实际中面临哪些核心挑战？有哪些改进方向？",
           tags: [{text:"工程实践",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <ol>
       <li><strong>Reward Hacking</strong>：策略找到 Reward Model 的漏洞，输出高分但低质量的回答。缓解方案：KL 惩罚、长度惩罚、多个 RM 集成、对抗训练 RM。</li>
       <li><strong>人类偏好噪声</strong>：标注者意见不一致、个人偏见。缓解：多人标注取平均/多数，按标注者建模。</li>
@@ -555,9 +557,9 @@ L_DPO(π_θ; π_ref) = -log σ(
           id: "q24", num: "24",
           title: "什么是稀疏奖励（Sparse Reward）问题？有哪些解决方案？",
           tags: [{text:"实践难题",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>问题：</strong>在大多数任务中，智能体只在完成目标时才获得正奖励（如围棋只在结束时知道输赢），中间步骤完全没有反馈。导致学习信号极度稀疏，探索困难。</p>
-    <p><strong>解决方案：</strong></p>
+    <h5 class="answer-subheading">解决方案：</h5>
     <ol>
       <li><strong>Reward Shaping（奖励塑形）</strong>：设计辅助奖励引导 Agent（如到达子目标给分）。风险：可能引入错误的归纳偏置。</li>
       <li><strong>Hindsight Experience Replay (HER)</strong>：将失败的经历重新标记——目标本来是 A 但达到了 B，就将这条数据重标为"目标是 B 且成功了"。</li>
@@ -572,7 +574,7 @@ L_DPO(π_θ; π_ref) = -log σ(
           id: "q25", num: "25",
           title: "什么是死记硬背问题（Deadly Triad）？它为什么会导致 Q-Learning 发散？",
           tags: [{text:"理论深度",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>Deadly Triad（致命三要素）</strong>由 Sutton 提出，当以下三个条件<strong>同时满足</strong>时，TD 学习可能发散：</p>
     <ol>
       <li><strong>Function Approximation（函数逼近）</strong>：用神经网络而非表格来近似 Q 值 — 引入泛化但也引入近似误差。</li>
@@ -588,7 +590,7 @@ L_DPO(π_θ; π_ref) = -log σ(
           id: "q26", num: "26",
           title: "SAC（Soft Actor-Critic）相比于 PPO 有什么特点？Maximum Entropy RL 是什么？",
           tags: [{text:"算法对比",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>SAC 的核心特点：</strong>Off-Policy + 最大熵 RL（Maximum Entropy RL）。</p>
     <pre><code># 标准 RL 目标
 max E[ Σ γ^t · r_t ]
@@ -614,9 +616,9 @@ Q(s,a) ← r + γ·E[ Q(s',a') - α·log π(a'|s') ]  # 带熵的 soft Q</code><
           id: "q27", num: "27",
           title: "如何处理 RL 中的部分可观测性（Partial Observability / POMDP）？",
           tags: [{text:"进阶问题",cls:"core"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <p><strong>问题：</strong>真实场景中，Agent 通常无法观测到环境的完整状态。如自动驾驶只能看到前方画面，不知道拐角后面有什么。</p>
-    <p><strong>解决方案：</strong></p>
+    <h5 class="answer-subheading">解决方案：</h5>
     <ol>
       <li><strong>Frame Stacking</strong>：将最近 K 帧作为状态（DQN 对 Atari 游戏的标准做法，4 帧叠加）。提供运动信息和短暂历史。</li>
       <li><strong>RNN/LSTM Policy</strong>：在策略网络中加入循环层，隐状态 h_t 编码历史观测信息。代表：DRQN（Deep Recurrent Q-Network）。</li>
@@ -630,7 +632,7 @@ Q(s,a) ← r + γ·E[ Q(s',a') - α·log π(a'|s') ]  # 带熵的 soft Q</code><
           id: "q28", num: "28",
           title: "在实际工程中，如何选择 RL 算法？有哪些决策框架？",
           tags: [{text:"工程选型",cls:"hot"}],
-          body: `    <div class="answer-section"><div class="answer-label">核心回答</div>
+          body: `    <div class="answer-section"><h4 class="answer-label">核心回答</h4>
     <table>
       <tr><th>场景</th><th>推荐算法</th><th>原因</th></tr>
       <tr><td>离散动作 + 模拟器（可大量采样）</td><td>PPO</td><td>稳定、易实现、调参经验丰富</td></tr>
