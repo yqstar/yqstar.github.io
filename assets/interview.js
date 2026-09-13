@@ -82,6 +82,8 @@ function renderSection(section, index) {
 }
 
 function renderInterview(data) {
+  // The toolbar is reused across imports; never carry an open popup into a new view.
+  if (IV.toolbar) IV.toolbar.open = false;
   const topic = ivTopic();
   const count = data.sections.reduce((total, section) => total + section.questions.length, 0);
   const toc = data.sections.map((section, index) => '<li><a href="#' + esc(section.id) + '">' +
@@ -282,6 +284,7 @@ function ivImport(file) {
       IV.invalidStored = false;
       renderInterview(data);
       ivMessage('题库已导入并保存，刷新后仍可使用。');
+      IV.toolbar.querySelector('summary').focus();
     } catch (error) { ivMessage('导入失败：' + (error.message || 'JSON 解析错误'), true); }
   };
   reader.onerror = () => ivMessage('读取文件失败，请重新选择文件。', true);
@@ -294,10 +297,22 @@ function ivReset() {
   IV.invalidStored = false;
   renderInterview(IV.current);
   ivMessage('已恢复内置题库。');
+  IV.toolbar.querySelector('summary').focus();
 }
 function ivRefreshToolbar(custom) {
   IV.toolbar.querySelector('.iv-reset').disabled = !custom;
   IV.toolbar.querySelector('.iv-state').textContent = IV.invalidStored ? '内置题库 · 本地数据异常' : custom ? '自定义题库' : '内置题库';
+}
+function ivPositionToolbar() {
+  if (!IV.toolbar?.open) return;
+  const toolbar = IV.toolbar;
+  const popup = toolbar.querySelector('.iv-tools-content');
+  const trigger = toolbar.querySelector('summary').getBoundingClientRect();
+  const below = window.innerHeight - trigger.bottom - 20;
+  const above = trigger.top - 20;
+  const placeAbove = below < popup.scrollHeight && above > below;
+  toolbar.dataset.placement = placeAbove ? 'above' : 'below';
+  popup.style.maxHeight = Math.max(0, placeAbove ? above : below) + 'px';
 }
 function ivBuildToolbar() {
   if (!IV.toolbar) {
@@ -314,6 +329,11 @@ function ivBuildToolbar() {
     toolbar.querySelector('.iv-export').addEventListener('click', () => { ivExport(); toolbar.open = false; toolbar.querySelector('summary').focus(); });
     toolbar.querySelector('.iv-import').addEventListener('click', () => { input.click(); toolbar.open = false; toolbar.querySelector('summary').focus(); });
     toolbar.querySelector('.iv-reset').addEventListener('click', ivReset);
+    toolbar.addEventListener('toggle', ivPositionToolbar);
+    // This is a non-modal disclosure: Tab follows document order and exits freely.
+    toolbar.addEventListener('focusout', event => {
+      if (!toolbar.contains(event.relatedTarget)) toolbar.open = false;
+    });
     toolbar.append(input);
     IV.toolbar = toolbar;
     IV.fileInput = input;
@@ -325,10 +345,15 @@ document.addEventListener('click', event => {
 });
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && IV.toolbar?.open) {
+    event.preventDefault();
     IV.toolbar.open = false;
     IV.toolbar.querySelector('summary').focus();
   }
 });
+window.addEventListener('resize', ivPositionToolbar);
+window.addEventListener('scroll', () => {
+  if (IV.toolbar?.open) ivPositionToolbar();
+}, { passive: true });
 function initInterview(defaultData) {
   IV.defaultData = defaultData;
   IV.current = ivLoad() || defaultData;
