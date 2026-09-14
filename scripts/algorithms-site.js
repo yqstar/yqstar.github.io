@@ -1,4 +1,4 @@
-// The only site addition: a link back to the Study Hub home page.
+// Site navigation; shared appearance is embedded separately by the sync script.
 (() => {
   const style = document.createElement("style");
   style.id = "study-hub-navigation-style";

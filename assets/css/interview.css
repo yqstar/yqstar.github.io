@@ -187,11 +187,17 @@
   .q-body th,.q-body td { padding:11px 13px; }
 }
 @media(max-width:380px) { .page-width { width:calc(100% - 32px); } }
+:root[data-theme="dark"] { --menu-shadow:0 10px 36px #0004; }
+:root[data-theme="dark"][data-topic="rl"] { --accent:#75d3be; --accent-soft:#203c3b; }
+:root[data-theme="dark"][data-topic="sft"] { --accent:#e8bb79; --accent-soft:#3c3329; }
+:root[data-theme="dark"][data-topic="agent"] { --accent:#c6a8ff; --accent-soft:#352d4e; }
+:root[data-theme="dark"] .q-tag.hot { color:#efb77e; background:#3e3127; }
+:root[data-theme="dark"] .iv-message.is-error { color:#ffb3b3; }
 @media(prefers-color-scheme:dark) {
-  :root { --menu-shadow:0 10px 36px #0004; }
-  [data-topic="rl"] { --accent:#75d3be; --accent-soft:#203c3b; }
-  [data-topic="sft"] { --accent:#e8bb79; --accent-soft:#3c3329; }
-  [data-topic="agent"] { --accent:#c6a8ff; --accent-soft:#352d4e; }
-  .q-tag.hot { color:#efb77e; background:#3e3127; }
-  .iv-message.is-error { color:#ffb3b3; }
+  :root:not([data-theme]) { --menu-shadow:0 10px 36px #0004; }
+  :root:not([data-theme])[data-topic="rl"] { --accent:#75d3be; --accent-soft:#203c3b; }
+  :root:not([data-theme])[data-topic="sft"] { --accent:#e8bb79; --accent-soft:#3c3329; }
+  :root:not([data-theme])[data-topic="agent"] { --accent:#c6a8ff; --accent-soft:#352d4e; }
+  :root:not([data-theme]) .q-tag.hot { color:#efb77e; background:#3e3127; }
+  :root:not([data-theme]) .iv-message.is-error { color:#ffb3b3; }
 }

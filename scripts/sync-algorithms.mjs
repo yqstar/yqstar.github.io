@@ -34,14 +34,39 @@ for (const [before, after] of labels) {
   }
   application = application.replace(before, () => after);
 }
+
+// Route startup, manual changes and backup restoration through the same preference.
+// Keep the upstream settings shape intact for existing records and JSON backups.
+const themeChanges = [
+  ['function applyTheme(theme) {', 'function applyTheme(theme, persist = true) {'],
+  ['  elements.theme_button.title = label;\n}',
+    '  elements.theme_button.title = label;\n  window.StudyHubTheme.set(theme, { persist });\n}'],
+  ['  showCatalog();\n  applyTheme(state.settings.theme);',
+    '  showCatalog();\n  applyTheme(window.StudyHubTheme.get(), false);'],
+  ['    lastImportUndo = { records: plan.beforeRecords, settings: plan.beforeSettings };',
+    '    lastImportUndo = { records: plan.beforeRecords, settings: plan.beforeSettings, themePreference: plan.settingsChanged ? window.StudyHubTheme.getPreference() : null };\n    if (plan.settingsChanged) window.StudyHubTheme.setPreference(state.settings.theme, { persist: !memoryOnly });'],
+  ['    commitImportedState(next, !storageAvailable);\n    lastImportUndo = null;',
+    '    commitImportedState(next, !storageAvailable);\n    if (lastImportUndo.themePreference) window.StudyHubTheme.setPreference(lastImportUndo.themePreference, { persist: storageAvailable });\n    lastImportUndo = null;'],
+  ['initializeCatalogFilters();\napplyTheme(state.settings.theme);',
+    'window.addEventListener("study-hub-theme-change", event => applyTheme(event.detail.theme, false));\n\ninitializeCatalogFilters();\napplyTheme(state.settings.theme, false);'],
+];
+for (const [before, after] of themeChanges) {
+  if (application.split(before).length !== 2) {
+    throw new Error(`上游主题逻辑已改变，请检查全站主题适配：${before}`);
+  }
+  application = application.replace(before, () => after);
+}
 const marker = "const state = loadState();";
 if (application.split(marker).length !== 2 || !application.includes('id="app-header"') || !application.includes('class="header-leading"')) {
   throw new Error("上游启动结构已改变，请检查站点适配逻辑");
 }
 const adapter = await readFile(new URL("./algorithms-site.js", import.meta.url), "utf8");
-const adapted = application.replace(marker, () => `${adapter}\n${marker}`);
+const theme = await readFile(new URL("../assets/js/theme.js", import.meta.url), "utf8");
+if (/<\/script/i.test(theme)) throw new Error("共享主题脚本包含 script 结束标记，无法安全内嵌。");
+const adapted = application.replace(marker, () => `${adapter}\n${marker}\nstate.settings.theme = window.StudyHubTheme.get();`);
 const output = adapted
-  .replace("<head>", `<head>\n  <!-- Source revision: ${revision}; see ../NOTICE.md\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-algorithms.mjs; site changes: display naming and scripts/algorithms-site.js navigation -->`);
+  .replace('<meta name="color-scheme" content="light dark">', () => `<meta name="color-scheme" content="light dark">\n<script>\n${theme}</script>`)
+  .replace("<head>", `<head>\n  <!-- Source revision: ${revision}; see ../NOTICE.md\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-algorithms.mjs; site changes: display naming, navigation and shared appearance -->`);
 await mkdir(new URL("../pages/", import.meta.url), { recursive: true });
 await writeFile(new URL("../pages/algorithms.html", import.meta.url), output);
 console.log(`已更新 pages/algorithms.html：${(Buffer.byteLength(output) / 1024 / 1024).toFixed(2)} MiB，来源 ${revision.slice(0, 7)}`);

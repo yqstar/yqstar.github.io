@@ -94,7 +94,7 @@ function renderInterview(data) {
   document.getElementById('app').innerHTML =
     '<a class="skip-link" href="#iv-content">跳转到题目</a>' + ivSidebar(topic) +
     '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../../index.html">学习空间</a>' + ivIcon('chevron') +
-    '<span>AI 面试专题</span>' + ivIcon('chevron') + '<span aria-current="page">' + esc(topic.name) + '</span></nav><span class="workspace-label">INTERVIEW HANDBOOK</span></div>' +
+    '<span>AI 面试专题</span>' + ivIcon('chevron') + '<span aria-current="page">' + esc(topic.name) + '</span></nav><div class="workspace-actions"><span class="workspace-label">INTERVIEW HANDBOOK</span><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>' +
     '<header class="page-header"><div class="page-header-main"><span class="reader-topic-icon">' + ivIcon(topic.key) + '</span><div><p class="topic-kicker">' + esc(data.highlight) + '</p>' +
     '<h1>' + esc(data.title) + '</h1></div></div><p class="subtitle">' + esc(data.subtitle) + '</p>' +
     '<div class="page-meta"><div><strong>' + count + '</strong><span>精选题目</span></div><div><strong>' + String(data.sections.length).padStart(2, '0') + '</strong><span>知识章节</span></div></div></header>' +
@@ -103,6 +103,8 @@ function renderInterview(data) {
     '<nav aria-label="章节目录"><ol class="toc-list">' + toc + '</ol></nav></details><div class="toc-footnote">按章节梳理，逐个理解。</div></aside>' +
     '<div class="questions" id="iv-content" tabindex="-1">' + data.sections.map(renderSection).join('') + (data.sections.length ? '' : '<p class="empty-state">当前题库没有章节。</p>') + '</div></div>' +
     '<footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>专注练习，持续积累。</span><span class="footer-credit">' + data.footer + '</span></footer></main>';
+
+  window.StudyHubTheme?.refreshControls();
 
   // Keep home links in previously saved or imported footers working after the move.
   document.querySelectorAll('.footer-credit a[href]').forEach(link => {
