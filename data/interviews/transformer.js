@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-topic="transformer">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta name="description" content="28 道 Transformer 精选面试题 — Self-Attention · Multi-Head · Positional Encoding · Encoder-Decoder 全覆盖。">
-<title>Transformer 面试题 — 从注意力机制到预训练</title>
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/common.css">
-</head>
-<body>
-<div id="app"></div>
-<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
-<script src="assets/interview.js"></script>
-<script>
 const DATA = {
   icon: "🧠",
   title: "Transformer",
@@ -662,9 +646,5 @@ y = Σ weights_i · Expert_i(x)             # 加权求和选中专家的输出<
       ]
     },
   ],
-  footer: `Transformer 面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>`
+  footer: `Transformer 面试题集 &copy; 2026 · <a href="../../index.html">返回 Study Hub</a>`
 };
-initInterview(DATA);
-</script>
-</body>
-</html>

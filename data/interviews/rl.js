@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-topic="rl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta name="description" content="28 道强化学习精选面试题 — MDP · Q-Learning · Policy Gradient · PPO · RLHF 全覆盖。">
-<title>强化学习面试题 — 从 MDP 到 RLHF</title>
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/common.css">
-</head>
-<body>
-<div id="app"></div>
-<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
-<script src="assets/interview.js"></script>
-<script>
 const DATA = {
   icon: "🎯",
   title: "强化学习",
@@ -650,9 +634,5 @@ Q(s,a) ← r + γ·E[ Q(s',a') - α·log π(a'|s') ]  # 带熵的 soft Q</code><
       ]
     },
   ],
-  footer: `强化学习面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>`
+  footer: `强化学习面试题集 &copy; 2026 · <a href="../../index.html">返回 Study Hub</a>`
 };
-initInterview(DATA);
-</script>
-</body>
-</html>

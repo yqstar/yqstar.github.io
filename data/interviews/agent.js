@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-topic="agent">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta name="description" content="30 道 AI Agent 精选面试题 — ReAct · Tool Use · Planning · Memory · Multi-Agent 全覆盖。">
-<title>AI Agent 面试题 — 从基础到多智能体</title>
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/common.css">
-</head>
-<body>
-<div id="app"></div>
-<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
-<script src="assets/interview.js"></script>
-<script>
 const DATA = {
   icon: "🤖",
   title: "AI Agent",
@@ -834,9 +818,5 @@ user_proxy.initiate_chat(manager, message="开发一个数据分析仪表板")</
       ]
     },
   ],
-  footer: `AI Agent 面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>`
+  footer: `AI Agent 面试题集 &copy; 2026 · <a href="../../index.html">返回 Study Hub</a>`
 };
-initInterview(DATA);
-</script>
-</body>
-</html>

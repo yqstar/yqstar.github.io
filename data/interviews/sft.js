@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-topic="sft">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
-<meta name="description" content="28 道 SFT & 微调精选面试题 — LoRA · QLoRA · Instruction Tuning · PEFT · 训练与评估全覆盖。">
-<title>SFT & 微调面试题 — 从 LoRA 到 RLHF</title>
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/common.css">
-</head>
-<body>
-<div id="app"></div>
-<noscript><p class="noscript-note">请启用 JavaScript 查看面试题。<a href="index.html">返回 Study Hub</a></p></noscript>
-<script src="assets/interview.js"></script>
-<script>
 const DATA = {
   icon: "📚",
   title: "SFT & 微调",
@@ -902,9 +886,5 @@ Base (已量化) → 推理时动态加载 LoRA (FP16) → 实时 Merge 计算
       ]
     },
   ],
-  footer: `SFT & 微调面试题集 &copy; 2026 · <a href="index.html">返回 Study Hub</a>`
+  footer: `SFT & 微调面试题集 &copy; 2026 · <a href="../../index.html">返回 Study Hub</a>`
 };
-initInterview(DATA);
-</script>
-</body>
-</html>

@@ -1,4 +1,4 @@
-/* Shared reader for the four AI interview topics. Question data stays in each HTML. */
+/* Shared reader for the four AI interview topics. Default data lives in data/interviews/. */
 const INTERVIEW_TOPICS = [
   { key: 'transformer', name: 'Transformer' },
   { key: 'rl', name: 'RL' },
@@ -32,8 +32,8 @@ function ivIcon(name) {
 }
 function ivSidebar(topic) {
   const links = [
-    { key: 'overview', href: 'index.html', label: '学习概览' },
-    { key: 'code', href: 'leetcode.html', label: 'LeetCode Hot 100' },
+    { key: 'overview', href: '../../index.html', label: '学习概览' },
+    { key: 'code', href: '../leetcode.html', label: 'LeetCode Hot 100' },
     { key: 'transformer', href: 'transformer-interview.html', label: 'Transformer' },
     { key: 'rl', href: 'rl-interview.html', label: '强化学习' },
     { key: 'sft', href: 'sft-interview.html', label: 'SFT & 微调' },
@@ -45,7 +45,7 @@ function ivSidebar(topic) {
     (link.key === topic.key ? ' aria-current="page"' : '') + '>' + ivIcon(link.key) + '<span class="nav-text">' + esc(link.label) + '</span></a>'
   ).join('');
   return '<aside class="site-sidebar" aria-label="学习空间导航">' +
-    '<a class="brand" href="index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub<span class="brand-caption">ALGORITHM &amp; AI</span></span></a>' +
+    '<a class="brand" href="../../index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub<span class="brand-caption">ALGORITHM &amp; AI</span></span></a>' +
     '<nav class="sidebar-nav" aria-label="学习专题">' + navigation + '</nav>' +
     '<div class="sidebar-footer"><div class="sidebar-note"><strong>理解原理，也动手实践。</strong><p>从一道题开始，<br>积累自己的知识体系。</p></div><div class="sidebar-signature">BUILT FOR LEARNING</div></div></aside>';
 }
@@ -93,7 +93,7 @@ function renderInterview(data) {
   document.body.classList.add('site-shell');
   document.getElementById('app').innerHTML =
     '<a class="skip-link" href="#iv-content">跳转到题目</a>' + ivSidebar(topic) +
-    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="index.html">学习空间</a>' + ivIcon('chevron') +
+    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../../index.html">学习空间</a>' + ivIcon('chevron') +
     '<span>AI 面试专题</span>' + ivIcon('chevron') + '<span aria-current="page">' + esc(topic.name) + '</span></nav><span class="workspace-label">INTERVIEW HANDBOOK</span></div>' +
     '<header class="page-header"><div class="page-header-main"><span class="reader-topic-icon">' + ivIcon(topic.key) + '</span><div><p class="topic-kicker">' + esc(data.highlight) + '</p>' +
     '<h1>' + esc(data.title) + '</h1></div></div><p class="subtitle">' + esc(data.subtitle) + '</p>' +
@@ -104,6 +104,13 @@ function renderInterview(data) {
     '<div class="questions" id="iv-content" tabindex="-1">' + data.sections.map(renderSection).join('') + (data.sections.length ? '' : '<p class="empty-state">当前题库没有章节。</p>') + '</div></div>' +
     '<footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>专注练习，持续积累。</span><span class="footer-credit">' + data.footer + '</span></footer></main>';
 
+  // Keep home links in previously saved or imported footers working after the move.
+  document.querySelectorAll('.footer-credit a[href]').forEach(link => {
+    const href = link.getAttribute('href');
+    if (/^(?:\.\/)?index\.html(?:[?#]|$)/.test(href)) {
+      link.setAttribute('href', '../../' + href.replace(/^\.\//, ''));
+    }
+  });
   ivFormatAnswers();
   // Keep tables and long formulas inside their own scroll areas on small screens.
   document.querySelectorAll('.q-body table').forEach(table => {
