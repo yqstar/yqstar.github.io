@@ -33,7 +33,7 @@ function ivIcon(name) {
 function ivSidebar(topic) {
   const links = [
     { key: 'overview', href: '../../index.html', label: '学习概览' },
-    { key: 'code', href: '../leetcode.html', label: 'LeetCode Hot 100' },
+    { key: 'code', href: '../algorithms.html', label: '算法训练场' },
     { key: 'transformer', href: 'transformer-interview.html', label: 'Transformer' },
     { key: 'rl', href: 'rl-interview.html', label: '强化学习' },
     { key: 'sft', href: 'sft-interview.html', label: 'SFT & 微调' },

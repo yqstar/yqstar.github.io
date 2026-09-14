@@ -1,6 +1,6 @@
 # Algorithm & AI Study Hub
 
-原生 HTML/CSS/JavaScript 静态学习站，包含 LeetCode Hot 100 和 Transformer、RL、SFT、Agent 面试题。无需安装依赖或构建即可运行。
+原生 HTML/CSS/JavaScript 静态学习站，包含 100 道 Python 算法练习和 Transformer、RL、SFT、Agent 面试题。无需安装依赖或构建即可运行。
 
 ## 项目结构
 
@@ -8,7 +8,7 @@
 .
 ├── index.html                 # Study Hub 首页
 ├── pages/
-│   ├── leetcode.html          # LeetCode 独立离线页面
+│   ├── algorithms.html        # 算法训练场独立离线页面
 │   └── interviews/
 │       ├── transformer-interview.html
 │       ├── rl-interview.html
@@ -27,9 +27,10 @@
 │       ├── rl.js
 │       ├── sft.js
 │       └── agent.js
-└── scripts/
-    ├── sync-leetcode.mjs      # 校验并同步 LeetCode 源文件
-    └── leetcode-site.js       # 注入返回 Study Hub 导航
+├── scripts/
+│   ├── sync-algorithms.mjs    # 校验、同步及调整站点命名
+│   └── algorithms-site.js    # 注入返回 Study Hub 导航
+└── NOTICE.md                 # 原始来源与许可说明
 ```
 
 根目录只保留首页 `index.html`，子页面归入 `pages/`，其中四个面试专题统一放在 `pages/interviews/`。样式、交互和面试题库分别放在 `assets/css/`、`assets/js/` 和 `data/interviews/`。站内导航均指向新路径；面试页文件名不变，同一站点的浏览器题库继续沿用原存储键。
@@ -50,27 +51,22 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 调整共用外观时编辑 `assets/css/site.css`，面试页专属样式编辑 `assets/css/interview.css`。页面内的导入、导出和本地存储用于浏览器中的学习数据，不会写回仓库文件；需要更新站点题库时仍应修改对应的 `data/interviews/*.js`。
 
-## LeetCode 离线训练场
+## 算法训练场
 
-`pages/leetcode.html` 基于 [leetcode_hot100_html 的压缩单文件版本](https://github.com/yqstar/leetcode_hot100_html/blob/5828bd249feede51f752ee42f9ee92254ac84933/lc_offline_compact.html)，约 12 MiB，内嵌 100 道题、题解、评测器、格式化器和 Python 运行时。首次访问需下载完整页面，保存文件后可直接离线打开；使用支持原生 Base64 和 DecompressionStream 的现代浏览器。
+`pages/algorithms.html` 基于未压缩单文件版本，约 20 MiB，直接保留 HTML、CSS 和 JavaScript，内嵌 100 道题、题解、评测器、格式化器和 Python 运行时。首次访问需下载完整页面，保存文件后可直接离线打开；使用支持原生 Base64 的现代浏览器。
 
-`pages/leetcode.html` 与源文件保持相同实现，唯一新增功能是顶部返回 Study Hub 首页（`../index.html`）的入口，窄屏时独占一行。代码、笔记和进度沿用源文件的浏览器存储逻辑，可通过页面导出 JSON 备份。
+站点统一使用「算法训练场」名称，并在顶部添加返回 Study Hub 首页（`../index.html`）的入口，窄屏时独占一行。题目与运行逻辑沿用源文件；历史存储键和 JSON 备份格式保持兼容，已有代码、笔记和进度在同一站点来源下继续可用。
 
-上游题面、Pyodide、CPython 和 Black 的来源及许可说明保留在页面内，详见[上游说明](https://github.com/yqstar/leetcode_hot100_html#readme)。
+题目示例保留原始内容，来源和许可集中在 [NOTICE.md](NOTICE.md)。
 
 ### 更新离线页面
 
-当前固定上游提交 `5828bd249feede51f752ee42f9ee92254ac84933`，源文件的 SHA-256 为 `465df34ec046883997439d213bb2ea4d4a2d1f19d861cc374c251bba37cf0ae1`。
+当前固定上游提交 `5828bd249feede51f752ee42f9ee92254ac84933`，源文件的 SHA-256 为 `a745776bc832a1080ebfa1ad6f266fa39aaf5d2e01405e7ef55803570d7f9870`。
+
+下载方式见 [来源说明](NOTICE.md)，也可直接使用本地原始文件：
 
 ```bash
-curl -sS -L --fail https://raw.githubusercontent.com/yqstar/leetcode_hot100_html/5828bd249feede51f752ee42f9ee92254ac84933/lc_offline_compact.html -o /tmp/lc_offline_compact.html
-node scripts/sync-leetcode.mjs /tmp/lc_offline_compact.html
+node scripts/sync-algorithms.mjs /path/to/lc_offline.html
 ```
 
-也可直接使用本地源文件：
-
-```bash
-node scripts/sync-leetcode.mjs /Users/yq/Documents/leetcode_hot100_html/lc_offline_compact.html
-```
-
-同步脚本校验来源文件，解压后仅加入 `scripts/leetcode-site.js` 中的返回导航，再重新压缩并写入 `pages/leetcode.html`。题库、界面、编辑器、存储、评测器及 Python 加载均保留源文件实现，运行时不依赖外部脚本。升级上游版本时先检查导航注入点，再一起更新脚本中的提交号与校验值。
+同步脚本校验来源文件，替换站点展示名称并加入 `scripts/algorithms-site.js` 中的返回导航，直接写入 `pages/algorithms.html`，不压缩或添加解压启动页。题库、编辑器、存储、评测器及 Python 加载保留源文件实现，运行时不依赖外部脚本。升级上游版本时先检查文案和导航注入点，再一起更新提交号与校验值。
