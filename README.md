@@ -30,7 +30,9 @@
 │       └── agent.js
 ├── scripts/
 │   ├── sync-algorithms.mjs    # 校验、同步及调整站点命名
-│   └── algorithms-site.js    # 注入返回 Study Hub 导航
+│   ├── algorithms-site.js    # 注入返回 Study Hub 导航
+│   ├── algorithms-runtime.js # 内嵌 Python 启动与错误处理适配
+│   └── check-algorithms-runtime.mjs # 浏览器运行时回归检查
 └── NOTICE.md                 # 原始来源与许可说明
 ```
 
@@ -64,7 +66,7 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 站点统一使用「算法训练场」名称，并在顶部添加返回 Study Hub 首页（`../index.html`）的入口，窄屏时独占一行。题目与评测逻辑沿用源文件，Python 加载增加浏览器兼容适配；历史存储键和 JSON 备份格式保持兼容，已有代码、笔记和进度在同一站点来源下继续可用。
 
-Python Worker 直接通过内嵌 `data:` 地址导入 JavaScript 模块，避免部分浏览器在离线 Worker 中导入 `blob:null` 模块时失败。Wasm 和标准库仍从内嵌内容加载，运行代码和格式化无需联网。
+Python Worker 通过内嵌 `data:` 地址导入 JavaScript 模块，Wasm 和标准库直接从内存提供，不再依赖 Worker 内的 Blob URL 读取。Wasm 使用已缓存字节进行编译，并保留 Pyodide 的初始化钩子；底层编译失败会立即传回页面，避免被加载器吞掉后只显示“启动超时”。状态栏显示当前启动阶段，失败后可点击运行重试。运行代码和格式化无需联网。
 
 题目示例保留原始内容，来源和许可集中在 [NOTICE.md](NOTICE.md)。
 
@@ -78,7 +80,7 @@ Python Worker 直接通过内嵌 `data:` 地址导入 JavaScript 模块，避免
 node scripts/sync-algorithms.mjs /path/to/lc_offline.html
 ```
 
-同步脚本校验来源文件，替换站点展示名称，加入 `scripts/algorithms-site.js` 中的返回导航，并内嵌共享主题脚本、接入主题初始化和备份恢复、适配离线模块加载，直接写入 `pages/algorithms.html`，不压缩或添加解压启动页。题库、编辑器、学习记录存储和评测器保留源文件实现，运行时不依赖外部脚本。升级上游版本时先检查文案、导航、主题和运行时适配点，再一起更新提交号与校验值。
+同步脚本校验来源文件，替换站点展示名称，加入 `scripts/algorithms-site.js` 中的返回导航，并内嵌共享主题脚本和 `scripts/algorithms-runtime.js` 中的启动适配，直接写入 `pages/algorithms.html`，不压缩或添加解压启动页。题库、编辑器、学习记录存储和 Python 评测逻辑保留源文件实现，运行时不依赖外部脚本。修改运行时适配后也需重新运行同步命令。升级上游版本时先检查文案、导航、主题和运行时适配点，再一起更新提交号与校验值。
 
 ### 运行时回归检查
 
@@ -88,4 +90,4 @@ node scripts/sync-algorithms.mjs /path/to/lc_offline.html
 node scripts/check-algorithms-runtime.mjs
 ```
 
-脚本使用临时浏览器配置，检查 HTTP 和独立 `file://` 页面的 Python 启动、移动零判题、格式化、启动失败重试及运行超时后恢复，并禁止 Worker 请求外部 HTTP(S) 资源。默认使用 macOS Chrome 路径，其他安装位置可通过 `CHROME_PATH` 指定。
+脚本使用临时浏览器配置，检查 HTTP 和独立 `file://` 页面的 Python 启动、判题、格式化、启动失败重试及运行超时后恢复。测试禁止 Worker 请求外部 HTTP(S) 资源及读取 Blob URL，并模拟流式编译不可用、Wasm 编译失败，验证兼容加载和底层错误上报。默认使用 macOS Chrome 路径，其他安装位置可通过 `CHROME_PATH` 指定；这些兼容性模拟不代表实际 Safari 测试。

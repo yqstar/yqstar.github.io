@@ -35,22 +35,18 @@ for (const [before, after] of labels) {
   application = application.replace(before, () => after);
 }
 
-// data: workers have opaque origins. Import embedded JS as data: modules to
-// avoid browser-dependent CORS failures when importing their blob:null URLs.
-// Keep binary Blob URLs and Pyodide's Wasm initialization hook unchanged.
-const runtimeChanges = [
-  ['          createRuntimeUrl(message.runtime.loader, "text/javascript"),\n          createRuntimeUrl(message.runtime.asmModule, "text/javascript"),\n', ''],
-  ['? runtimeUrls[2] : url, options,', '? runtimeUrls[0] : url, options,'],
-  ['        const [loader, asmModule] = await Promise.all([import(runtimeUrls[0]), import(runtimeUrls[1])]);',
-    '        // Inline modules also load in opaque-origin workers used by offline files.\n        const [loader, asmModule] = await Promise.all([\n          import("data:text/javascript;base64," + message.runtime.loader),\n          import("data:text/javascript;base64," + message.runtime.asmModule),\n        ]);'],
-  ['          stdLibURL: runtimeUrls[3],', '          stdLibURL: runtimeUrls[1],'],
-];
-for (const [before, after] of runtimeChanges) {
-  if (application.split(before).length !== 2) {
-    throw new Error(`上游运行时逻辑已改变，请检查离线模块加载适配：${before}`);
-  }
-  application = application.replace(before, () => after);
+// Keep the runtime adapter editable while the generated HTML stays self-contained.
+const runtimeStart = "// src/ui/judge.js\n";
+const runtimeEnd = "function formatConsoleValue(value) {";
+if (application.split(runtimeStart).length !== 2 || application.split(runtimeEnd).length !== 2) {
+  throw new Error("上游运行时结构已改变，请检查内嵌 Python 启动适配。");
 }
+const runtime = await readFile(new URL("./algorithms-runtime.js", import.meta.url), "utf8");
+if (/<\/script/i.test(runtime)) throw new Error("运行时适配包含 script 结束标记，无法安全内嵌。");
+const runtimeStartIndex = application.indexOf(runtimeStart);
+const runtimeEndIndex = application.indexOf(runtimeEnd, runtimeStartIndex);
+if (runtimeEndIndex < 0) throw new Error("上游运行时结束位置无效。");
+application = application.slice(0, runtimeStartIndex) + runtime + application.slice(runtimeEndIndex);
 
 // Route startup, manual changes and backup restoration through the same preference.
 // Keep the upstream settings shape intact for existing records and JSON backups.

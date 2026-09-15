@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const chromePath = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+const suiteStarted = Date.now();
 // Keep the reported user solution independent of future reference-solution changes.
 const moveZeroesSource = `class Solution:
     def moveZeroes(self, nums):
@@ -20,6 +21,12 @@ const moveZeroesSource = `class Solution:
                 nums[write] = x
                 write += 1
         nums[write:] = [0] * (len(nums) - write)`;
+const twoSumSource = `class Solution:
+    def twoSum(self, nums, target):
+        for left in range(len(nums)):
+            for right in range(left + 1, len(nums)):
+                if nums[left] + nums[right] == target:
+                    return [left, right]`;
 
 class CdpPipe {
   constructor(child) {
@@ -73,16 +80,45 @@ const temporary = await mkdtemp(join(tmpdir(), 'algorithms-runtime-'));
 const workerSessions = new Set();
 const externalRequests = [];
 const workerSetupErrors = [];
-// Deterministic compatibility simulation: JavaScript Blob URLs cannot be imported.
-// This is not a Safari/WebKit test; it reproduces that module-loading constraint.
-const unavailableJavaScriptBlobs = `(() => {
+let nextWorkerMode = 'normal';
+const workerFaultModes = new Map();
+// Deterministic compatibility simulation, not a Safari/WebKit test: Blob URL
+// imports and binary fetches are unavailable, even when the Worker created them.
+function simulateWorkerCompatibility(mode) {
   const create = URL.createObjectURL.bind(URL);
   URL.createObjectURL = blob => {
     const url = create(blob);
-    if (/javascript/.test(blob.type)) URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
     return url;
   };
-})()`;
+  const nativeFetch = self.fetch.bind(self);
+  self.fetch = (input, options) => {
+    const url = typeof input === 'string' || input instanceof URL ? String(input) : input.url;
+    if (url.startsWith('blob:')) return Promise.reject(new TypeError('regression: Worker Blob fetch unavailable'));
+    return nativeFetch(input, options);
+  };
+  if (mode === 'normal') return;
+  WebAssembly.instantiateStreaming = async () => {
+    throw new WebAssembly.CompileError(mode === 'compile-failure'
+      ? 'regression: unsupported WebAssembly module'
+      : 'regression: streaming compilation unavailable');
+  };
+  if (mode !== 'compile-failure') return;
+  // Permit the small feature probes used by Pyodide. Reject the actual Python
+  // module whether the caller compiles first or instantiates its bytes directly.
+  const isRuntimeModule = input => input instanceof WebAssembly.Module
+    ? WebAssembly.Module.exports(input).length > 10
+    : input?.byteLength > 1024;
+  for (const method of ['compile', 'instantiate']) {
+    const nativeMethod = WebAssembly[method].bind(WebAssembly);
+    WebAssembly[method] = async (input, ...options) => {
+      if (isRuntimeModule(input)) {
+        throw new WebAssembly.CompileError('regression: unsupported WebAssembly module');
+      }
+      return nativeMethod(input, ...options);
+    };
+  }
+}
 async function evaluate(session, expression) {
   const result = await cdp.send('Runtime.evaluate', {
     expression, awaitPromise: true, returnByValue: true,
@@ -123,15 +159,17 @@ try {
   cdp.onEvent = message => {
     if (message.method === 'Target.attachedToTarget') {
       const { sessionId, targetInfo } = message.params;
-      // Pause each real Worker before startup, then block all HTTP(S) fetches/imports.
-      // Embedded blob:/data: assets remain available, including the Wasm URL mapping.
+      // Pause each real Worker before startup, then block HTTP(S) and Blob loads.
+      const faultMode = nextWorkerMode;
       (async () => {
         if (targetInfo.type === 'worker') {
           workerSessions.add(sessionId);
+          workerFaultModes.set(sessionId, faultMode);
           await cdp.send('Network.enable', {}, sessionId);
           await cdp.send('Network.setBlockedURLs', { urls: ['http://*', 'https://*'] }, sessionId);
-          const injected = await cdp.send('Runtime.evaluate', { expression: unavailableJavaScriptBlobs }, sessionId);
-          if (injected.exceptionDetails) throw new Error('Could not inject JavaScript Blob compatibility simulation');
+          const expression = `(${simulateWorkerCompatibility.toString()})(${JSON.stringify(faultMode)})`;
+          const injected = await cdp.send('Runtime.evaluate', { expression }, sessionId);
+          if (injected.exceptionDetails) throw new Error('Could not inject Worker compatibility simulation');
         }
         await cdp.send('Runtime.runIfWaitingForDebugger', {}, sessionId);
       })().catch(error => workerSetupErrors.push(error.message));
@@ -159,7 +197,7 @@ try {
     assert.equal(await evaluate(sessionId, `(async () => {
       await ensureJudge(); return elements.runtime_status.classList.contains('ready');
     })()`), true, `${label}: Python becomes ready`);
-    console.log(`PASS ${label}: Python startup; worker HTTP(S) blocked; inaccessible JS Blob simulation`);
+    console.log(`PASS ${label}: Python startup; Worker HTTP(S) and all Blob loads blocked`);
 
     const results = await evaluate(sessionId, `(async () => {
       const { code, tests, note, complexity, ...meta } = SOLUTIONS['move-zeroes'];
@@ -174,6 +212,20 @@ try {
     await waitFor(sessionId, `!evaluationInProgress && testConsoleState.evaluation !== null`);
     assert.equal(await evaluate(sessionId, `testConsoleState.evaluation?.passed && elements.result_panel.textContent.includes('运行通过')`), true);
     console.log(`PASS ${label}: move-zeroes mutations and Run button results`);
+
+    const twoSumResults = await evaluate(sessionId, `(async () => {
+      const { code, tests, note, complexity, ...meta } = SOLUTIONS['two-sum'];
+      return evaluate({ mode: 'core', userCode: ${JSON.stringify(twoSumSource)}, referenceCode: code, meta,
+        cases: tests.map(value => ({ value })) }, 6000);
+    })()`);
+    assert.equal(twoSumResults.passed, true, `${label}: two-sum cases pass`);
+    assert.deepEqual(twoSumResults.results.map(item => JSON.parse(item.actual)), [[0, 1], [1, 2], [0, 1], [0, 2]]);
+    await evaluate(sessionId, `openProblem('two-sum'); elements.code_editor.value = ${JSON.stringify(twoSumSource)};
+      elements.code_editor.dispatchEvent(new Event('input', { bubbles: true })); elements.submit_button.click();`);
+    await waitFor(sessionId, `!evaluationInProgress && recordFor('two-sum').attempts === 1`);
+    assert.equal(await evaluate(sessionId, `recordFor('two-sum').status === 'solved'
+      && testConsoleState.evaluation?.passed && elements.result_panel.textContent.includes('全部通过')`), true);
+    console.log(`PASS ${label}: two-sum evaluation and Submit button record successful progress`);
 
     const formatted = await evaluate(sessionId, `formatPythonSource('x=1+2\\nprint( x )\\n')`);
     assert.equal(formatted.ok, true);
@@ -196,6 +248,38 @@ try {
     assert.equal(retry.passed, true);
     console.log(`PASS ${label}: startup failure clears cached promise and permits retry`);
 
+    await evaluate(sessionId, `(async () => { (await ensureJudge()).terminate(); judgeReady = null; })()`);
+    nextWorkerMode = 'streaming-failure';
+    const withoutStreaming = await evaluate(sessionId, `(async () => {
+      await ensureJudge(); return (await evaluate(runtimeTestPayload, 6000)).passed;
+    })()`);
+    assert.equal(withoutStreaming, true, `${label}: Python works when streaming compilation is unavailable`);
+    assert.equal(workerFaultModes.get([...workerSessions].at(-1)), 'streaming-failure');
+    console.log(`PASS ${label}: Python startup and evaluation with streaming compilation unavailable`);
+
+    await evaluate(sessionId, `(async () => { (await ensureJudge()).terminate(); judgeReady = null; })()`);
+    nextWorkerMode = 'compile-failure';
+    const compilationFailure = await evaluate(sessionId, `(async () => {
+      let timer;
+      const started = performance.now();
+      const result = await Promise.race([
+        ensureJudge().then(() => ({ failure: '' }), error => ({ failure: error.message })),
+        new Promise(resolve => { timer = setTimeout(() => resolve({ failure: 'regression: compilation error was not reported promptly' }), 10000); }),
+      ]);
+      clearTimeout(timer);
+      return { ...result, elapsed: performance.now() - started, cleared: judgeReady === null };
+    })()`);
+    assert.match(compilationFailure.failure, /regression: unsupported WebAssembly module/,
+      `${label}: report the underlying compilation error instead of a startup timeout`);
+    assert.ok(compilationFailure.elapsed < 10000, `${label}: compilation failure is reported promptly`);
+    assert.equal(compilationFailure.cleared, true);
+    assert.equal(workerFaultModes.get([...workerSessions].at(-1)), 'compile-failure');
+    nextWorkerMode = 'normal';
+    assert.equal(await evaluate(sessionId, `(async () => {
+      await ensureJudge(); return (await evaluate(runtimeTestPayload, 6000)).passed;
+    })()`), true, `${label}: real compilation failure permits a successful retry`);
+    console.log(`PASS ${label}: underlying compilation failure reported in ${Math.round(compilationFailure.elapsed)}ms; fresh Worker retry succeeds`);
+
     const recovery = await evaluate(sessionId, `(async () => {
       let failure;
       try { await evaluate({ ...runtimeTestPayload, userCode: 'while True:\\n    pass' }, 200); }
@@ -206,13 +290,13 @@ try {
     assert.match(recovery.failure || '', /已终止 Python 进程/);
     assert.equal(recovery.cleared, true);
     assert.equal(recovery.passed, true);
-    assert.equal(workerSessions.size - workerCount, 3, `${label}: three real Worker lifetimes were network-blocked`);
+    assert.equal(workerSessions.size - workerCount, 6, `${label}: six real Worker lifetimes had HTTP(S) and Blob loads blocked`);
     assert.deepEqual(workerSetupErrors, []);
     assert.deepEqual(externalRequests, [], 'Runtime must not request external HTTP(S) resources');
     console.log(`PASS ${label}: infinite loop times out and a fresh Worker runs successfully`);
     await cdp.send('Target.disposeBrowserContext', { browserContextId });
   }
-  console.log('PASS all runtime checks (HTTP and standalone file; no external runtime requests)');
+  console.log(`PASS all runtime checks (HTTP and standalone file; no external runtime requests; ${((Date.now() - suiteStarted) / 1000).toFixed(1)}s)`);
 } catch (error) {
   console.error(error.stack || error);
   process.exitCode = 1;
@@ -222,6 +306,11 @@ try {
     chrome.kill('SIGTERM');
     await exited;
   }
-  if (server?.listening) await new Promise(resolve => server.close(resolve));
+  // Crash reporting descendants can retain Chrome's pipes after the browser exits.
+  for (const stream of chrome?.stdio || []) stream?.destroy?.();
+  if (server?.listening) {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
   await rm(temporary, { recursive: true, force: true });
 }
