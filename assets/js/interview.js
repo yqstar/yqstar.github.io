@@ -17,6 +17,7 @@ function esc(value) {
 const IV_ICONS = {
   "overview": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>",
   "code": "<path d=\"m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16\"/>",
+  "papers": "<path d=\"M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15\"/>",
   "transformer": "<path d=\"m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5\"/>",
   "rl": "<path d=\"M20 7v5h-5M4 17v-5h5\"/><path d=\"M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8\"/>",
   "sft": "<path d=\"M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z\"/>",
@@ -38,9 +39,10 @@ function ivSidebar(topic) {
     { key: 'rl', href: 'rl-interview.html', label: '强化学习' },
     { key: 'sft', href: 'sft-interview.html', label: 'SFT & 微调' },
     { key: 'agent', href: 'agent-interview.html', label: 'AI Agent' },
+    { key: 'papers', href: '../papers.html', label: '论文阅读' },
   ];
   const navigation = links.map((link, index) =>
-    (index === 1 ? '<p class="nav-label">算法实战</p>' : index === 2 ? '<p class="nav-label">AI 面试专题</p>' : '') +
+    (index === 1 ? '<p class="nav-label">算法实战</p>' : index === 2 ? '<p class="nav-label">AI 面试专题</p>' : link.key === 'papers' ? '<p class="nav-label">研究与阅读</p>' : '') +
     '<a class="sidebar-link" href="' + link.href + '" aria-label="' + esc(link.label) + '" title="' + esc(link.label) + '"' +
     (link.key === topic.key ? ' aria-current="page"' : '') + '>' + ivIcon(link.key) + '<span class="nav-text">' + esc(link.label) + '</span></a>'
   ).join('');

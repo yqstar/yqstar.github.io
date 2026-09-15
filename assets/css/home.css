@@ -1,4 +1,4 @@
-/* Overview: one clear practice entry, followed by four equally weighted subjects. */
+/* Overview: algorithm practice, interview subjects, and a focused paper reading entry. */
 .intro { display:flex; align-items:center; justify-content:space-between; gap:32px; padding-block:44px 38px; }
 .eyebrow { color:var(--muted); font-size:12px; line-height:1.5; letter-spacing:1.4px; margin-bottom:12px; }
 .eyebrow > span { display:none; }
@@ -66,16 +66,31 @@ h1 span { color:var(--muted); font-weight:500; }
 .question-count { color:var(--topic); font-weight:550; }
 .topic-bottom .dot { width:3px; height:3px; border-radius:50%; background:var(--subtle); }
 .topic-tags { margin-left:auto; font-size:10px; color:var(--muted); }
+.paper-section { margin-top:34px; }
+.paper-feature { display:grid; grid-template-columns:1.15fr 1fr; align-items:center; gap:48px; padding:34px; border:1px solid var(--line); border-radius:var(--radius-card); background:var(--surface); box-shadow:var(--shadow); transition:border-color .2s,box-shadow .2s,transform .2s; }
+.paper-feature-copy { min-width:0; }
+.paper-feature-copy h3 { margin-top:18px; font-size:clamp(26px,2.6vw,34px); line-height:1.35; font-weight:650; letter-spacing:-1px; }
+.paper-feature-copy h3 span { color:var(--muted); font-weight:500; }
+.paper-feature-copy > p { margin-top:13px; color:var(--muted); font-size:14px; line-height:1.85; }
+.paper-reading-preview { min-width:0; padding:6px 0 6px 30px; border-left:1px solid var(--line); }
+.paper-preview-caption { margin-bottom:8px; color:var(--muted); font-size:11px; letter-spacing:.5px; }
+.paper-preview-step { display:flex; align-items:center; gap:15px; padding-block:16px; }
+.paper-preview-step + .paper-preview-step { border-top:1px solid var(--line); }
+.paper-preview-step > span { color:var(--accent); font:11px/1.5 var(--mono); }
+.paper-preview-step strong { color:var(--text2); font-size:13px; font-weight:550; }
+.paper-preview-step p { margin-top:5px; color:var(--muted); font-size:12px; line-height:1.6; }
+.paper-preview-step svg { width:14px; height:14px; margin-left:auto; color:var(--subtle); }
 @media(hover:hover) {
-  .practice-card:hover,.topic-card:hover { border-color:#b9c8dd; box-shadow:0 4px 10px #00000003,0 14px 32px #00000008; transform:translateY(-2px); }
-  .practice-card:hover .practice-cta { background:#005bb8; }
-  .practice-card:hover .practice-cta svg { transform:translateX(3px); }
+  .practice-card:hover,.topic-card:hover,.paper-feature:hover { border-color:#b9c8dd; box-shadow:0 4px 10px #00000003,0 14px 32px #00000008; transform:translateY(-2px); }
+  .practice-card:hover .practice-cta,.paper-feature:hover .practice-cta { background:#005bb8; }
+  .practice-card:hover .practice-cta svg,.paper-feature:hover .practice-cta svg { transform:translateX(3px); }
   .topic-card:hover .topic-arrow { color:var(--topic); background:var(--topic-bg); }
 }
-.practice-card:active,.topic-card:active { transform:scale(.995); box-shadow:none; }
+.practice-card:active,.topic-card:active,.paper-feature:active { transform:scale(.995); box-shadow:none; }
 @media(max-width:1280px) {
   .intro-stats { gap:22px; } .intro-stats > div + div { padding-left:22px; }
   .practice-card { padding:28px; gap:24px; grid-template-columns:1fr 1.05fr; }
+  .paper-feature { padding:28px; gap:28px; }
   .code-preview pre { padding:20px 14px; font-size:11px; } .code-line::before { width:20px; }
   .topic-card { padding:23px; gap:15px; } .topic-tags { flex-basis:100%; margin-left:0; }
 }
@@ -92,6 +107,8 @@ h1 span { color:var(--muted); font-weight:500; }
   .intro-stats > div + div { padding-left:0; border-left:0; } .intro-stats strong { font-size:22px; } .intro-stats span { font-size:11px; }
   .practice-card { padding:26px; } .practice-copy h3 { font-size:32px; }
   .interview-section { margin-top:28px; } .interview-grid { gap:14px; }
+  .paper-section { margin-top:28px; } .paper-feature { padding:26px; gap:24px; }
+  .paper-reading-preview { padding-left:22px; }
   .topic-card { display:block; padding:22px; } .topic-icon { width:42px; height:42px; margin-bottom:17px; }
   .topic-arrow { position:absolute; right:22px; top:24px; }
 }
@@ -101,6 +118,10 @@ h1 span { color:var(--muted); font-weight:500; }
   .practice-card { padding:24px; border-radius:22px; } .practice-copy h3 { font-size:30px; }
   .practice-features { font-size:11px; gap:7px 12px; }
   .practice-bottom { margin-top:23px; }
+  .paper-feature { grid-template-columns:1fr; padding:24px; gap:26px; border-radius:22px; }
+  .paper-feature-copy h3 { font-size:27px; }
+  .paper-reading-preview { padding:20px 0 0; border-left:0; border-top:1px solid var(--line); }
+  .paper-preview-step:last-child { padding-bottom:0; }
   .interview-grid { grid-template-columns:1fr; } .topic-card { display:flex; padding:23px; gap:16px; border-radius:22px; }
   .topic-icon { margin:0; width:42px; height:42px; } .topic-arrow { position:static; } .topic-copy h3 { font-size:20px; }
   .topic-tags { flex-basis:auto; margin-left:0; }
@@ -108,6 +129,7 @@ h1 span { color:var(--muted); font-weight:500; }
 @media(max-width:360px) {
   h1 { font-size:28px; } .intro-stats { gap:12px 16px; }
   .practice-card { padding:21px; } .practice-copy h3 { font-size:27px; }
+  .paper-feature { padding:21px; } .paper-feature-copy h3 { font-size:25px; }
   .topic-card { padding:20px; gap:12px; } .topic-tags { flex-basis:100%; }
 }
 :root[data-theme="dark"] .code-preview { background:#191b22; border-color:#393c46; box-shadow:none; }
@@ -123,5 +145,5 @@ h1 span { color:var(--muted); font-weight:500; }
   :root:not([data-theme]) .topic-agent { --topic:#c6a8ff; --topic-bg:#352b46; }
 }
 @media(prefers-reduced-motion:reduce) {
-  .practice-card:hover,.topic-card:hover,.practice-card:active,.topic-card:active,.practice-card:hover .practice-cta svg { transform:none; }
+  .practice-card:hover,.topic-card:hover,.paper-feature:hover,.practice-card:active,.topic-card:active,.paper-feature:active,.practice-card:hover .practice-cta svg,.paper-feature:hover .practice-cta svg { transform:none; }
 }
