@@ -62,7 +62,9 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 `pages/algorithms.html` 基于未压缩单文件版本，约 20 MiB，直接保留 HTML、CSS 和 JavaScript，内嵌 100 道题、题解、评测器、格式化器和 Python 运行时。首次访问需下载完整页面，保存文件后可直接离线打开；使用支持原生 Base64 的现代浏览器。
 
-站点统一使用「算法训练场」名称，并在顶部添加返回 Study Hub 首页（`../index.html`）的入口，窄屏时独占一行。题目与运行逻辑沿用源文件；历史存储键和 JSON 备份格式保持兼容，已有代码、笔记和进度在同一站点来源下继续可用。
+站点统一使用「算法训练场」名称，并在顶部添加返回 Study Hub 首页（`../index.html`）的入口，窄屏时独占一行。题目与评测逻辑沿用源文件，Python 加载增加浏览器兼容适配；历史存储键和 JSON 备份格式保持兼容，已有代码、笔记和进度在同一站点来源下继续可用。
+
+Python Worker 直接通过内嵌 `data:` 地址导入 JavaScript 模块，避免部分浏览器在离线 Worker 中导入 `blob:null` 模块时失败。Wasm 和标准库仍从内嵌内容加载，运行代码和格式化无需联网。
 
 题目示例保留原始内容，来源和许可集中在 [NOTICE.md](NOTICE.md)。
 
@@ -76,4 +78,14 @@ python3 -m http.server 8000 --bind 127.0.0.1
 node scripts/sync-algorithms.mjs /path/to/lc_offline.html
 ```
 
-同步脚本校验来源文件，替换站点展示名称，加入 `scripts/algorithms-site.js` 中的返回导航，并内嵌共享主题脚本、接入主题初始化和备份恢复，直接写入 `pages/algorithms.html`，不压缩或添加解压启动页。题库、编辑器、学习记录存储、评测器及 Python 加载保留源文件实现，运行时不依赖外部脚本。升级上游版本时先检查文案、导航和主题适配点，再一起更新提交号与校验值。
+同步脚本校验来源文件，替换站点展示名称，加入 `scripts/algorithms-site.js` 中的返回导航，并内嵌共享主题脚本、接入主题初始化和备份恢复、适配离线模块加载，直接写入 `pages/algorithms.html`，不压缩或添加解压启动页。题库、编辑器、学习记录存储和评测器保留源文件实现，运行时不依赖外部脚本。升级上游版本时先检查文案、导航、主题和运行时适配点，再一起更新提交号与校验值。
+
+### 运行时回归检查
+
+安装 Node.js 和 Chrome 后运行（无需 npm 依赖）：
+
+```bash
+node scripts/check-algorithms-runtime.mjs
+```
+
+脚本使用临时浏览器配置，检查 HTTP 和独立 `file://` 页面的 Python 启动、移动零判题、格式化、启动失败重试及运行超时后恢复，并禁止 Worker 请求外部 HTTP(S) 资源。默认使用 macOS Chrome 路径，其他安装位置可通过 `CHROME_PATH` 指定。

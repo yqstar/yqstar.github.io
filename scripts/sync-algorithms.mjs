@@ -35,6 +35,23 @@ for (const [before, after] of labels) {
   application = application.replace(before, () => after);
 }
 
+// data: workers have opaque origins. Import embedded JS as data: modules to
+// avoid browser-dependent CORS failures when importing their blob:null URLs.
+// Keep binary Blob URLs and Pyodide's Wasm initialization hook unchanged.
+const runtimeChanges = [
+  ['          createRuntimeUrl(message.runtime.loader, "text/javascript"),\n          createRuntimeUrl(message.runtime.asmModule, "text/javascript"),\n', ''],
+  ['? runtimeUrls[2] : url, options,', '? runtimeUrls[0] : url, options,'],
+  ['        const [loader, asmModule] = await Promise.all([import(runtimeUrls[0]), import(runtimeUrls[1])]);',
+    '        // Inline modules also load in opaque-origin workers used by offline files.\n        const [loader, asmModule] = await Promise.all([\n          import("data:text/javascript;base64," + message.runtime.loader),\n          import("data:text/javascript;base64," + message.runtime.asmModule),\n        ]);'],
+  ['          stdLibURL: runtimeUrls[3],', '          stdLibURL: runtimeUrls[1],'],
+];
+for (const [before, after] of runtimeChanges) {
+  if (application.split(before).length !== 2) {
+    throw new Error(`上游运行时逻辑已改变，请检查离线模块加载适配：${before}`);
+  }
+  application = application.replace(before, () => after);
+}
+
 // Route startup, manual changes and backup restoration through the same preference.
 // Keep the upstream settings shape intact for existing records and JSON backups.
 const themeChanges = [
@@ -66,7 +83,7 @@ if (/<\/script/i.test(theme)) throw new Error("共享主题脚本包含 script �
 const adapted = application.replace(marker, () => `${adapter}\n${marker}\nstate.settings.theme = window.StudyHubTheme.get();`);
 const output = adapted
   .replace('<meta name="color-scheme" content="light dark">', () => `<meta name="color-scheme" content="light dark">\n<script>\n${theme}</script>`)
-  .replace("<head>", `<head>\n  <!-- Source revision: ${revision}; see ../NOTICE.md\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-algorithms.mjs; site changes: display naming, navigation and shared appearance -->`);
+  .replace("<head>", `<head>\n  <!-- Source revision: ${revision}; see ../NOTICE.md\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-algorithms.mjs; site changes: display naming, navigation, shared appearance and offline module loading -->`);
 await mkdir(new URL("../pages/", import.meta.url), { recursive: true });
 await writeFile(new URL("../pages/algorithms.html", import.meta.url), output);
 console.log(`已更新 pages/algorithms.html：${(Buffer.byteLength(output) / 1024 / 1024).toFixed(2)} MiB，来源 ${revision.slice(0, 7)}`);
