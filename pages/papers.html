@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="从 Transformer 到对齐与 Agent，阅读 8 篇 AI 经典论文，梳理问题、方法与证据，积累自己的阅读笔记。">
+  <meta name="description" content="8 篇 AI 经典论文的中文解析：研究问题、方法流程、核心公式、实验对照与应用边界。先读懂分析，再按需深入原文。">
   <title>论文阅读 · Study Hub</title>
   <script src="../assets/js/theme.js"></script>
   <link rel="stylesheet" href="../assets/css/site.css">
-  <link rel="stylesheet" href="../assets/css/papers.css">
+  <link rel="stylesheet" href="../assets/css/papers.css?v=analysis-1">
 </head>
 <body class="site-shell">
   <a class="skip-link" href="#paper-library">跳转到论文列表</a>
@@ -31,7 +31,7 @@
   <main id="main" class="page-width">
     <div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../index.html">学习空间</a><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg><span aria-current="page">论文阅读</span></nav><div class="workspace-actions"><span class="workspace-label">PAPER READING</span><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>
     <header class="paper-header">
-      <div><p class="paper-eyebrow">带着问题读，带着证据想。</p><h1>论文阅读</h1><p class="paper-subtitle">从问题、方法到证据，读懂一篇论文。<br>从 8 篇 AI 经典开始，留下自己的理解。</p></div>
+      <div><p class="paper-eyebrow">先读懂分析，再深入原文。</p><h1>论文阅读</h1><p class="paper-subtitle">8 篇 AI 经典论文，从研究问题到实验证据。<br>看懂关键方法，也理解结论的适用边界。</p></div>
       <div class="reading-progress"><div class="progress-label"><span>我的阅读进度</span><span><strong id="completed-count">0</strong> / <span id="total-count">8</span> 篇</span></div><progress id="reading-progress" value="0" max="8" aria-label="已读论文进度"></progress><p>不急着读完，先真正读懂一篇。</p></div>
     </header>
     <details class="reading-method">
@@ -39,7 +39,7 @@
       <div class="method-steps"><section><span>01 / 问题</span><h2>它为什么值得研究？</h2><p>先读摘要、引言和结论。写下作者要解决什么，已有方法的不足在哪里。</p></section><section><span>02 / 方法</span><h2>关键改变在哪里？</h2><p>对照方法图和核心公式，用自己的话连接输入、处理过程与输出，再补细节。</p></section><section><span>03 / 证据</span><h2>结果真的支持结论吗？</h2><p>检查基线、数据、评价指标和消融。区分论文验证过的结果与你自己的推测。</p></section></div>
     </details>
     <section id="paper-library" class="paper-library" aria-labelledby="library-title" tabindex="-1">
-      <div class="library-heading"><div><p class="paper-eyebrow">READING LIST</p><h2 id="library-title">从经典出发</h2></div><span class="library-caption">展开论文，开始阅读与记录</span></div>
+      <div class="library-heading"><div><p class="paper-eyebrow">PAPER ANALYSIS</p><h2 id="library-title">从经典出发</h2></div><span class="library-caption">展开中文解析 · 方法、实例与实验对照</span></div>
       <div class="library-toolbar"><label class="paper-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span class="sr-only">搜索论文标题、作者或关键词</span><input id="paper-search" type="search" placeholder="搜索论文、作者或关键词" autocomplete="off"></label><div class="backup-actions"><button class="paper-button" id="export-papers" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>导出笔记</button><button class="paper-button" id="choose-import" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m-4 4 4-4 4 4M4 16v5h16v-5"/></svg>导入备份</button><input id="import-papers" type="file" accept=".json,application/json" hidden></div></div>
       <div class="category-filters" role="group" aria-label="按论文主题筛选"><button type="button" data-category="all" aria-pressed="true">全部主题</button><button type="button" data-category="architecture" aria-pressed="false">模型架构</button><button type="button" data-category="tuning" aria-pressed="false">高效微调</button><button type="button" data-category="alignment" aria-pressed="false">偏好对齐</button><button type="button" data-category="agents" aria-pressed="false">Agent 与检索</button></div>
       <div class="filter-bottom"><div class="status-filters" role="group" aria-label="按阅读状态筛选"><button type="button" data-status-filter="all" aria-pressed="true">全部</button><button type="button" data-status-filter="reading" aria-pressed="false">在读</button><button type="button" data-status-filter="done" aria-pressed="false">已读</button></div><span id="paper-count" aria-live="polite">8 篇论文</span></div>
@@ -47,13 +47,16 @@
       <p id="paper-message" class="paper-notice" role="status" aria-live="polite" hidden></p>
       <div id="paper-list"></div>
       <div id="empty-papers" class="empty-papers" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><h3>没有找到符合条件的论文</h3><p>试试其他关键词，或回到完整阅读清单。</p><button id="reset-filters" class="paper-button primary" type="button">重置筛选</button></div>
-      <p class="library-footnote">年份为论文首次公开年份。导读帮助你带着问题阅读，结论与实验请以原文为准。<br>笔记保存在当前浏览器中；换设备或清理浏览器前，记得导出 JSON 备份。</p>
+      <p class="library-footnote">年份为论文首次公开年份。实验结果注明比较条件与出处；理解示例和应用判断用于辅助理解，不代表新增的实验验证。<br>笔记保存在当前浏览器中；换设备或清理浏览器前，记得导出 JSON 备份。</p>
     </section>
     <noscript><p class="paper-notice">请启用 JavaScript 查看论文清单和记录笔记。<a href="../index.html">返回学习概览</a></p></noscript>
     <footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>理解原理，也读原始研究。</span><span class="copyright">© 2026 · Algorithm &amp; AI</span></footer>
   </main>
   <dialog id="import-dialog" aria-labelledby="import-title" aria-describedby="import-description"><form method="dialog"><div class="import-dialog-body"><p class="paper-eyebrow">READING NOTES</p><h2 id="import-title">导入阅读备份</h2><p id="import-description"></p><p class="import-note">未包含在备份中的论文记录会保留。建议先导出当前笔记，再导入其他备份。</p></div><div class="dialog-actions"><button id="cancel-import" class="paper-button" value="cancel">取消</button><button id="confirm-import" class="paper-button primary" value="confirm">合并导入</button></div></form></dialog>
   <script src="../data/papers.js"></script>
-  <script src="../assets/js/papers.js"></script>
+  <script src="../data/paper-analyses/foundations.js"></script>
+  <script src="../data/paper-analyses/training.js"></script>
+  <script src="../data/paper-analyses/agents.js"></script>
+  <script src="../assets/js/papers.js?v=analysis-1"></script>
 </body>
 </html>

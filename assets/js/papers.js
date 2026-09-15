@@ -74,27 +74,69 @@
     }
   }
 
+  const analysisFor = paper => window.PAPER_ANALYSES?.[paper.id];
+  const sectionLink = (id, section) => '#paper=' + id + '&section=' + section;
+  const externalLink = (url, label, className = '') => `<a${className ? ` class="${className}"` : ''} href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ${arrow}</a>`;
+
+  function renderAnalysis(paper) {
+    const analysis = analysisFor(paper);
+    if (!analysis) return `<div class="paper-analysis"><p class="paper-notice">${esc(paper.takeaway)} 详细解析未加载，请刷新页面重试。</p></div>`;
+    const sectionId = section => 'analysis-' + paper.id + '-' + section;
+    const heading = (number, title) => `<div class="analysis-heading"><span aria-hidden="true">${number}</span><h4>${title}</h4></div>`;
+    return `<article class="paper-analysis" aria-label="${esc(paper.shortTitle)}中文解析">
+      <div class="analysis-verdict"><span>先记住这个结论</span><p>${esc(analysis.verdict)}</p></div>
+      <nav class="analysis-nav" aria-label="${esc(paper.shortTitle)}解析目录">${[
+        ['overview', '研究问题'], ['method', '方法拆解'], ['evidence', '实验与证据'], ['limits', '贡献与边界'], ['notes', '我的笔记'],
+      ].map(([section, label]) => `<a href="${sectionLink(paper.id, section)}">${label}</a>`).join('')}</nav>
+      <section class="analysis-section" id="${sectionId('overview')}" tabindex="-1">${heading('01', '为什么需要这项研究')}
+        <div class="analysis-comparison"><div><h5>研究问题</h5><p>${esc(analysis.problem)}</p></div><div><h5>已有方法的不足</h5><p>${esc(analysis.baseline)}</p></div></div>
+      </section>
+      <section class="analysis-section" id="${sectionId('method')}" tabindex="-1">${heading('02', '方法是怎么工作的')}
+        <ol class="analysis-flow" style="--flow-count:${analysis.flow.length}" aria-label="方法流程">${analysis.flow.map((step, index) => `<li><span class="flow-step-number">${String(index + 1).padStart(2, '0')}</span><strong>${esc(step.label)}</strong><p>${esc(step.detail)}</p></li>`).join('')}</ol>
+        <div class="analysis-method">${analysis.method.map(step => `<section><h5>${esc(step.title)}</h5><p>${esc(step.text)}</p></section>`).join('')}</div>
+        <div class="analysis-formula"><h5>抓住核心关系</h5><code>${esc(analysis.formula.expression)}</code><p>${esc(analysis.formula.explanation)}</p></div>
+        <aside class="analysis-example"><span class="example-label">理解示例 · 非论文实验</span><h5>${esc(analysis.example.title)}</h5><p>${esc(analysis.example.text)}</p></aside>
+      </section>
+      <section class="analysis-section" id="${sectionId('evidence')}" tabindex="-1">${heading('03', '实验究竟证明了什么')}
+        <p class="analysis-section-intro">${esc(analysis.evidence.intro)}</p>
+        <p class="analysis-table-hint">左右滑动，查看完整结果与比较条件 →</p>
+        <div class="analysis-table-scroll" role="region" aria-label="${esc(paper.shortTitle)}实验结果，可横向滚动" tabindex="0"><table class="analysis-evidence"><caption class="sr-only">论文结果、比较条件与解释</caption><thead><tr><th scope="col">比较项目</th><th scope="col">论文结果</th><th scope="col">条件与解读</th></tr></thead><tbody>${analysis.evidence.items.map(item => `<tr><th scope="row">${esc(item.label)}</th><td><strong>${esc(item.value)}</strong></td><td><p>${esc(item.detail)}</p>${externalLink(item.url, '核对原文', 'evidence-source')}</td></tr>`).join('')}</tbody></table></div>
+        <div class="analysis-evidence-conclusion"><strong>如何理解这些证据</strong><p>${esc(analysis.evidence.takeaway)}</p></div>
+      </section>
+      <section class="analysis-section" id="${sectionId('limits')}" tabindex="-1">${heading('04', '贡献与结论的边界')}
+        <div class="analysis-comparison"><div><h5>值得记住的贡献</h5><ul>${analysis.contributions.map(value => `<li>${esc(value)}</li>`).join('')}</ul></div><div><h5>不能直接推导出的结论</h5><ul>${analysis.limits.map(value => `<li>${esc(value)}</li>`).join('')}</ul></div></div>
+        <div class="analysis-application"><h5>应用判断</h5><p><strong>可以借鉴：</strong>${esc(analysis.application.fit)}</p><p><strong>还需验证：</strong>${esc(analysis.application.caution)}</p></div>
+      </section>
+      <section class="analysis-section analysis-further">${heading('05', '想深入，再回到这几处原文')}
+        <ul class="analysis-reading-path">${analysis.nextReading.map(item => `<li>${externalLink(item.url, item.label)}<p>${esc(item.detail)}</p></li>`).join('')}</ul>
+        <div class="analysis-sources"><strong>资料来源</strong>${analysis.sources.map(source => externalLink(source.url, source.label)).join('')}</div>
+      </section>
+    </article>`;
+  }
+
   function renderPaper(paper, index) {
     const record = recordFor(paper.id);
     return `<details class="paper-card" id="paper-${paper.id}" data-paper-id="${paper.id}">
       <summary class="paper-summary"><span class="paper-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
-        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span></span>
+        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span><span class="paper-analysis-badge">中文解析</span></span>
           <h3>${esc(paper.shortTitle)}</h3><span class="paper-summary-description">${esc(paper.summary)}</span></div>
         <span class="paper-summary-end"><span class="paper-status" data-state="${record.status}">${statuses[record.status]}</span><svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></span>
       </summary>
       <div class="paper-content"><div class="paper-source-row"><div class="paper-bibliography"><p class="paper-full-title">${esc(paper.title)}</p><p class="paper-authors">${esc(paper.authors)} · ${esc(paper.venue)}</p></div>
         <div class="paper-source-links"><a class="paper-button" href="${esc(paper.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(paper.shortTitle)}：查看原文，新标签页打开">查看原文 ${arrow}</a><a class="paper-button" href="${esc(paper.pdf)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(paper.shortTitle)}：阅读 PDF，新标签页打开">阅读 PDF ${arrow}</a></div></div>
-        <div class="reading-workspace"><div class="paper-guide"><h4>带着问题读</h4><ol>${paper.focus.map(question => `<li>${esc(question)}</li>`).join('')}</ol><div class="reading-cue"><strong>抓住这条主线</strong><p>${esc(paper.takeaway)}</p></div><div class="reading-cue"><strong>阅读边界</strong><p>${esc(paper.limitation)}</p></div></div>
-          <div class="paper-notebook"><fieldset class="reading-state"><legend>${esc(paper.shortTitle)} · 阅读状态</legend><div class="reading-state-options">${Object.entries(statuses).map(([value, label]) => `<label><input type="radio" name="status-${paper.id}" value="${value}" data-status-id="${paper.id}"${record.status === value ? ' checked' : ''}><span>${label}</span></label>`).join('')}</div></fieldset>
-            <div class="note-heading"><label for="note-${paper.id}">我的笔记<span class="sr-only">：${esc(paper.shortTitle)}</span></label><button class="insert-template" type="button" data-template-id="${paper.id}" aria-label="为${esc(paper.shortTitle)}插入笔记模板">插入模板</button></div>
+        <div class="reading-workspace">${renderAnalysis(paper)}
+          <div class="paper-notebook" id="analysis-${paper.id}-notes" tabindex="-1"><div class="notebook-progress"><h4>留下自己的理解</h4><p>把最有启发的结论、还没想清楚的问题，写成自己的话。</p><fieldset class="reading-state"><legend>${esc(paper.shortTitle)} · 阅读状态</legend><div class="reading-state-options">${Object.entries(statuses).map(([value, label]) => `<label><input type="radio" name="status-${paper.id}" value="${value}" data-status-id="${paper.id}"${record.status === value ? ' checked' : ''}><span>${label}</span></label>`).join('')}</div></fieldset></div>
+            <div class="notebook-editor"><div class="note-heading"><label for="note-${paper.id}">我的笔记<span class="sr-only">：${esc(paper.shortTitle)}</span></label><button class="insert-template" type="button" data-template-id="${paper.id}" aria-label="为${esc(paper.shortTitle)}插入笔记模板">插入模板</button></div>
             <textarea id="note-${paper.id}" data-note-id="${paper.id}" maxlength="20000" aria-describedby="save-${paper.id}" placeholder="这篇论文解决了什么？哪些证据说服了你？\n记下自己的理解与尚未解决的问题。">${esc(record.note)}</textarea><p class="note-save-state" id="save-${paper.id}">${storageAvailable ? (record.note ? '笔记已保存在本机' : '输入后自动保存到本机 · 最多 20,000 字符') : '本次页面暂存 · 请导出备份'}</p>
-          </div></div></div></details>`;
+          </div></div></div></div></details>`;
   }
 
   byId('paper-list').innerHTML = papers.map(renderPaper).join('');
   const cards = new Map(papers.map(paper => [paper.id, byId('paper-' + paper.id)]));
   const searchText = new Map(papers.map(paper => [paper.id,
-    [paper.title, paper.shortTitle, paper.authors, paper.year, paper.venue, paper.summary, categories[paper.category]].join(' ').toLocaleLowerCase()]));
+    [paper.title, paper.shortTitle, paper.authors, paper.year, paper.venue, paper.summary, categories[paper.category],
+      cards.get(paper.id).querySelector('.paper-analysis').textContent,
+    ].join(' ').toLocaleLowerCase()]));
 
   function updateProgress() {
     const done = papers.filter(paper => recordFor(paper.id).status === 'done').length;
@@ -187,21 +229,33 @@
   });
 
   function openHash() {
-    const id = new URLSearchParams(location.hash.slice(1)).get('paper');
-    if (!paperIds.has(id)) return;
-    resetFilters();
+    const route = new URLSearchParams(location.hash.slice(1));
+    const id = route.get('paper');
+    if (!paperIds.has(id)) return false;
     const card = cards.get(id);
+    if (card.hidden) resetFilters();
     card.open = true;
-    requestAnimationFrame(() => card.scrollIntoView({ block: 'start', behavior: 'instant' }));
+    const section = route.get('section');
+    const target = ['overview', 'method', 'evidence', 'limits', 'notes'].includes(section)
+      ? byId('analysis-' + id + '-' + section) || card : card;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ block: 'start', behavior: 'instant' });
+      (target === card ? card.querySelector('summary') : target).focus({ preventScroll: true });
+    });
+    return true;
   }
   for (const [id, card] of cards) {
     card.addEventListener('toggle', () => {
-      if (card.open && !card.hidden) {
+      if (card.open && !card.hidden && new URLSearchParams(location.hash.slice(1)).get('paper') !== id) {
         try { history.replaceState(null, '', '#paper=' + encodeURIComponent(id)); } catch { /* file:// histories may be restricted. */ }
       }
     });
   }
   window.addEventListener('hashchange', openHash);
+  byId('paper-list').addEventListener('click', event => {
+    const link = event.target.closest('.analysis-nav a');
+    if (link && link.hash === location.hash) { event.preventDefault(); openHash(); }
+  });
 
   byId('export-papers').addEventListener('click', () => {
     const backup = { version: 1, exportedAt: new Date().toISOString(), records };
@@ -263,7 +317,7 @@
   });
   updateProgress();
   filterPapers();
-  openHash();
+  if (!openHash()) cards.get(papers[0].id).open = true;
   const sidebar = document.querySelector('.sidebar-nav');
   const active = sidebar.querySelector('[aria-current="page"]');
   if (sidebar.scrollWidth > sidebar.clientWidth && active) sidebar.scrollLeft = active.offsetLeft - sidebar.clientWidth / 2 + active.offsetWidth / 2;

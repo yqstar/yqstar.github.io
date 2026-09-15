@@ -147,16 +147,40 @@ async function pressKey(session, key, shift = false) {
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', ...params }, session);
 }
 
-async function screenshot(session, filename) {
+async function screenshot(session, filename, fullPage = true) {
   await evaluate(session, `document.activeElement?.blur(); window.scrollTo({ top: 0, behavior: 'instant' });
     new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
   const visible = await cdp.send('Page.captureScreenshot', { format: 'png' }, session);
   await writeFile(join(artifacts, filename.replace('.png', '-viewport.png')), Buffer.from(visible.data, 'base64'));
+  if (!fullPage) return;
   const { cssContentSize } = await cdp.send('Page.getLayoutMetrics', {}, session);
   const { data } = await cdp.send('Page.captureScreenshot', {
     format: 'png', captureBeyondViewport: true,
     clip: { x: 0, y: 0, width: cssContentSize.width, height: cssContentSize.height, scale: 1 },
   }, session);
+  await writeFile(join(artifacts, filename), Buffer.from(data, 'base64'));
+}
+
+async function verifySectionScroll(session, id, section) {
+  const hash = `#paper=${id}&section=${section}`;
+  await waitFor(session, `location.hash === ${JSON.stringify(hash)} && (() => {
+    const target = document.getElementById(${JSON.stringify(`analysis-${id}-${section}`)});
+    const top = target.getBoundingClientRect().top + window.scrollY;
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const maximum = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const expected = Math.max(0, Math.min(top - margin - padding, maximum));
+    return target.closest('details').open && Math.abs(window.scrollY - expected) <= 2
+      && document.activeElement === target;
+  })()`);
+}
+
+async function sectionScreenshot(session, id, section, filename) {
+  await click(session, `.analysis-nav a[href="#paper=${id}&section=${section}"]`);
+  await verifySectionScroll(session, id, section);
+  await evaluate(session, `document.activeElement?.blur();
+    new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
+  const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' }, session);
   await writeFile(join(artifacts, filename), Buffer.from(data, 'base64'));
 }
 
@@ -167,6 +191,16 @@ async function viewport(session, width) {
   await evaluate(session, `new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
   const dimensions = await evaluate(session, `({ width: document.documentElement.clientWidth,
     scroll: document.documentElement.scrollWidth })`);
+  if (dimensions.scroll > dimensions.width + 1) {
+    const overflow = await evaluate(session, `Array.from(document.querySelectorAll('body *')).filter(element => {
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.right > document.documentElement.clientWidth + 1
+        && !element.closest('.analysis-table-scroll') && !element.closest('.sidebar-nav');
+    }).slice(0, 16).map(element => ({ tag: element.tagName, id: element.id, class: element.className,
+      width: element.getBoundingClientRect().width, right: element.getBoundingClientRect().right,
+      minWidth: getComputedStyle(element).minWidth }))`);
+    console.error('Overflow elements:', JSON.stringify(overflow));
+  }
   assert.ok(dimensions.scroll <= dimensions.width + 1,
     `${width}px viewport must not overflow horizontally: ${JSON.stringify(dimensions)}`);
 }
@@ -216,6 +250,69 @@ try {
     card.tagName === 'DETAILS' && card.querySelector('summary') && card.querySelector('textarea')?.labels.length > 0)`), true,
   'Each paper must use native details and a labelled note field');
   assert.equal(await evaluate(session, `document.querySelector('#paper-message').getAttribute('role')`), 'status');
+  assert.deepEqual(await evaluate(session, 'Object.keys(window.PAPER_ANALYSES).sort()'), papers.map(paper => paper.id).sort(),
+    'Every listed paper must have a locally loaded analysis');
+  assert.deepEqual(await evaluate(session, `Array.from(document.querySelectorAll('.paper-card[open]')).map(card => card.dataset.paperId)`), [papers[0].id],
+    'The first paper should open to its on-page analysis by default');
+  const analyses = await evaluate(session, 'window.PAPER_ANALYSES');
+  for (const paper of papers) {
+    const rendered = await evaluate(session, `(() => {
+      const card = document.querySelector(${JSON.stringify(`[data-paper-id="${paper.id}"]`)});
+      const analysis = card.querySelector('.paper-analysis');
+      return {
+        article: analysis?.tagName, fallback: !!analysis?.querySelector('.paper-notice'),
+        verdict: analysis?.querySelector('.analysis-verdict p')?.textContent,
+        flow: Array.from(analysis?.querySelectorAll('.analysis-flow li strong') || [], item => item.textContent),
+        formula: analysis?.querySelector('.analysis-formula code')?.textContent,
+        rows: Array.from(analysis?.querySelectorAll('.analysis-evidence tbody tr') || [], row => ({
+          label: row.querySelector('th')?.textContent, value: row.querySelector('td strong')?.textContent,
+          url: row.querySelector('a.evidence-source')?.href,
+        })),
+        sources: Array.from(analysis?.querySelectorAll('.analysis-sources a') || [], link => link.href),
+        original: Array.from(card.querySelectorAll('.paper-source-links a'), link => link.href),
+        routes: Array.from(analysis?.querySelectorAll('.analysis-nav a') || [], link => link.hash),
+      };
+    })()`);
+    const analysis = analyses[paper.id];
+    assert.equal(rendered.article, 'ARTICLE', `${paper.id}: analysis must render rather than a fallback`);
+    assert.equal(rendered.fallback, false);
+    assert.equal(rendered.verdict, analysis.verdict);
+    assert.ok(rendered.flow.length >= 3, `${paper.id}: method flow must have multiple steps`);
+    assert.deepEqual(rendered.flow, analysis.flow.map(step => step.label));
+    assert.equal(rendered.formula, analysis.formula.expression);
+    assert.ok(rendered.rows.length >= 2, `${paper.id}: evidence must include at least two comparisons`);
+    assert.deepEqual(rendered.rows, analysis.evidence.items.map(({ label, value, url }) => ({ label, value, url })));
+    assert.deepEqual(rendered.sources, analysis.sources.map(source => source.url));
+    assert.deepEqual(rendered.original, [paper.url, paper.pdf]);
+    assert.deepEqual(rendered.routes, ['overview', 'method', 'evidence', 'limits', 'notes'].map(section => `#paper=${paper.id}&section=${section}`));
+    for (const source of [...rendered.sources, ...rendered.rows.map(row => row.url)]) {
+      assert.equal(new URL(source).protocol, 'https:', `${paper.id}: evidence sources must be usable HTTPS links`);
+    }
+  }
+  console.log('PASS all 8 on-page analyses, method flows, formulas, evidence tables and original-source links');
+
+  for (const [query, expected] of [['NF4', 'qlora'], ['MMLU', 'qlora'], ['WikiSQL', 'lora']]) {
+    await search(session, query);
+    assert.deepEqual(await evaluate(session, visibleIds), [expected], `Search must include analysis methods and experimental evidence: ${query}`);
+  }
+  await search(session, '');
+  await click(session, '[data-category="architecture"]');
+  for (const section of ['overview', 'method', 'evidence', 'limits', 'notes']) {
+    await click(session, `.analysis-nav a[href="#paper=${papers[0].id}&section=${section}"]`);
+    await verifySectionScroll(session, papers[0].id, section);
+    assert.equal(await evaluate(session, `document.querySelector('[data-category="architecture"]').getAttribute('aria-pressed')`), 'true',
+      'Intra-paper navigation must preserve the selected category');
+    assert.deepEqual(await evaluate(session, visibleIds), papers.filter(paper => paper.category === 'architecture').map(paper => paper.id));
+  }
+  const methodLink = `.analysis-nav a[href="#paper=${papers[0].id}&section=method"]`;
+  await click(session, methodLink);
+  await verifySectionScroll(session, papers[0].id, 'method');
+  await evaluate(session, `window.scrollTo({ top: 0, behavior: 'instant' })`);
+  await click(session, methodLink);
+  await verifySectionScroll(session, papers[0].id, 'method');
+  await click(session, '[data-category="all"]');
+  console.log('PASS method/evidence keyword search, section deep links and focus, same-hash scroll and preserved category filter');
+
   for (const category of ['architecture', 'tuning', 'alignment', 'agents']) {
     await click(session, `[data-category="${category}"]`);
     assert.deepEqual(await evaluate(session, visibleIds), papers.filter(paper => paper.category === category).map(paper => paper.id));
@@ -367,19 +464,53 @@ try {
   await cdp.send('Page.reload', {}, session);
   await waitFor(session, ready);
   assert.notEqual(await evaluate(session, 'document.documentElement.dataset.theme'), originalTheme, 'Theme choice should survive reload');
-  await evaluate(session, `document.querySelector('.paper-card').open = true`);
+  await evaluate(session, `document.querySelectorAll('.paper-card').forEach(card => { card.open = true; })`);
+  await viewport(session, 320);
+  await evaluate(session, `document.querySelectorAll('.paper-card').forEach((card, index) => { card.open = index === 0; })`);
   for (const theme of ['light', 'dark']) {
     if (await evaluate(session, 'document.documentElement.dataset.theme') !== theme) await click(session, '[data-theme-toggle]');
     await viewport(session, 1440);
-    await screenshot(session, `papers-${theme}-1440.png`);
+    await screenshot(session, `papers-${theme}-1440.png`, false);
+    for (const section of ['method', 'evidence', 'notes']) {
+      await sectionScreenshot(session, first.id, section, `analysis-${theme}-1440-${section}.png`);
+    }
     await viewport(session, 320);
-    await screenshot(session, `papers-${theme}-320-expanded.png`);
+    await screenshot(session, `papers-${theme}-320-expanded.png`, false);
+    for (const section of ['method', 'evidence', 'notes']) {
+      await sectionScreenshot(session, first.id, section, `analysis-${theme}-320-${section}.png`);
+    }
+    const tableScroll = await evaluate(session, `(() => {
+      const region = document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"] .analysis-table-scroll`)});
+      const initial = { width: region.clientWidth, scrollWidth: region.scrollWidth,
+        label: region.getAttribute('aria-label'), tabindex: region.tabIndex };
+      region.scrollLeft = region.scrollWidth;
+      return { ...initial, scrolled: region.scrollLeft };
+    })()`);
+    assert.ok(tableScroll.scrollWidth > tableScroll.width && tableScroll.scrolled > 0,
+      'Narrow evidence tables must scroll inside their labelled region');
+    assert.ok(tableScroll.label.length > 0 && tableScroll.tabindex === 0, 'Evidence scroll region must be keyboard reachable and labelled');
+    await sectionScreenshot(session, first.id, 'evidence', `analysis-${theme}-320-evidence-scrolled.png`);
+    await evaluate(session, `document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"] .analysis-table-scroll`)}).scrollLeft = 0`);
+    await viewport(session, 320);
   }
-  console.log('PASS theme toggle/persistence and 320px/1440px layout in both themes');
+  console.log('PASS theme toggle/persistence, method/evidence/note views and contained mobile table scrolling');
   await cdp.send('Target.disposeBrowserContext', { browserContextId });
+
+  const existingRecord = { status: 'reading', note: '升级前已保存的阅读笔记，应继续保留。' };
+  const existing = await openPage(`${base}/pages/papers.html`,
+    `localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(JSON.stringify({ version: 1, records: { [first.id]: existingRecord } }))});`);
+  assert.equal(await evaluate(existing.sessionId,
+    `document.querySelector(${JSON.stringify(`input[name="status-${first.id}"]:checked`)}).value`), existingRecord.status);
+  assert.equal(await evaluate(existing.sessionId,
+    `document.querySelector(${JSON.stringify(`[data-note-id="${first.id}"]`)}).value`), existingRecord.note);
+  assert.deepEqual((await evaluate(existing.sessionId, recordsExpression))[first.id], existingRecord);
+  await cdp.send('Target.disposeBrowserContext', { browserContextId: existing.browserContextId });
+  console.log('PASS pre-existing version 1 reading records remain intact with the expanded analyses');
 
   const file = await openPage(pathToFileURL(join(root, 'pages/papers.html')).href);
   assert.equal((await evaluate(file.sessionId, visibleIds)).length, 8);
+  assert.equal(await evaluate(file.sessionId, `document.querySelectorAll('.paper-analysis .analysis-verdict').length`), 8,
+    'All analysis content must also load from file://');
   await search(file.sessionId, papers[0].title);
   assert.deepEqual(await evaluate(file.sessionId, visibleIds), [first.id]);
   await setNote(file.sessionId, first.id, '本地文件阅读笔记');
