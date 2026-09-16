@@ -1,10 +1,4 @@
 /* Shared reader for the four AI interview topics. Default data lives in data/interviews/. */
-const INTERVIEW_TOPICS = [
-  { key: 'transformer', name: 'Transformer' },
-  { key: 'rl', name: 'RL' },
-  { key: 'sft', name: 'SFT' },
-  { key: 'agent', name: 'Agent' },
-];
 const IV = { defaultData: null, current: null, toolbar: null, fileInput: null, sections: [], frame: null, invalidStored: false };
 const IV_DESKTOP = window.matchMedia('(min-width: 901px)');
 const IV_CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>';
@@ -13,19 +7,6 @@ function esc(value) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-
-function ivBreadcrumbSeparator() {
-  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
-}
-function ivTopicNavigation(topic) {
-  return '<nav class="interview-topics" aria-label="AI 面试专题">' + INTERVIEW_TOPICS.map(item =>
-    '<a href="' + item.key + '-interview.html"' + (item.key === topic.key ? ' aria-current="page"' : '') + '>' + esc(item.name) + '</a>'
-  ).join('') + '</nav>';
-}
-
-function ivTopic() {
-  return INTERVIEW_TOPICS.find(topic => topic.key === document.documentElement.dataset.topic) || INTERVIEW_TOPICS[0];
-}
 
 function ivSectionName(title) {
   return title.replace(/^[一二三四五六七八九十]+、\s*/, '');
@@ -57,7 +38,6 @@ function renderSection(section, index) {
 function renderInterview(data, focusHash = true) {
   // The toolbar is reused across imports; never carry an open popup into a new view.
   if (IV.toolbar) IV.toolbar.open = false;
-  const topic = ivTopic();
   const count = data.sections.reduce((total, section) => total + section.questions.length, 0);
   const toc = data.sections.map((section, index) => '<li><a href="#' + esc(section.id) + '">' +
     '<span class="toc-number" aria-hidden="true">' + String(index + 1).padStart(2, '0') + '</span>' +
@@ -66,10 +46,9 @@ function renderInterview(data, focusHash = true) {
   document.body.classList.add('site-shell');
   document.getElementById('app').innerHTML =
     '<a class="skip-link" href="#iv-content">跳转到题目</a>' + window.StudyHubNavigation.markup('../../', 'interviews') +
-    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../interviews.html">AI 专题</a>' + ivBreadcrumbSeparator() +
-    '<span aria-current="page">' + esc(topic.name) + '</span></nav><div class="workspace-actions"><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>' +
+    '<main class="page-width"><nav class="reader-back" aria-label="返回目录"><a href="../interviews.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6-6 6 6 6M4 12h16"/></svg>返回 AI 专题</a></nav>' +
     '<header class="page-header"><h1>' + esc(data.title) + '</h1><p class="subtitle">' + esc(data.subtitle) + '</p>' +
-    '<p class="page-meta">' + count + ' 道题<span aria-hidden="true"> · </span>' + data.sections.length + ' 个章节</p></header>' + ivTopicNavigation(topic) +
+    '<p class="page-meta">' + count + ' 道题<span aria-hidden="true"> · </span>' + data.sections.length + ' 个章节</p></header>' +
     '<p id="iv-message" class="iv-message" role="status" aria-live="polite" hidden></p>' +
     '<div class="reader-layout"><aside class="toc"><details class="toc-panel"' + (IV_DESKTOP.matches ? ' open' : '') + '><summary><span>章节目录</span><span class="toc-summary-note">' + IV_CHEVRON + '</span></summary>' +
     '<nav aria-label="章节目录"><ol class="toc-list">' + toc + '</ol></nav></details></aside><div id="iv-toolbar-slot"></div>' +

@@ -7,7 +7,7 @@ import { createServer } from 'node:http';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const chromePath = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -96,6 +96,29 @@ async function assertCurrentSection(session, pathname) {
   assert.equal(await evaluate(session, `new URL(document.querySelector('.sidebar-nav [aria-current="page"]').href).pathname`), pathname,
     'The current navigation item must identify the page section');
 }
+async function assertHierarchy(session, pageName) {
+  assert.equal(await evaluate(session, "document.querySelectorAll('h1').length"), 1,
+    `${pageName}: the page must have one primary heading`);
+  assert.equal(await evaluate(session, "document.querySelectorAll('[data-theme-toggle]').length"), 1,
+    `${pageName}: theme switching must have one shared control`);
+  assert.equal(await evaluate(session, "document.querySelector('[data-theme-toggle]').closest('header.site-sidebar') !== null"), true,
+    `${pageName}: the shared header must own the theme control`);
+  assert.equal(await evaluate(session, `(() => {
+    const button = document.querySelector('[data-theme-toggle]');
+    const rect = button.getBoundingClientRect();
+    return !button.hidden && rect.width > 0 && rect.height > 0 && !!button.getAttribute('aria-label');
+  })()`), true, `${pageName}: the header theme control must initialize visibly with an accessible name`);
+  assert.equal(await evaluate(session, "document.querySelectorAll('.topic-card').length"), pageName === 'topics' ? 4 : 0,
+    'The four topic choices must appear only in the AI directory');
+  if (['home', 'topics', 'papers'].includes(pageName)) {
+    assert.equal(await evaluate(session, "document.querySelectorAll('.workspace-bar, .breadcrumbs').length"), 0,
+      `${pageName}: listing pages must not repeat the global navigation as a workspace breadcrumb row`);
+  } else {
+    assert.equal(await evaluate(session, "document.querySelectorAll('.reader-back a').length"), 1,
+      `${pageName}: a topic detail must provide one parent-directory return link`);
+    assert.equal(await evaluate(session, "new URL(document.querySelector('.reader-back a').href).pathname"), '/pages/interviews.html');
+  }
+}
 async function key(session, key, shift = false) {
   const keyCode = { Tab: 9, Enter: 13, Escape: 27, ' ': 32 }[key];
   for (const type of ['keyDown', 'keyUp']) await cdp.send('Input.dispatchKeyEvent', {
@@ -104,7 +127,7 @@ async function key(session, key, shift = false) {
   }, session);
   await settle(session);
 }
-async function capture(session, name, selector) {
+async function capture(session, name, selector, startOfPage = false) {
   if (selector) await evaluate(session, `document.querySelector(${JSON.stringify(selector)}).scrollIntoView({ block: 'start', behavior: 'instant' })`);
   await settle(session);
   await evaluate(session, `Promise.race([
@@ -112,6 +135,11 @@ async function capture(session, name, selector) {
       animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished)),
     new Promise(resolve => setTimeout(resolve, 500))
   ])`);
+  if (startOfPage) {
+    // A responsive disclosure changing height can trigger scroll anchoring after resize.
+    await evaluate(session, "window.scrollTo({ top: 0, behavior: 'instant' })");
+    await settle(session);
+  }
   const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' }, session);
   await writeFile(join(artifacts, name + '.png'), Buffer.from(data, 'base64'));
 }
@@ -170,7 +198,10 @@ try {
     await waitFor(session, `document.readyState === 'complete' && (${page.ready})`);
     const routes = await evaluate(session, `Array.from(document.querySelectorAll('.sidebar-nav .sidebar-link'), link => new URL(link.href).pathname + new URL(link.href).hash)`);
     assert.deepEqual(routes, expectedRoutes, `${page.name}: shared top navigation must expose the same four destinations`);
+    assert.equal(new Set(routes.map(route => route.split('#')[0])).size, 4,
+      `${page.name}: navigation entrances must have distinct destination pages`);
     assert.equal(await evaluate(session, "document.querySelectorAll('.sidebar-nav [aria-current]').length"), 1, `${page.name}: current section must be identifiable`);
+    await assertHierarchy(session, page.name);
     await assertCurrentSection(session, ['home', 'papers'].includes(page.name) ? page.path : '/pages/interviews.html');
     if (page.name === 'home') {
       assert.equal(await evaluate(session, "document.querySelectorAll('.learning-paths .path-card').length"), 3,
@@ -204,7 +235,7 @@ try {
         assert.equal(metric.navigationVisible, true, `${page.name} ${width}: every top-level navigation entrance must remain visible`);
         if (width < 500) assert.ok(metric.firstTop < metric.viewportHeight - 44, `${page.name} ${width}: the first content item must be discoverable on the initial screen (${metric.firstTop}px)`);
         measurements.push({ page: page.name, theme, width, ...metric });
-        if ([320, 1440].includes(width)) await capture(session, `${page.name}-${theme}-${width}`);
+        if ([320, 1440].includes(width)) await capture(session, `${page.name}-${theme}-${width}`, undefined, true);
         if (![320, 1440].includes(width)) continue;
         if (page.name === 'papers') {
           for (const selector of ['#paper-filters', '#paper-tools']) {
@@ -245,12 +276,17 @@ try {
     }
     if (page.name === 'home') {
       const topicsReady = "document.querySelectorAll('#interviews .topic-card').length === 4";
+      await cdp.send('Page.navigate', { url: base + '/' }, session);
+      await waitFor(session, `location.pathname === '/' && document.readyState === 'complete' && (${page.ready})`);
+      await assertHierarchy(session, 'home');
+      assert.equal(await evaluate(session, "document.querySelectorAll('.learning-paths .path-card').length"), 3,
+        'The root URL must show the same three-entrance overview as index.html');
       await followLink(session, '.interview-feature', '/pages/interviews.html', topicsReady);
       await assertCurrentSection(session, '/pages/interviews.html');
       const firstTopicPath = await evaluate(session, "new URL(document.querySelector('#interviews .topic-card').href).pathname");
       await followLink(session, '#interviews .topic-card', firstTopicPath, "document.querySelector('.q-card')");
       await assertCurrentSection(session, '/pages/interviews.html');
-      await followLink(session, '.breadcrumbs a[href$="interviews.html"]', '/pages/interviews.html', topicsReady);
+      await followLink(session, '.reader-back a[href$="interviews.html"]', '/pages/interviews.html', topicsReady);
       await followLink(session, '.sidebar-nav .sidebar-link:first-child', '/index.html', page.ready);
       await assertCurrentSection(session, '/index.html');
       await followLink(session, '.sidebar-nav .sidebar-link:nth-child(3)', '/pages/interviews.html', topicsReady);
@@ -262,7 +298,38 @@ try {
       await evaluate(session, "location.hash = 'interviews'");
       await waitFor(session, `location.pathname === '/pages/interviews.html' && document.readyState === 'complete' && (${topicsReady})`);
       await assertCurrentSection(session, '/pages/interviews.html');
-      console.log('PASS actual overview → topic directory → topic → breadcrumb navigation, distinct active sections and legacy hash redirects');
+      console.log('PASS root/index overview consistency, actual topic navigation and parent return, distinct active sections and legacy hash redirects');
+      const fileTopics = pathToFileURL(join(root, 'pages/interviews.html')).pathname;
+      await cdp.send('Page.navigate', { url: pathToFileURL(join(root, 'index.html')).href }, session);
+      await waitFor(session, `location.protocol === 'file:' && document.readyState === 'complete' && (${page.ready})`);
+      await assertHierarchy(session, 'home');
+      const fileTheme = await evaluate(session, 'document.documentElement.dataset.theme');
+      await click(session, '[data-theme-toggle]');
+      assert.notEqual(await evaluate(session, 'document.documentElement.dataset.theme'), fileTheme,
+        'The shared theme control must remain usable when opened as a local file');
+      await followLink(session, '.interview-feature', fileTopics, topicsReady);
+      await assertCurrentSection(session, fileTopics);
+      const fileTopicDetail = await evaluate(session, "new URL(document.querySelector('#interviews .topic-card').href).pathname");
+      await followLink(session, '#interviews .topic-card', fileTopicDetail, "document.querySelector('.q-card')");
+      await followLink(session, '.reader-back a', fileTopics, topicsReady);
+      console.log('PASS file:// header theme, overview → directory → detail and parent return');
+    }
+    if (page.name === 'papers') {
+      const note = '界面层级调整后的笔记回归：保留自己的阅读理解。';
+      const firstPaperId = await evaluate(session, "document.querySelector('.paper-card:not([hidden])').dataset.paperId");
+      const noteSelector = `[data-paper-id="${firstPaperId}"] textarea`;
+      await click(session, noteSelector);
+      await cdp.send('Input.insertText', { text: note }, session);
+      await waitFor(session, `JSON.parse(localStorage.getItem('study-hub:papers:v1'))?.records[${JSON.stringify(firstPaperId)}]?.note === ${JSON.stringify(note)}`);
+      await click(session, `input[name="status-${firstPaperId}"][value="done"] + span`);
+      await cdp.send('Page.reload', {}, session);
+      await waitFor(session, `document.readyState === 'complete' && (${page.ready})`);
+      assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(noteSelector)}).value`), note,
+        'The reorganized paper page must preserve edited notes after reload');
+      assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(`input[name="status-${firstPaperId}"]:checked`)}).value`), 'done',
+        'Reading progress must survive the page layout change');
+      await assertHierarchy(session, 'papers');
+      console.log('PASS paper note input and reading status persist across reload');
     }
     await cdp.send('Target.disposeBrowserContext', { browserContextId });
     console.log(`PASS ${page.name}: shared navigation, first content, 4 widths × 2 themes and relevant disclosures`);

@@ -15,7 +15,7 @@
       ['interviews', 'pages/interviews.html', 'AI 专题', 'AI 专题'],
       ['papers', 'pages/papers.html', '论文阅读', '论文'],
     ];
-    return `<header class="site-sidebar"><a class="brand" href="${escape(prefix)}index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub</span></a><nav class="sidebar-nav" aria-label="学习空间导航">${links.map(([key, path, label, short]) => `<a class="sidebar-link" href="${escape(prefix + path)}" aria-label="${label}"${key === active ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${icons[key]}</svg><span class="nav-text">${label}</span><span class="nav-short" aria-hidden="true">${short}</span></a>`).join('')}</nav></header>`;
+    return `<header class="site-sidebar"><a class="brand" href="${escape(prefix)}index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub</span></a><nav class="sidebar-nav" aria-label="学习空间导航">${links.map(([key, path, label, short]) => `<a class="sidebar-link" href="${escape(prefix + path)}" aria-label="${label}"${key === active ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${icons[key]}</svg><span class="nav-text">${label}</span><span class="nav-short" aria-hidden="true">${short}</span></a>`).join('')}</nav><button class="theme-toggle" data-theme-toggle type="button" hidden></button></header>`;
   }
   function mountAll() {
     document.querySelectorAll('[data-study-navigation]').forEach(slot => {
@@ -28,6 +28,7 @@
         window.addEventListener('hashchange', openLegacyTopic);
       }
       slot.outerHTML = markup(slot.dataset.root || './', slot.dataset.active || 'overview');
+      window.StudyHubTheme?.refreshControls();
     });
   }
   window.StudyHubNavigation = { markup, mountAll };

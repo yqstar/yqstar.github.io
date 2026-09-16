@@ -1,18 +1,18 @@
-/* Shared interview reader: topic selection, a light chapter index, then questions. */
+/* Shared interview reader: parent directory, a light chapter index, then questions. */
 :root { --menu-shadow:0 4px 12px #00000008,0 16px 40px #00000014; }
 [data-topic="rl"] { --accent:#147666; --accent-soft:#e8f4ee; }
 [data-topic="sft"] { --accent:#966019; --accent-soft:#fbf2e5; }
 [data-topic="agent"] { --accent:#8052bc; --accent-soft:#f2ecf8; }
 .page-width { width:min(1180px,calc(100% - 64px)); }
-.page-header { padding-block:26px 22px; }
+.reader-back { padding-top:14px; }
+.reader-back a { display:inline-flex; align-items:center; gap:7px; min-height:44px; color:var(--muted); font-size:13px; line-height:1.6; }
+.reader-back a:hover { color:var(--accent); }
+.reader-back svg { width:16px; height:16px; }
+.page-header { padding-block:10px 22px; border-bottom:1px solid var(--line); }
 .page-header h1 { font-size:clamp(29px,3vw,38px); font-weight:650; line-height:1.25; letter-spacing:-1.1px; overflow-wrap:anywhere; }
 .subtitle { max-width:850px; margin-top:11px; color:var(--muted); font-size:14px; line-height:1.8; overflow-wrap:anywhere; }
 .page-meta { margin-top:13px; color:var(--muted); font-size:13px; line-height:1.6; }
 .page-meta span { padding-inline:6px; color:var(--subtle); }
-.interview-topics { display:flex; gap:24px; border-bottom:1px solid var(--line); }
-.interview-topics a { display:flex; align-items:center; min-height:44px; margin-bottom:-1px; padding-block:10px; border-bottom:2px solid transparent; color:var(--muted); font-size:14px; font-weight:500; }
-.interview-topics a:hover { color:var(--text); }
-.interview-topics a[aria-current="page"] { color:var(--accent); border-color:var(--accent); }
 .reader-layout { display:grid; grid-template-columns:180px minmax(0,1fr); align-items:start; column-gap:36px; padding-top:25px; }
 #iv-toolbar-slot { grid-column:2; grid-row:1; justify-self:end; align-self:start; z-index:21; }
 .iv-toolbar { position:relative; }
@@ -139,12 +139,10 @@
 }
 @media(max-width:760px) {
   .page-width { width:calc(100% - 40px); }
-  .page-header { padding-block:22px 16px; }
+  .page-header { padding-block:8px 20px; }
   .page-header h1 { font-size:30px; letter-spacing:-.8px; }
   .subtitle { font-size:13px; }
   .page-meta { margin-top:10px; font-size:12px; }
-  .interview-topics { gap:22px; }
-  .interview-topics a { font-size:13px; }
   .section-title { gap:9px; margin-bottom:8px; }
   .section-title h2 { font-size:17px; }
   .q-card { --q-inset:16px; --q-number:22px; --q-gap:9px; }

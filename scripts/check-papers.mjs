@@ -272,6 +272,10 @@ try {
   console.log(`Browser: ${(await cdp.send('Browser.getVersion')).product}`);
   const base = `http://127.0.0.1:${server.address().port}`;
   const { sessionId: session, browserContextId } = await openPage(`${base}/pages/papers.html`);
+  assert.equal(await evaluate(session, "document.querySelectorAll('h1').length"), 1);
+  assert.equal(await evaluate(session, "document.querySelectorAll('[data-theme-toggle]').length"), 1);
+  assert.equal(await evaluate(session, "document.querySelector('[data-theme-toggle]').closest('header.site-sidebar') !== null"), true,
+    'The paper page must use the single shared-header theme control');
   const papers = await evaluate(session, 'window.STUDY_PAPERS');
   const translated = papers.filter(paper => paper.collection === 'translated');
   const analysisPapers = papers.filter(paper => paper.collection !== 'translated');
@@ -560,6 +564,9 @@ try {
     assert.equal(await evaluate(interview.sessionId,
       `Array.from(document.querySelectorAll('.sidebar-nav a')).find(link => new URL(link.href).pathname === '/pages/papers.html')?.href`), `${base}/pages/papers.html`,
     `${page} navigation must expose the reading topic`);
+    assert.equal(await evaluate(interview.sessionId,
+      "new URL(document.querySelector('.reader-back a').href).pathname"), '/pages/interviews.html',
+    `${page} detail must return directly to its AI topic directory`);
     await cdp.send('Target.disposeBrowserContext', { browserContextId: interview.browserContextId });
   }
   console.log('PASS homepage, paper topic and interview navigation');
