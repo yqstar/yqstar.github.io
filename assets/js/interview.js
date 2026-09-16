@@ -14,42 +14,13 @@ function esc(value) {
 }
 
 
-const IV_ICONS = {
-  "overview": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>",
-  "code": "<path d=\"m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16\"/>",
-  "papers": "<path d=\"M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15\"/>",
-  "transformer": "<path d=\"m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5\"/>",
-  "rl": "<path d=\"M20 7v5h-5M4 17v-5h5\"/><path d=\"M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8\"/>",
-  "sft": "<path d=\"M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z\"/>",
-  "agent": "<rect x=\"8\" y=\"3\" width=\"8\" height=\"6\" rx=\"2\"/><rect x=\"2\" y=\"16\" width=\"7\" height=\"5\" rx=\"1.5\"/><rect x=\"15\" y=\"16\" width=\"7\" height=\"5\" rx=\"1.5\"/><path d=\"M12 9v4m-6.5 3v-3h13v3\"/>",
-  "arrow": "<path d=\"M5 12h14m-6-6 6 6-6 6\"/>",
-  "diagonal": "<path d=\"M7 17 17 7M7 7h10v10\"/>",
-  "chevron": "<path d=\"m9 6 6 6-6 6\"/>",
-  "check": "<path d=\"m5 12 4 4L19 6\"/>",
-  "file": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z\"/><path d=\"M14 2v6h6M8 13h8M8 17h5\"/>"
-};
-function ivIcon(name) {
-  return '<svg viewBox="0 0 24 24" aria-hidden="true">' + IV_ICONS[name] + '</svg>';
+function ivBreadcrumbSeparator() {
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 }
-function ivSidebar(topic) {
-  const links = [
-    { key: 'overview', href: '../../index.html', label: '学习概览' },
-    { key: 'code', href: '../algorithms.html', label: '算法训练场' },
-    { key: 'transformer', href: 'transformer-interview.html', label: 'Transformer' },
-    { key: 'rl', href: 'rl-interview.html', label: '强化学习' },
-    { key: 'sft', href: 'sft-interview.html', label: 'SFT & 微调' },
-    { key: 'agent', href: 'agent-interview.html', label: 'AI Agent' },
-    { key: 'papers', href: '../papers.html', label: '论文阅读' },
-  ];
-  const navigation = links.map((link, index) =>
-    (index === 1 ? '<p class="nav-label">算法实战</p>' : index === 2 ? '<p class="nav-label">AI 面试专题</p>' : link.key === 'papers' ? '<p class="nav-label">研究与阅读</p>' : '') +
-    '<a class="sidebar-link" href="' + link.href + '" aria-label="' + esc(link.label) + '" title="' + esc(link.label) + '"' +
-    (link.key === topic.key ? ' aria-current="page"' : '') + '>' + ivIcon(link.key) + '<span class="nav-text">' + esc(link.label) + '</span></a>'
-  ).join('');
-  return '<aside class="site-sidebar" aria-label="学习空间导航">' +
-    '<a class="brand" href="../../index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub<span class="brand-caption">ALGORITHM &amp; AI</span></span></a>' +
-    '<nav class="sidebar-nav" aria-label="学习专题">' + navigation + '</nav>' +
-    '<div class="sidebar-footer"><div class="sidebar-note"><strong>理解原理，也动手实践。</strong><p>从一道题开始，<br>积累自己的知识体系。</p></div><div class="sidebar-signature">BUILT FOR LEARNING</div></div></aside>';
+function ivTopicNavigation(topic) {
+  return '<nav class="interview-topics" aria-label="AI 面试专题">' + INTERVIEW_TOPICS.map(item =>
+    '<a href="' + item.key + '-interview.html"' + (item.key === topic.key ? ' aria-current="page"' : '') + '>' + esc(item.name) + '</a>'
+  ).join('') + '</nav>';
 }
 
 function ivTopic() {
@@ -83,7 +54,7 @@ function renderSection(section, index) {
     '<span class="s-count">' + section.questions.length + ' 题</span></div>' + section.questions.map(renderQuestion).join('') + '</section>';
 }
 
-function renderInterview(data) {
+function renderInterview(data, focusHash = true) {
   // The toolbar is reused across imports; never carry an open popup into a new view.
   if (IV.toolbar) IV.toolbar.open = false;
   const topic = ivTopic();
@@ -94,15 +65,14 @@ function renderInterview(data) {
 
   document.body.classList.add('site-shell');
   document.getElementById('app').innerHTML =
-    '<a class="skip-link" href="#iv-content">跳转到题目</a>' + ivSidebar(topic) +
-    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../../index.html">学习空间</a>' + ivIcon('chevron') +
-    '<span>AI 面试专题</span>' + ivIcon('chevron') + '<span aria-current="page">' + esc(topic.name) + '</span></nav><div class="workspace-actions"><span class="workspace-label">INTERVIEW HANDBOOK</span><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>' +
-    '<header class="page-header"><div class="page-header-main"><span class="reader-topic-icon">' + ivIcon(topic.key) + '</span><div><p class="topic-kicker">' + esc(data.highlight) + '</p>' +
-    '<h1>' + esc(data.title) + '</h1></div></div><p class="subtitle">' + esc(data.subtitle) + '</p>' +
-    '<div class="page-meta"><div><strong>' + count + '</strong><span>精选题目</span></div><div><strong>' + String(data.sections.length).padStart(2, '0') + '</strong><span>知识章节</span></div></div></header>' +
-    '<div class="reader-topbar"><p>题目列表<span>点击题目，展开答案</span></p><div id="iv-toolbar-slot"></div></div><p id="iv-message" class="iv-message" role="status" aria-live="polite" hidden></p>' +
-    '<div class="reader-layout"><aside class="toc"><details class="toc-panel"' + (IV_DESKTOP.matches ? ' open' : '') + '><summary><span>本页目录</span><span class="toc-summary-note">' + IV_CHEVRON + '</span></summary>' +
-    '<nav aria-label="章节目录"><ol class="toc-list">' + toc + '</ol></nav></details><div class="toc-footnote">按章节梳理，逐个理解。</div></aside>' +
+    '<a class="skip-link" href="#iv-content">跳转到题目</a>' + window.StudyHubNavigation.markup('../../', 'interviews') +
+    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../../index.html#interviews">AI 专题</a>' + ivBreadcrumbSeparator() +
+    '<span aria-current="page">' + esc(topic.name) + '</span></nav><div class="workspace-actions"><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>' +
+    '<header class="page-header"><h1>' + esc(data.title) + '</h1><p class="subtitle">' + esc(data.subtitle) + '</p>' +
+    '<p class="page-meta">' + count + ' 道题<span aria-hidden="true"> · </span>' + data.sections.length + ' 个章节</p></header>' + ivTopicNavigation(topic) +
+    '<p id="iv-message" class="iv-message" role="status" aria-live="polite" hidden></p>' +
+    '<div class="reader-layout"><aside class="toc"><details class="toc-panel"' + (IV_DESKTOP.matches ? ' open' : '') + '><summary><span>章节目录</span><span class="toc-summary-note">' + IV_CHEVRON + '</span></summary>' +
+    '<nav aria-label="章节目录"><ol class="toc-list">' + toc + '</ol></nav></details></aside><div id="iv-toolbar-slot"></div>' +
     '<div class="questions" id="iv-content" tabindex="-1">' + data.sections.map(renderSection).join('') + (data.sections.length ? '' : '<p class="empty-state">当前题库没有章节。</p>') + '</div></div>' +
     '<footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>专注练习，持续积累。</span><span class="footer-credit">' + data.footer + '</span></footer></main>';
 
@@ -131,20 +101,26 @@ function renderInterview(data) {
     pre.tabIndex = 0;
     pre.setAttribute('aria-label', '代码或公式，可横向滚动');
   });
+  const panel = document.querySelector('.toc-panel');
+  panel.addEventListener('toggle', () => {
+    if (!IV_DESKTOP.matches && panel.open) {
+      IV.toolbar.open = false;
+      ivPositionToc();
+    }
+  });
+  panel.addEventListener('focusout', event => {
+    if (!IV_DESKTOP.matches && !panel.contains(event.relatedTarget)) panel.open = false;
+  });
   document.querySelectorAll('.toc-list a').forEach(link => link.addEventListener('click', () => {
-    if (!IV_DESKTOP.matches) document.querySelector('.toc-panel').open = false;
+    if (!IV_DESKTOP.matches) panel.open = false;
+    // Selecting the current fragment should still return to its heading.
+    if (location.hash === link.getAttribute('href')) ivOpenHash();
   }));
   IV.sections = [...document.querySelectorAll('.section')];
   ivBuildToolbar();
   ivRefreshToolbar(IV.current !== IV.defaultData || IV.invalidStored);
-  ivOpenHash();
+  ivOpenHash({ focus: focusHash, scroll: focusHash });
   ivUpdateToc();
-  // Keep the current topic visible in the horizontal navigation on phones.
-  const sidebarNav = document.querySelector('.sidebar-nav');
-  const activeTopic = sidebarNav.querySelector('[aria-current="page"]');
-  if (sidebarNav.scrollWidth > sidebarNav.clientWidth && activeTopic) {
-    sidebarNav.scrollLeft = activeTopic.offsetLeft - sidebarNav.clientWidth / 2 + activeTopic.offsetWidth / 2;
-  }
 }
 
 function ivFormatAnswers() {
@@ -169,14 +145,36 @@ function ivFormatAnswers() {
   });
 }
 
-function ivOpenHash() {
+function ivOpenHash(options = {}) {
   let id;
   try { id = decodeURIComponent(location.hash.slice(1)); } catch { return false; }
   const target = id && document.getElementById(id);
   if (!target || !target.matches('.q-card, .section')) return false;
   if (target.matches('.q-card')) target.open = true;
-  requestAnimationFrame(() => { target.scrollIntoView({ block: 'start' }); ivUpdateToc(); });
+  requestAnimationFrame(() => {
+    if (options.scroll !== false) target.scrollIntoView({ block: 'start' });
+    const focusTarget = target.matches('.q-card') ? target.querySelector('summary') : target.querySelector('h2');
+    if (focusTarget && options.focus !== false) {
+      if (focusTarget.tagName !== 'SUMMARY') focusTarget.tabIndex = -1;
+      focusTarget.focus({ preventScroll: true });
+    }
+    ivUpdateToc();
+  });
   return true;
+}
+
+function ivPositionToc() {
+  const panel = document.querySelector('.toc-panel');
+  if (!panel) return;
+  const navigation = panel.querySelector('nav');
+  if (IV_DESKTOP.matches) { navigation.style.maxHeight = ''; return; }
+  if (!panel.open) return;
+  const trigger = panel.querySelector('summary').getBoundingClientRect();
+  const below = innerHeight - trigger.bottom - 20;
+  const above = trigger.top - 20;
+  const placeAbove = below < navigation.scrollHeight && above > below;
+  panel.dataset.placement = placeAbove ? 'above' : 'below';
+  navigation.style.maxHeight = Math.max(0, placeAbove ? above : below) + 'px';
 }
 
 function ivUpdateToc() {
@@ -195,6 +193,7 @@ window.addEventListener('scroll', () => { if (IV.frame === null) IV.frame = requ
 IV_DESKTOP.addEventListener('change', () => {
   const panel = document.querySelector('.toc-panel');
   if (panel) panel.open = IV_DESKTOP.matches;
+  ivPositionToc();
 });
 
 function ivKey() { return 'ivdata:' + (location.pathname.split('/').pop() || 'page'); }
@@ -293,7 +292,7 @@ function ivImport(file) {
       if (!ivSave(data)) throw new Error('无法保存到本地存储，现有题库未更改。');
       IV.current = data;
       IV.invalidStored = false;
-      renderInterview(data);
+      renderInterview(data, false);
       ivMessage('题库已导入并保存，刷新后仍可使用。');
       IV.toolbar.querySelector('summary').focus();
     } catch (error) { ivMessage('导入失败：' + (error.message || 'JSON 解析错误'), true); }
@@ -306,7 +305,7 @@ function ivReset() {
   if (!ivClear()) { ivMessage('无法清除本地存储，题库未重置。', true); return; }
   IV.current = IV.defaultData;
   IV.invalidStored = false;
-  renderInterview(IV.current);
+  renderInterview(IV.current, false);
   ivMessage('已恢复内置题库。');
   IV.toolbar.querySelector('summary').focus();
 }
@@ -340,7 +339,10 @@ function ivBuildToolbar() {
     toolbar.querySelector('.iv-export').addEventListener('click', () => { ivExport(); toolbar.open = false; toolbar.querySelector('summary').focus(); });
     toolbar.querySelector('.iv-import').addEventListener('click', () => { input.click(); toolbar.open = false; toolbar.querySelector('summary').focus(); });
     toolbar.querySelector('.iv-reset').addEventListener('click', ivReset);
-    toolbar.addEventListener('toggle', ivPositionToolbar);
+    toolbar.addEventListener('toggle', () => {
+      if (toolbar.open && !IV_DESKTOP.matches) document.querySelector('.toc-panel').open = false;
+      ivPositionToolbar();
+    });
     // This is a non-modal disclosure: Tab follows document order and exits freely.
     toolbar.addEventListener('focusout', event => {
       if (!toolbar.contains(event.relatedTarget)) toolbar.open = false;
@@ -353,17 +355,26 @@ function ivBuildToolbar() {
 }
 document.addEventListener('click', event => {
   if (IV.toolbar?.open && !IV.toolbar.contains(event.target)) IV.toolbar.open = false;
+  const panel = document.querySelector('.toc-panel');
+  if (!IV_DESKTOP.matches && panel?.open && !panel.contains(event.target)) panel.open = false;
 });
 document.addEventListener('keydown', event => {
+  const panel = document.querySelector('.toc-panel');
+  if (event.key === 'Escape' && !IV_DESKTOP.matches && panel?.open) {
+    event.preventDefault();
+    panel.open = false;
+    panel.querySelector('summary').focus();
+  }
   if (event.key === 'Escape' && IV.toolbar?.open) {
     event.preventDefault();
     IV.toolbar.open = false;
     IV.toolbar.querySelector('summary').focus();
   }
 });
-window.addEventListener('resize', ivPositionToolbar);
+window.addEventListener('resize', () => { ivPositionToolbar(); ivPositionToc(); });
 window.addEventListener('scroll', () => {
   if (IV.toolbar?.open) ivPositionToolbar();
+  ivPositionToc();
 }, { passive: true });
 function initInterview(defaultData) {
   IV.defaultData = defaultData;

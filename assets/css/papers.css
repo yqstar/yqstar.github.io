@@ -1,9 +1,9 @@
 /* Paper reader: use the shared workspace tokens in both appearances. */
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-.paper-header { display:flex; justify-content:space-between; align-items:center; gap:40px; padding:44px 0 32px; }
+.paper-header { display:flex; justify-content:space-between; align-items:center; gap:30px; padding:20px 0 26px; }
 .paper-eyebrow { color:var(--muted); font-size:11px; line-height:1.6; letter-spacing:1.2px; }
-.paper-header h1 { margin-top:12px; font-size:clamp(32px,4vw,44px); line-height:1.25; font-weight:650; letter-spacing:-1.5px; }
-.paper-subtitle { margin-top:15px; color:var(--muted); font-size:15px; line-height:1.85; }
+.paper-header h1 { margin-top:0; font-size:clamp(30px,3.3vw,40px); line-height:1.25; font-weight:650; letter-spacing:-1.5px; }
+.paper-subtitle { margin-top:10px; color:var(--muted); font-size:15px; line-height:1.85; }
 .reading-progress { flex:0 1 240px; min-width:210px; }
 .progress-label { display:flex; justify-content:space-between; align-items:baseline; gap:18px; font-size:12px; color:var(--muted); }
 .progress-label strong { color:var(--text); font-size:26px; font-weight:550; font-variant-numeric:tabular-nums; }
@@ -14,24 +14,29 @@
 .reading-progress p { margin-top:12px; color:var(--muted); font-size:11px; line-height:1.7; }
 summary { cursor:pointer; list-style:none; }
 summary::-webkit-details-marker { display:none; }
-.reading-method { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); }
-.reading-method > summary { display:flex; align-items:center; gap:13px; padding:18px 22px; border-radius:var(--radius-panel); }
-.method-icon { display:grid; place-items:center; width:36px; height:36px; flex-shrink:0; color:var(--accent); background:var(--accent-soft); border-radius:11px; }
-.method-icon svg { width:21px; height:21px; }
-.reading-method summary strong { font-size:13px; font-weight:550; }
-.method-summary-note { margin-left:14px; font-size:12px; color:var(--muted); }
+.reading-method { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
 .disclosure-icon { margin-left:auto; width:18px; height:18px; color:var(--muted); transition:transform .18s; }
 details[open] > summary .disclosure-icon { transform:rotate(180deg); }
-.method-steps { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; padding:4px 24px 24px; }
+.method-steps { display:grid; grid-template-columns:1fr; gap:18px; padding:0; }
 .method-steps section > span { color:var(--accent); font:11px/1.8 var(--mono); }
-.method-steps h2 { margin-top:8px; font-size:14px; font-weight:600; line-height:1.6; }
+.method-steps h4 { margin-top:8px; font-size:14px; font-weight:600; line-height:1.6; }
 .method-steps p { margin-top:8px; color:var(--muted); font-size:12px; line-height:1.9; }
-.paper-library { margin-top:36px; }
-.library-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:20px; }
-.library-heading .paper-eyebrow { font:10px/1.5 var(--mono); letter-spacing:1.5px; }
-.library-heading h2 { font-size:23px; font-weight:600; letter-spacing:-.5px; margin-top:6px; }
-.library-caption { color:var(--muted); font-size:12px; padding-bottom:3px; }
-.collection-filters { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; padding:5px; width:fit-content; max-width:100%; border:1px solid var(--line); border-radius:13px; background:var(--inset); }
+.paper-library { margin-top:5px; }
+.library-primary { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+.paper-disclosure { flex-shrink:0; }
+.paper-tool-trigger { display:flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:10px 13px; border:1px solid var(--line); border-radius:var(--radius-control); background:var(--surface); color:var(--text2); font-size:12px; line-height:1.6; }
+.paper-tool-trigger:hover,.paper-disclosure[open] > summary { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+.paper-tool-trigger:active { background:var(--inset); }
+.paper-tool-trigger .disclosure-icon { width:15px; height:15px; }
+#active-filter-count { display:grid; place-items:center; min-width:18px; height:18px; padding-inline:4px; background:var(--accent); color:var(--surface); border-radius:9px; font-size:10px; }
+.paper-popover { position:fixed; z-index:60; width:min(420px,calc(100vw - 32px)); overflow:auto; overscroll-behavior:contain; padding:20px; background:var(--surface); border:1px solid var(--line); border-radius:15px; box-shadow:0 6px 20px #0000000a,0 16px 40px #00000017; }
+.paper-popover h3 { font-size:13px; font-weight:600; line-height:1.7; margin-bottom:12px; }
+.paper-popover .category-filters { margin-top:0; margin-bottom:23px; }
+.paper-popover .status-filters button[aria-pressed="true"] { background:var(--accent-soft); color:var(--accent); box-shadow:none; }
+.paper-popover .backup-actions { flex-wrap:wrap; }
+.paper-popover .backup-actions button { flex:1; }
+#filter-description { font-size:11px; color:var(--muted); }
+.collection-filters { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:0; padding:5px; width:fit-content; max-width:100%; border:1px solid var(--line); border-radius:13px; background:var(--inset); }
 .collection-filters button { min-height:40px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--muted); padding:9px 15px; font-size:12px; line-height:1.6; }
 .collection-filters button[aria-pressed="true"] { border-color:var(--line); background:var(--surface); color:var(--accent); font-weight:600; box-shadow:0 2px 5px #00000006; }
 .collection-filters button:hover { color:var(--accent); }
@@ -61,7 +66,7 @@ details[open] > summary .disclosure-icon { transform:rotate(180deg); }
 #paper-list { display:grid; gap:12px; }
 .paper-card { min-width:0; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); overflow:clip; }
 .paper-card[open] { border-color:var(--accent); }
-.paper-summary { display:flex; align-items:center; gap:20px; padding:24px; border-radius:var(--radius-panel); }
+.paper-summary { display:flex; align-items:center; gap:18px; padding:19px 22px; border-radius:var(--radius-panel); }
 .paper-summary:hover { background:var(--surface-hover); }
 .paper-summary:focus-visible { outline-offset:-4px; }
 .paper-index { align-self:flex-start; padding-top:3px; color:var(--muted); font:11px/1.6 var(--mono); }
@@ -69,7 +74,7 @@ details[open] > summary .disclosure-icon { transform:rotate(180deg); }
 .paper-meta { display:flex; align-items:center; flex-wrap:wrap; gap:7px 10px; color:var(--muted); font-size:11px; line-height:1.7; }
 .paper-category { color:var(--accent); }
 .paper-meta-dot { width:3px; height:3px; border-radius:50%; background:var(--subtle); }
-.paper-summary h3 { margin-top:6px; font-size:19px; font-weight:600; letter-spacing:-.4px; line-height:1.55; overflow-wrap:anywhere; }
+.paper-summary h3 { margin-top:5px; font-size:18px; font-weight:600; letter-spacing:-.4px; line-height:1.55; overflow-wrap:anywhere; }
 .paper-summary-description { display:block; color:var(--muted); font-size:12px; line-height:1.85; margin-top:7px; }
 .paper-summary-end { display:flex; align-items:center; gap:16px; flex-shrink:0; }
 .paper-status { display:inline-block; padding:5px 9px; border-radius:7px; background:var(--inset); color:var(--muted); font-size:10px; line-height:1.5; white-space:nowrap; }
@@ -189,21 +194,17 @@ details[open] > summary .disclosure-icon { transform:rotate(180deg); }
 .dialog-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:9px; padding:18px 26px; border-top:1px solid var(--line); }
 :root[data-theme="dark"] .paper-status[data-state="done"] { color:#8bd0a2; background:#223d2c; }
 @media(prefers-color-scheme:dark) { :root:not([data-theme]) .paper-status[data-state="done"] { color:#8bd0a2; background:#223d2c; } }
-@media(max-width:1200px) { .paper-summary { gap:16px; padding:22px; } .reading-progress { flex-basis:210px; } .analysis-flow { gap:14px; } .analysis-flow li + li::before { left:-13px; font-size:11px; } }
+@media(max-width:1200px) { .paper-summary { gap:16px; padding:19px 20px; } .reading-progress { flex-basis:210px; } .analysis-flow { gap:14px; } .analysis-flow li + li::before { left:-13px; font-size:11px; } }
 @media(max-width:900px) { .paper-notebook { grid-template-columns:1fr; gap:22px; } .notebook-progress { max-width:440px; } }
 @media(max-width:760px) {
-  .paper-header { padding:30px 0 25px; gap:22px; align-items:flex-start; flex-direction:column; }
-  .paper-header h1 { font-size:34px; }
+  .paper-header { padding:12px 0 22px; gap:15px; align-items:flex-start; flex-direction:column; }
+  .paper-header h1 { font-size:30px; }
   .paper-subtitle { font-size:14px; }
   .reading-progress { flex-basis:auto; width:100%; max-width:340px; min-width:0; }
-  .reading-progress p { display:none; }
+  .reading-progress progress { margin-top:8px; height:3px; }
   .progress-label strong { font-size:22px; }
-  .reading-method > summary { padding:16px; gap:10px; }
-  .method-summary-note { display:block; margin:4px 0 0; font-size:11px; }
-  .method-steps { grid-template-columns:1fr; gap:20px; padding:5px 20px 22px; }
-  .paper-library { margin-top:28px; }
-  .library-heading h2 { font-size:21px; }
-  .library-caption { display:none; }
+  .method-steps { gap:17px; }
+  .paper-library { margin-top:0; }
   .collection-filters { gap:3px; padding:4px; }
   .collection-filters button { padding:9px 10px; font-size:11px; }
   .collection-filters button span { margin-left:3px; }
@@ -211,8 +212,8 @@ details[open] > summary .disclosure-icon { transform:rotate(180deg); }
   .translation-heading { flex-direction:column; gap:8px; }
   .translation-heading h4 { font-size:17px; }
   .translation-guide-sections { grid-template-columns:1fr; gap:21px; margin-top:22px; }
-  .library-toolbar { flex-wrap:wrap; gap:10px; }
-  .paper-search { flex-basis:100%; }
+  .library-toolbar { gap:8px; }
+  .paper-search { flex-basis:0; }
   .paper-search input,.paper-notebook textarea { font-size:16px; }
   .paper-notebook textarea { min-height:280px; line-height:1.8; }
   .backup-actions { width:100%; }

@@ -1,6 +1,7 @@
 /* Local paper notebook. Plain scripts also work when opened with file://. */
 (() => {
   'use strict';
+  window.StudyHubNavigation?.mountAll();
   const papers = window.STUDY_PAPERS;
   const storageKey = 'study-hub:papers:v1';
   const categories = { ranking: '推荐排序', sequential: '序列建模', generative: '生成式推荐', architecture: '模型架构', tuning: '高效微调', alignment: '偏好对齐', agents: 'Agent 与检索' };
@@ -9,6 +10,55 @@
   const byId = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   const arrow = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
+  const disclosures = ['paper-filters', 'paper-tools'].map(byId);
+  function closePanels() { disclosures.forEach(panel => { panel.open = false; }); }
+  function placePanel(disclosure) {
+    const panel = disclosure.querySelector('.paper-popover');
+    const trigger = disclosure.querySelector('summary').getBoundingClientRect();
+    const width = Math.min(420, window.innerWidth - 32);
+    panel.style.width = width + 'px';
+    panel.style.maxHeight = 'none';
+    const desired = panel.scrollHeight;
+    const below = window.innerHeight - trigger.bottom - 16;
+    const above = trigger.top - 16;
+    const upwards = below < Math.min(desired, 280) && above > below;
+    const height = Math.min(desired, Math.max(80, (upwards ? above : below) - 8));
+    panel.style.maxHeight = height + 'px';
+    panel.style.left = Math.max(16, Math.min(trigger.right - width, window.innerWidth - width - 16)) + 'px';
+    panel.style.top = Math.max(8, upwards ? trigger.top - height - 8 : trigger.bottom + 8) + 'px';
+  }
+  disclosures.forEach(disclosure => {
+    disclosure.addEventListener('toggle', () => {
+      if (!disclosure.open) return;
+      disclosures.forEach(other => { if (other !== disclosure) other.open = false; });
+      placePanel(disclosure);
+    });
+    disclosure.addEventListener('focusout', event => {
+      if (event.relatedTarget) {
+        if (!disclosure.contains(event.relatedTarget)) disclosure.open = false;
+        return;
+      }
+      // During pointer focus changes activeElement can briefly be body.
+      setTimeout(() => {
+        if (disclosure.open && !disclosure.contains(document.activeElement)) disclosure.open = false;
+      }, 0);
+    });
+  });
+  document.addEventListener('pointerdown', event => {
+    disclosures.forEach(disclosure => { if (!disclosure.contains(event.target)) disclosure.open = false; });
+  });
+  document.addEventListener('keydown', event => {
+    const opened = disclosures.find(disclosure => disclosure.open);
+    if (event.key === 'Escape' && opened) {
+      event.preventDefault();
+      opened.open = false;
+      opened.querySelector('summary').focus();
+    }
+  });
+  window.addEventListener('resize', () => disclosures.filter(panel => panel.open).forEach(placePanel));
+  window.addEventListener('scroll', event => {
+    if (!disclosures.some(disclosure => disclosure.contains(event.target))) closePanels();
+  }, { passive: true, capture: true });
   const noteTemplate = '## 研究问题\n作者想解决什么？已有方法的不足是什么？\n\n## 核心方法\n用自己的话说明关键步骤。\n\n## 实验证据\n记录数据、基线、评价指标和关键消融。\n\n## 局限与疑问\n哪些结论还需要验证？\n\n## 我的理解\n用一句话总结，并联系已有知识。\n';
   let records = Object.create(null);
   let storageAvailable = true;
@@ -167,10 +217,14 @@
     }
     byId('paper-count').textContent = count + ' 篇论文';
     byId('empty-papers').hidden = count !== 0;
+    const filterCount = Number(category !== 'all') + Number(statusFilter !== 'all');
+    byId('active-filter-count').textContent = filterCount;
+    byId('active-filter-count').hidden = !filterCount;
+    byId('filter-description').textContent = (categories[category] || '全部主题') + ' · ' + (statusFilter === 'all' ? '全部状态' : statuses[statusFilter]);
     document.querySelectorAll('[data-category]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.category === category)));
     document.querySelectorAll('[data-status-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.statusFilter === statusFilter)));
     document.querySelectorAll('[data-collection]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.collection === collection)));
-    if (focusedCard?.hidden) document.querySelector(`[data-status-filter="${statusFilter}"]`).focus();
+    if (focusedCard?.hidden) byId('paper-filters').querySelector('summary').focus();
   }
 
   function refreshRecords() {
@@ -193,6 +247,7 @@
 
   byId('paper-search').addEventListener('input', filterPapers);
   document.querySelectorAll('[data-collection]').forEach(button => button.addEventListener('click', () => {
+    closePanels();
     collection = button.dataset.collection;
     category = statusFilter = 'all';
     byId('paper-search').value = '';
@@ -287,7 +342,11 @@
   });
 
   const dialog = byId('import-dialog');
-  byId('choose-import').addEventListener('click', () => byId('import-papers').click());
+  byId('choose-import').addEventListener('click', () => {
+    closePanels();
+    byId('paper-tools').querySelector('summary').focus();
+    byId('import-papers').click();
+  });
   byId('import-papers').addEventListener('change', async event => {
     const sequence = ++importSequence;
     const file = event.target.files[0];
@@ -322,7 +381,7 @@
       refreshRecords();
       notice(storageAvailable ? '已合并导入并保存到本机。' : '已在本次页面中合并导入，请及时导出备份。');
     }
-    byId('choose-import').focus();
+    byId('paper-tools').querySelector('summary').focus();
   });
 
   window.addEventListener('storage', event => {
@@ -332,11 +391,5 @@
   });
   updateProgress();
   filterPapers();
-  if (!openHash()) {
-    const firstVisible = papers.find(paper => !cards.get(paper.id).hidden);
-    if (firstVisible) cards.get(firstVisible.id).open = true;
-  }
-  const sidebar = document.querySelector('.sidebar-nav');
-  const active = sidebar.querySelector('[aria-current="page"]');
-  if (sidebar.scrollWidth > sidebar.clientWidth && active) sidebar.scrollLeft = active.offsetLeft - sidebar.clientWidth / 2 + active.offsetWidth / 2;
+  openHash();
 })();

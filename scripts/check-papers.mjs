@@ -106,10 +106,40 @@ async function openPage(url, beforeLoad, readyExpression = ready) {
 }
 
 async function click(session, selector) {
-  await evaluate(session, `document.querySelector(${JSON.stringify(selector)}).click()`);
+  // Open collapsed ancestors through their real summary control before clicking.
+  // Calling HTMLElement.click() can otherwise make a hidden filter look usable.
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const target = await evaluate(session, `(async () => {
+      const element = document.querySelector(${JSON.stringify(selector)});
+      if (!element) throw new Error('Missing control: ' + ${JSON.stringify(selector)});
+      const parents = [];
+      for (let node = element.parentElement; node; node = node.parentElement) {
+        if (node.matches('details:not([open])') && !node.querySelector(':scope > summary')?.contains(element)) parents.unshift(node);
+      }
+      const control = parents[0]?.querySelector(':scope > summary') || element;
+      const initial = control.getBoundingClientRect();
+      if (initial.top < 0 || initial.bottom > innerHeight || initial.left < 0 || initial.right > innerWidth) {
+        control.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+      }
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const rect = control.getBoundingClientRect();
+      const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+      const hit = document.elementFromPoint(x, y);
+      if (!rect.width || !rect.height || !(control === hit || control.contains(hit))) {
+        throw new Error('Control is not pointer reachable: ' + ${JSON.stringify(selector)});
+      }
+      return { x, y, ancestor: parents.length > 0 };
+    })()`);
+    await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: target.x, y: target.y, button: 'left', clickCount: 1 }, session);
+    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: target.x, y: target.y, button: 'left', clickCount: 1 }, session);
+    await evaluate(session, 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
+    if (!target.ancestor) return;
+  }
+  throw new Error(`Unable to reveal control: ${selector}`);
 }
 
 async function search(session, text) {
+  await click(session, '#paper-search');
   await evaluate(session, `(() => {
     const input = document.querySelector('#paper-search');
     input.value = ${JSON.stringify(text)};
@@ -118,9 +148,10 @@ async function search(session, text) {
 }
 
 async function setNote(session, id, text) {
+  const card = `[data-paper-id="${id}"]`;
+  if (!await evaluate(session, `document.querySelector(${JSON.stringify(card)}).open`)) await click(session, `${card} > summary`);
   await evaluate(session, `(() => {
     const input = document.querySelector(${JSON.stringify(`[data-note-id="${id}"]`)});
-    input.closest('details').open = true;
     input.value = ${JSON.stringify(text)};
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -128,15 +159,12 @@ async function setNote(session, id, text) {
 }
 
 async function setStatus(session, id, status) {
-  await evaluate(session, `(() => {
-    const input = document.querySelector(${JSON.stringify(`input[name="status-${id}"][value="${status}"]`)});
-    const card = input.closest('details');
-    if (!card.open) card.querySelector('summary').click();
-    input.click();
-  })()`);
+  await click(session, `input[name="status-${id}"][value="${status}"] + span`);
 }
 
 async function importFile(session, path) {
+  await cdp.send('Page.setInterceptFileChooserDialog', { enabled: true }, session);
+  await click(session, '#choose-import');
   const { root: document } = await cdp.send('DOM.getDocument', {}, session);
   const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: document.nodeId, selector: '#import-papers' }, session);
   await cdp.send('DOM.setFileInputFiles', { nodeId, files: [path] }, session);
@@ -266,6 +294,8 @@ try {
   assert.deepEqual(await evaluate(session, visibleIds), translated.map(paper => paper.id),
     'The first visit should show the Chinese translations');
   assert.equal(await evaluate(session, `document.querySelector('[data-collection="translated"]').getAttribute('aria-pressed')`), 'true');
+  assert.equal(await evaluate(session, `document.querySelectorAll('.paper-card[open]').length`), 0,
+    'The library should initially show a scan-friendly list without expanding a paper');
   for (const collection of ['all', 'analysis', 'translated']) {
     await click(session, `[data-collection="${collection}"]`);
     const expected = collection === 'all' ? papers : collection === 'analysis' ? analysisPapers : translated;
@@ -322,6 +352,8 @@ try {
   await search(session, '');
   for (const category of ['ranking', 'sequential', 'generative']) {
     await click(session, `[data-category="${category}"]`);
+    assert.equal(await evaluate(session, `document.querySelector('[data-category="${category}"]').getAttribute('aria-pressed')`), 'true',
+      'Pointer selection inside the disclosure must commit the chosen category');
     assert.deepEqual(await evaluate(session, visibleIds), translated.filter(paper => paper.category === category).map(paper => paper.id));
   }
   await click(session, '[data-category="all"]');
@@ -411,7 +443,10 @@ try {
   await click(session, '[data-collection="translated"]');
   const [first, second] = translated;
   await evaluate(session, `location.hash = ${JSON.stringify('#paper=' + first.id)}`);
-  await waitFor(session, `location.hash === ${JSON.stringify('#paper=' + first.id)} && !document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"]`)}).hidden`);
+  await waitFor(session, `location.hash === ${JSON.stringify('#paper=' + first.id)} && (() => {
+    const card = document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"]`)});
+    return !card.hidden && card.open && document.activeElement === card.querySelector('summary');
+  })()`);
   const note = '我的阅读笔记：先理解问题，再核对实验。\n<script>alert("literal note")</script>';
   await setStatus(session, first.id, 'reading');
   await setNote(session, first.id, note);
@@ -424,6 +459,7 @@ try {
   assert.deepEqual(await evaluate(session, visibleIds), [first.id]);
   await click(session, '[data-status-filter="done"]');
   assert.deepEqual(await evaluate(session, visibleIds), []);
+  await pressKey(session, 'Escape');
   await click(session, '#reset-filters');
   await click(session, '[data-collection="translated"]');
   await setStatus(session, first.id, 'done');
@@ -495,7 +531,7 @@ try {
   await pressKey(session, 'Tab', true);
   assert.equal(await evaluate(session, 'document.activeElement.id'), 'cancel-import');
   await pressKey(session, 'Escape');
-  await waitFor(session, `!document.querySelector('#import-dialog').open && document.activeElement.id === 'choose-import'`);
+  await waitFor(session, `!document.querySelector('#import-dialog').open && document.activeElement.matches('#paper-tools > summary')`);
   assert.deepEqual(await evaluate(session, recordsExpression), merged,
     'Escape after a previously confirmed import must cancel, even when the previous returnValue was confirm');
   console.log('PASS real JSON download, malformed/type-invalid imports, preview/cancel/merge and keyboard Escape after confirm');
@@ -511,7 +547,8 @@ try {
     .map(link => ({ text: link.textContent.trim(), url: link.href }))
     .filter(link => link.url.startsWith(location.origin + '/'))`);
   assert.ok(localLinks.some(link => new URL(link.url).pathname === '/index.html'), 'Paper topic must link home');
-  assert.ok(localLinks.some(link => new URL(link.url).pathname.startsWith('/pages/interviews/')), 'Paper topic must link to interview learning');
+  assert.ok(localLinks.some(link => new URL(link.url).pathname === '/index.html' && new URL(link.url).hash === '#interviews'),
+    'Paper topic must link to the AI topic chooser');
   for (const pathname of new Set(localLinks.map(link => new URL(link.url).pathname))) {
     assert.equal((await fetch(base + pathname)).status, 200, `Local link must exist: ${pathname}`);
   }
@@ -519,10 +556,10 @@ try {
   assert.match(home, /href="pages\/papers\.html"/, 'Homepage must expose the reading topic');
   for (const page of ['transformer', 'sft', 'rl', 'agent']) {
     const interview = await openPage(`${base}/pages/interviews/${page}-interview.html`, undefined,
-      `document.readyState === 'complete' && document.querySelector('.sidebar-nav a[href="../papers.html"]')`);
+      `document.readyState === 'complete' && document.querySelectorAll('.sidebar-nav a').length === 4`);
     assert.equal(await evaluate(interview.sessionId,
-      `document.querySelector('.sidebar-nav a[href="../papers.html"]').href`), `${base}/pages/papers.html`,
-    `${page} sidebar must expose the reading topic`);
+      `Array.from(document.querySelectorAll('.sidebar-nav a')).find(link => new URL(link.href).pathname === '/pages/papers.html')?.href`), `${base}/pages/papers.html`,
+    `${page} navigation must expose the reading topic`);
     await cdp.send('Target.disposeBrowserContext', { browserContextId: interview.browserContextId });
   }
   console.log('PASS homepage, paper topic and interview navigation');

@@ -7,115 +7,27 @@
   <meta name="description" content="算法与 AI 学习空间：100 道 Python 离线算法练习、114 道精选 AI 面试题，以及 39 篇中文论文全文、8 篇经典解析与个人阅读笔记。">
   <title>Algorithm &amp; AI · Study Hub</title>
   <script src="assets/js/theme.js"></script>
-  <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/home.css">
+  <script src="./assets/js/navigation.js?v=structure-1"></script>
+  <link rel="stylesheet" href="assets/css/site.css?v=structure-1">
+  <link rel="stylesheet" href="assets/css/home.css?v=structure-1">
 </head>
 <body class="site-shell">
   <a class="skip-link" href="#main">跳转到学习内容</a>
-  <aside class="site-sidebar" aria-label="学习空间导航">
-    <a class="brand" href="index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub<span class="brand-caption">ALGORITHM &amp; AI</span></span></a>
-    <nav class="sidebar-nav" aria-label="学习专题">
-      <a class="sidebar-link" href="index.html" aria-label="学习概览" title="学习概览" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-text">学习概览</span></a>
-      <p class="nav-label">算法实战</p>
-      <a class="sidebar-link" href="pages/algorithms.html" aria-label="算法训练场" title="算法训练场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg><span class="nav-text">算法训练场</span><span class="nav-count">100</span></a>
-      <p class="nav-label">AI 面试专题</p>
-      <a class="sidebar-link" href="pages/interviews/transformer-interview.html" aria-label="Transformer" title="Transformer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg><span class="nav-text">Transformer</span><span class="nav-count">28</span></a>
-      <a class="sidebar-link" href="pages/interviews/rl-interview.html" aria-label="强化学习" title="强化学习"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8"/></svg><span class="nav-text">强化学习</span><span class="nav-count">28</span></a>
-      <a class="sidebar-link" href="pages/interviews/sft-interview.html" aria-label="SFT & 微调" title="SFT & 微调"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z"/></svg><span class="nav-text">SFT & 微调</span><span class="nav-count">28</span></a>
-      <a class="sidebar-link" href="pages/interviews/agent-interview.html" aria-label="AI Agent" title="AI Agent"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="6" rx="2"/><rect x="2" y="16" width="7" height="5" rx="1.5"/><rect x="15" y="16" width="7" height="5" rx="1.5"/><path d="M12 9v4m-6.5 3v-3h13v3"/></svg><span class="nav-text">AI Agent</span><span class="nav-count">30</span></a>
-      <p class="nav-label">研究与阅读</p>
-      <a class="sidebar-link" href="pages/papers.html" aria-label="论文阅读" title="论文阅读"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></svg><span class="nav-text">论文阅读</span><span class="nav-count">47</span></a>
-    </nav>
-    <div class="sidebar-footer"><div class="sidebar-note"><strong>理解原理，也动手实践。</strong><p>从一道题开始，<br>积累自己的知识体系。</p></div><div class="sidebar-signature">BUILT FOR LEARNING</div></div>
-  </aside>
+  <div data-study-navigation data-root="./" data-active="overview"></div>
   <main id="main" class="page-width">
-    <div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><span>学习空间</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg><span aria-current="page">概览</span></nav><div class="workspace-actions"><span class="workspace-label">ALGORITHM / AI</span><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>
-    <section class="intro" aria-labelledby="page-title">
-      <div class="intro-copy">
-        <p class="eyebrow">让每一次练习，都有所收获。</p>
-        <h1 id="page-title">算法与 AI <span>学习空间</span></h1>
-        <p class="intro-description">写代码、读论文、梳理原理，积累可实践的 AI 知识。</p>
-      </div>
-      <div class="intro-stats" aria-label="学习内容概览"><div><strong>100</strong><span>道算法练习</span></div><div><strong>114</strong><span>道 AI 面试题</span></div></div>
-    </section>
-
-    <section id="algorithm" aria-labelledby="algorithm-title">
-      <div class="section-heading"><h2 id="algorithm-title"><span class="section-number" aria-hidden="true">01</span>算法实战</h2><span class="section-caption">思考 · 编码 · 验证</span></div>
-      <a class="practice-card" href="pages/algorithms.html" aria-labelledby="practice-title" aria-describedby="practice-description">
-        <div class="practice-copy">
-          <div class="practice-topline"><span class="code-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></span><span class="practice-eyebrow">PYTHON PRACTICE</span></div>
-          <h3 id="practice-title">算法 <span>100 题</span></h3>
-          <p id="practice-description">从一道题开始，把解题思路<br>变成可运行的代码。</p>
-          <div class="practice-features"><span>17 个专题</span><span>核心 / ACM 模式</span><span>笔记与备份</span></div>
-          <div class="practice-bottom"><span class="practice-cta">进入训练场 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span><span class="offline-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>支持完全离线</span></div>
-        </div>
-        <div class="code-preview" aria-hidden="true">
-          <div class="code-caption"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><span>two_sum.py</span><span class="code-language">Python 3</span></div>
-          <pre><code><span class="code-line" data-line="1"><span class="syntax-keyword">def</span> <span class="syntax-function">two_sum</span>(nums, target):</span><span class="code-line" data-line="2">    seen = {}</span><span class="code-line" data-line="3">    <span class="syntax-keyword">for</span> i, n <span class="syntax-keyword">in</span> <span class="syntax-function">enumerate</span>(nums):</span><span class="code-line" data-line="4">        <span class="syntax-keyword">if</span> target - n <span class="syntax-keyword">in</span> seen:</span><span class="code-line" data-line="5">            <span class="syntax-keyword">return</span> [seen[target-n], i]</span><span class="code-line" data-line="6">        seen[n] = i</span></code></pre>
-          <div class="code-status"><span></span> O(n) time · O(n) space<small>two sum</small></div>
-        </div>
-      </a>
-    </section>
-
-    <section id="interviews" class="interview-section" aria-labelledby="interview-title">
-      <div class="section-heading"><h2 id="interview-title"><span class="section-number" aria-hidden="true">02</span>AI 面试专题</h2><span class="section-caption">4 个专题 · 114 道精选题</span></div>
-      <div class="interview-grid">
-        <a class="topic-card topic-transformer" href="pages/interviews/transformer-interview.html" aria-labelledby="transformer-title">
-          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span>
-          <div class="topic-copy">
-            <div class="topic-topline"><p class="topic-label">模型架构</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
-            <h3 id="transformer-title">Transformer</h3>
-            <p class="topic-description">从注意力机制到预训练，理解大模型的基础架构。</p>
-            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">Attention · 位置编码</span></div>
-          </div>
-        </a>
-        <a class="topic-card topic-rl" href="pages/interviews/rl-interview.html" aria-labelledby="rl-title">
-          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.2A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.8"/></svg></span>
-          <div class="topic-copy">
-            <div class="topic-topline"><p class="topic-label">奖励与决策</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
-            <h3 id="rl-title">强化学习</h3>
-            <p class="topic-description">理解策略优化与价值估计，掌握模型对齐的方法。</p>
-            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">MDP · PPO · RLHF</span></div>
-          </div>
-        </a>
-        <a class="topic-card topic-sft" href="pages/interviews/sft-interview.html" aria-labelledby="sft-title">
-          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v4m0 4v10M12 3v10m0 4v4M19 3v2m0 4v12M2 7h6v4H2zM9 13h6v4H9zM16 5h6v4h-6z"/></svg></span>
-          <div class="topic-copy">
-            <div class="topic-topline"><p class="topic-label">训练与实践</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
-            <h3 id="sft-title">SFT &amp; 微调</h3>
-            <p class="topic-description">从指令微调到参数高效训练，串联数据、训练与评估。</p>
-            <div class="topic-bottom"><span class="question-count">28 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">LoRA · QLoRA · PEFT</span></div>
-          </div>
-        </a>
-        <a class="topic-card topic-agent" href="pages/interviews/agent-interview.html" aria-labelledby="agent-title">
-          <span class="topic-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="6" rx="2"/><rect x="2" y="16" width="7" height="5" rx="1.5"/><rect x="15" y="16" width="7" height="5" rx="1.5"/><path d="M12 9v4m-6.5 3v-3h13v3"/></svg></span>
-          <div class="topic-copy">
-            <div class="topic-topline"><p class="topic-label">智能体与应用</p><span class="topic-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></div>
-            <h3 id="agent-title">AI Agent</h3>
-            <p class="topic-description">理解工具调用、规划与记忆，构建协作的智能体。</p>
-            <div class="topic-bottom"><span class="question-count">30 道题</span><span class="dot" aria-hidden="true"></span><span>6 个章节</span><span class="topic-tags">ReAct · Tools · Memory</span></div>
-          </div>
-        </a>
-      </div>
-    </section>
-    <section id="papers" class="paper-section" aria-labelledby="papers-title">
-      <div class="section-heading"><h2 id="papers-title"><span class="section-number" aria-hidden="true">03</span>论文阅读</h2><span class="section-caption">推荐系统 · 模型架构 · Agent</span></div>
-      <a class="paper-feature" href="pages/papers.html" aria-labelledby="paper-feature-title" aria-describedby="paper-feature-description">
-        <div class="paper-feature-copy">
-          <div class="practice-topline"><span class="code-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></svg></span><span class="practice-eyebrow">PAPER READING</span></div>
-          <h3 id="paper-feature-title">读经典，<span>也读证据。</span></h3>
-          <p id="paper-feature-description">从中文阅读导引出发，读已译论文全文，随时对照英文原文。</p>
-          <div class="practice-features"><span>39 篇中文全文</span><span>8 篇经典解析</span><span>阅读进度与笔记</span></div>
-          <div class="practice-bottom"><span class="practice-cta">进入论文阅读 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></div>
-        </div>
-        <div class="paper-reading-preview" aria-hidden="true">
-          <p class="paper-preview-caption">带着问题，开始阅读</p>
-          <div class="paper-preview-step"><span>01</span><div><strong>研究问题</strong><p>它试图解决什么？</p></div><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div>
-          <div class="paper-preview-step"><span>02</span><div><strong>核心方法</strong><p>关键设计为什么有效？</p></div><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div>
-          <div class="paper-preview-step"><span>03</span><div><strong>实验与边界</strong><p>实验支持哪些结论？</p></div><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div>
-        </div>
-      </a>
-    </section>
+    <div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><span>学习空间</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg><span aria-current="page">概览</span></nav><div class="workspace-actions"><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>
+    <section class="intro" aria-labelledby="page-title"><h1 id="page-title">算法与 AI 学习空间</h1><p class="intro-description">练算法、学原理、读论文。选择一项，直接开始。</p></section>
+    <div class="learning-paths" aria-label="学习入口">
+      <section id="algorithm" aria-labelledby="practice-title"><a class="path-card practice-card" href="pages/algorithms.html" aria-labelledby="practice-title" aria-describedby="practice-description"><span class="path-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></span><h2 id="practice-title">算法练习</h2><p id="practice-description">从解题思路到可运行的代码，在一道题里完成练习。</p><div class="path-bottom"><span>100 道题 · 支持离线</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></div></a></section>
+      <section id="ai-path" aria-labelledby="ai-path-title"><a class="path-card interview-feature" href="#interviews" aria-labelledby="ai-path-title" aria-describedby="ai-path-description"><span class="path-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span><h2 id="ai-path-title">AI 专题</h2><p id="ai-path-description">按章节梳理核心概念，展开题目，深入理解答案。</p><div class="path-bottom"><span>4 个专题 · 114 道题</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></div></a></section>
+      <section id="papers" aria-labelledby="paper-feature-title"><a class="path-card paper-feature" href="pages/papers.html" aria-labelledby="paper-feature-title" aria-describedby="paper-feature-description"><span class="path-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></svg></span><h2 id="paper-feature-title">论文阅读</h2><p id="paper-feature-description">先读中文导引，再看已译全文，随时对照英文原文。</p><div class="path-bottom"><span>39 篇中文全文 · 8 篇解析</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></div></a></section>
+    </div>
+    <section id="interviews" class="interview-section" aria-labelledby="interview-title"><div class="section-heading"><h2 id="interview-title">按专题学习</h2><span>从基础架构到实际应用</span></div><div class="interview-grid">
+      <a class="topic-card topic-transformer" href="pages/interviews/transformer-interview.html" aria-labelledby="transformer-title"><div class="topic-copy"><h3 id="transformer-title">Transformer</h3><p>注意力机制、位置编码与预训练</p></div><span class="question-count">28 道题</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+      <a class="topic-card topic-rl" href="pages/interviews/rl-interview.html" aria-labelledby="rl-title"><div class="topic-copy"><h3 id="rl-title">强化学习</h3><p>价值估计、策略优化与模型对齐</p></div><span class="question-count">28 道题</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+      <a class="topic-card topic-sft" href="pages/interviews/sft-interview.html" aria-labelledby="sft-title"><div class="topic-copy"><h3 id="sft-title">SFT 与微调</h3><p>训练数据、参数高效微调与评估</p></div><span class="question-count">28 道题</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+      <a class="topic-card topic-agent" href="pages/interviews/agent-interview.html" aria-labelledby="agent-title"><div class="topic-copy"><h3 id="agent-title">AI Agent</h3><p>工具调用、规划、记忆与协作</p></div><span class="question-count">30 道题</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+    </div></section>
     <footer class="site-footer"><span>Study Hub<span class="footer-divider" aria-hidden="true">/</span>专注练习，持续积累。</span><span class="copyright">© 2026 · Algorithm &amp; AI</span></footer>
   </main>
 </body>
