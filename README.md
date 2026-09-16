@@ -9,6 +9,7 @@
 ├── index.html                 # Study Hub 首页
 ├── pages/
 │   ├── algorithms.html        # 算法训练场独立离线页面
+│   ├── interviews.html        # AI 专题目录，四个主题的独立入口
 │   ├── papers.html            # 论文阅读专题
 │   └── interviews/
 │       ├── transformer-interview.html
@@ -46,7 +47,7 @@
 │   ├── algorithms-runtime.js # 内嵌 Python 启动与错误处理适配
 │   ├── check-algorithms-runtime.mjs # 浏览器运行时回归检查
 │   ├── check-papers.mjs       # 论文阅读交互与布局检查
-│   └── check-layout.mjs       # 六个普通页面的导航、菜单与响应式检查
+│   └── check-layout.mjs       # 七个普通页面的导航、菜单与响应式检查
 └── NOTICE.md                 # 原始来源与许可说明
 ```
 
@@ -54,11 +55,11 @@
 
 ## 页面结构
 
-首页以三个学习入口和四个 AI 专题组织内容。面试页保留一列章节目录，窄屏时将目录与题库管理放在同一行，按需展开；题目按章节使用连续列表。论文页先显示合集、搜索和论文列表，主题与状态收进“筛选”，备份与阅读提示收进“阅读工具”，首次进入不自动展开正文。
+首页展示算法、AI 专题、论文三个学习入口。AI 专题独立放在 `pages/interviews.html`，提供 Transformer、强化学习、SFT 与微调、AI Agent 四个主题的直达链接；“学习概览”和“AI 专题”各自打开独立页面，旧的 `index.html#interviews` 链接会转到新目录。面试页保留一列章节目录，窄屏时将目录与题库管理放在同一行，按需展开；题目按章节使用连续列表。论文页先显示合集、搜索和论文列表，主题与状态收进“筛选”，备份与阅读提示收进“阅读工具”，首次进入不自动展开正文。
 
 导航、颜色、字体、间距和深浅模式共用站点样式。菜单采用原生 `details`，支持键盘展开、Escape 关闭、移出焦点或点击外部关闭；列表正文仍可通过原有链接直接定位。算法页保留独立工作区，通过返回 Study Hub 的入口连接主站。
 
-运行 `node scripts/check-layout.mjs` 检查首页、论文页和四个面试页在 320、390、768、1440 像素宽度下的深浅色布局、导航可见性、菜单展开和键盘操作，并保存截图。设置 `BASE_URL=https://yqstar.github.io` 可检查已发布页面。检查使用 Chrome 视口模拟，不代表真实手机或其他浏览器测试。
+运行 `node scripts/check-layout.mjs` 检查首页、AI 专题目录、论文页和四个面试页在 320、390、768、1440 像素宽度下的深浅色布局、导航可见性、菜单展开和键盘操作，并保存截图；同时检查首页到目录、目录到专题的实际跳转和旧链接兼容。设置 `BASE_URL=https://yqstar.github.io` 可检查已发布页面。检查使用 Chrome 视口模拟，不代表真实手机或其他浏览器测试。
 
 ## 本地预览
 

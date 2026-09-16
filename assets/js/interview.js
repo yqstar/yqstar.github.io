@@ -66,7 +66,7 @@ function renderInterview(data, focusHash = true) {
   document.body.classList.add('site-shell');
   document.getElementById('app').innerHTML =
     '<a class="skip-link" href="#iv-content">跳转到题目</a>' + window.StudyHubNavigation.markup('../../', 'interviews') +
-    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../../index.html#interviews">AI 专题</a>' + ivBreadcrumbSeparator() +
+    '<main class="page-width"><div class="workspace-bar"><nav class="breadcrumbs" aria-label="当前位置"><a href="../interviews.html">AI 专题</a>' + ivBreadcrumbSeparator() +
     '<span aria-current="page">' + esc(topic.name) + '</span></nav><div class="workspace-actions"><button class="theme-toggle" data-theme-toggle type="button" hidden></button></div></div>' +
     '<header class="page-header"><h1>' + esc(data.title) + '</h1><p class="subtitle">' + esc(data.subtitle) + '</p>' +
     '<p class="page-meta">' + count + ' 道题<span aria-hidden="true"> · </span>' + data.sections.length + ' 个章节</p></header>' + ivTopicNavigation(topic) +

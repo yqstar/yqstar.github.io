@@ -12,13 +12,21 @@
     const links = [
       ['overview', 'index.html', '学习概览', '概览'],
       ['algorithms', 'pages/algorithms.html', '算法训练场', '算法'],
-      ['interviews', 'index.html#interviews', 'AI 专题', 'AI 专题'],
+      ['interviews', 'pages/interviews.html', 'AI 专题', 'AI 专题'],
       ['papers', 'pages/papers.html', '论文阅读', '论文'],
     ];
     return `<header class="site-sidebar"><a class="brand" href="${escape(prefix)}index.html" aria-label="Study Hub 首页"><span class="brand-mark" aria-hidden="true">s<span>_</span></span><span class="brand-wordmark">Study Hub</span></a><nav class="sidebar-nav" aria-label="学习空间导航">${links.map(([key, path, label, short]) => `<a class="sidebar-link" href="${escape(prefix + path)}" aria-label="${label}"${key === active ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${icons[key]}</svg><span class="nav-text">${label}</span><span class="nav-short" aria-hidden="true">${short}</span></a>`).join('')}</nav></header>`;
   }
   function mountAll() {
     document.querySelectorAll('[data-study-navigation]').forEach(slot => {
+      if (slot.dataset.active === 'overview') {
+        const topicUrl = new URL('pages/interviews.html', location.href);
+        const openLegacyTopic = () => {
+          if (location.hash === '#interviews') location.replace(topicUrl.href);
+        };
+        openLegacyTopic();
+        window.addEventListener('hashchange', openLegacyTopic);
+      }
       slot.outerHTML = markup(slot.dataset.root || './', slot.dataset.active || 'overview');
     });
   }

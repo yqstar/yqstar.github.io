@@ -1,4 +1,4 @@
-// Run: node scripts/check-layout.mjs [home papers transformer rl sft agent].
+// Run: node scripts/check-layout.mjs [home topics papers transformer rl sft agent].
 // Omit page names to check all pages; optionally set CHROME_PATH or BASE_URL for a deployed site.
 // Exercises shared navigation and progressive disclosure in a disposable Chrome profile.
 import assert from 'node:assert/strict';
@@ -59,13 +59,17 @@ async function evaluate(session, expression) {
 }
 async function waitFor(session, expression) {
   const deadline = Date.now() + 10000;
-  while (Date.now() < deadline) { if (await evaluate(session, expression)) return; await delay(30); }
+  while (Date.now() < deadline) {
+    try { if (await evaluate(session, expression)) return; }
+    catch (error) { if (!/Execution context|Cannot find context|Inspected target navigated/.test(error.message)) throw error; }
+    await delay(30);
+  }
   throw new Error(`Page condition timed out: ${expression}`);
 }
 async function settle(session) {
   await evaluate(session, 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))');
 }
-async function click(session, selector) {
+async function click(session, selector, navigates = false) {
   const point = await evaluate(session, `(async () => {
     const element = document.querySelector(${JSON.stringify(selector)});
     if (!element) throw new Error('Missing control: ' + ${JSON.stringify(selector)});
@@ -82,7 +86,15 @@ async function click(session, selector) {
   })()`);
   await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 }, session);
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 }, session);
-  await settle(session);
+  if (!navigates) await settle(session);
+}
+async function followLink(session, selector, pathname, ready) {
+  await click(session, selector, true);
+  await waitFor(session, `location.pathname === ${JSON.stringify(pathname)} && document.readyState === 'complete' && (${ready})`);
+}
+async function assertCurrentSection(session, pathname) {
+  assert.equal(await evaluate(session, `new URL(document.querySelector('.sidebar-nav [aria-current="page"]').href).pathname`), pathname,
+    'The current navigation item must identify the page section');
 }
 async function key(session, key, shift = false) {
   const keyCode = { Tab: 9, Enter: 13, Escape: 27, ' ': 32 }[key];
@@ -138,10 +150,12 @@ try {
   };
   console.log(`Browser: ${(await cdp.send('Browser.getVersion')).product}`);
   const base = (process.env.BASE_URL || `http://127.0.0.1:${server.address().port}`).replace(/\/$/, '');
-  const expectedRoutes = ['/index.html', '/pages/algorithms.html', '/index.html#interviews', '/pages/papers.html'];
+  const expectedRoutes = ['/index.html', '/pages/algorithms.html', '/pages/interviews.html', '/pages/papers.html'];
+  assert.equal(new Set(expectedRoutes).size, 4, 'The four primary entrances must lead to distinct pages');
   for (const pathname of new Set(expectedRoutes.map(route => route.split('#')[0]))) assert.equal((await fetch(base + pathname)).status, 200, `Navigation destination must load: ${pathname}`);
   const pages = [
     { name: 'home', path: '/index.html', ready: "document.querySelector('#papers .paper-feature')", first: '.practice-card' },
+    { name: 'topics', path: '/pages/interviews.html', ready: "document.querySelectorAll('#interviews .topic-card').length === 4", first: '#interviews .topic-card' },
     { name: 'papers', path: '/pages/papers.html', ready: "document.querySelectorAll('.paper-card').length === 47", first: '.paper-card:not([hidden]) > summary' },
     ...['transformer', 'rl', 'sft', 'agent'].map(name => ({ name, path: `/pages/interviews/${name}-interview.html`, ready: "document.querySelector('.q-card')", first: '.q-card > summary' })),
   ];
@@ -157,7 +171,14 @@ try {
     const routes = await evaluate(session, `Array.from(document.querySelectorAll('.sidebar-nav .sidebar-link'), link => new URL(link.href).pathname + new URL(link.href).hash)`);
     assert.deepEqual(routes, expectedRoutes, `${page.name}: shared top navigation must expose the same four destinations`);
     assert.equal(await evaluate(session, "document.querySelectorAll('.sidebar-nav [aria-current]').length"), 1, `${page.name}: current section must be identifiable`);
+    await assertCurrentSection(session, ['home', 'papers'].includes(page.name) ? page.path : '/pages/interviews.html');
     if (page.name === 'home') {
+      assert.equal(await evaluate(session, "document.querySelectorAll('.learning-paths .path-card').length"), 3,
+        'The overview must retain three main learning entrances');
+      assert.equal(await evaluate(session, "document.querySelectorAll('#interviews .topic-card').length"), 0,
+        'The topic directory must not remain duplicated on the overview');
+    }
+    if (page.name === 'topics') {
       const topics = await evaluate(session, `Array.from(document.querySelectorAll('#interviews .topic-card'), link => link.href)`);
       assert.equal(topics.length, 4);
       for (const url of topics) assert.equal((await fetch(url)).status, 200, 'AI topic entrance must load');
@@ -195,7 +216,7 @@ try {
             await key(session, 'Enter');
             assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(selector)}).open`), false, 'A disclosure must close with the keyboard');
           }
-        } else if (page.name !== 'home') {
+        } else if (!['home', 'topics'].includes(page.name)) {
           if (!await evaluate(session, "document.querySelector('.toc-panel').open")) await click(session, '.toc-panel > summary');
           await assertNoOverflow(session, `${page.name} toc ${width}`);
           if (page.name === 'transformer') await capture(session, `${page.name}-${theme}-${width}-contents`, '.toc-panel');
@@ -211,7 +232,7 @@ try {
       }
     }
     // Verify keyboard activation of the first item without changing learning data.
-    if (page.name !== 'home') {
+    if (!['home', 'topics'].includes(page.name)) {
       const before = await evaluate(session, `(() => {
         const summary = document.querySelector(${JSON.stringify(page.first)});
         summary.focus(); return { open: summary.closest('details').open, focused: document.activeElement === summary };
@@ -221,6 +242,27 @@ try {
       assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(page.first)}).closest('details').open`), !before.open,
         `${page.name}: Enter must toggle the focused content disclosure`);
       await assertNoOverflow(session, `${page.name} expanded content`);
+    }
+    if (page.name === 'home') {
+      const topicsReady = "document.querySelectorAll('#interviews .topic-card').length === 4";
+      await followLink(session, '.interview-feature', '/pages/interviews.html', topicsReady);
+      await assertCurrentSection(session, '/pages/interviews.html');
+      const firstTopicPath = await evaluate(session, "new URL(document.querySelector('#interviews .topic-card').href).pathname");
+      await followLink(session, '#interviews .topic-card', firstTopicPath, "document.querySelector('.q-card')");
+      await assertCurrentSection(session, '/pages/interviews.html');
+      await followLink(session, '.breadcrumbs a[href$="interviews.html"]', '/pages/interviews.html', topicsReady);
+      await followLink(session, '.sidebar-nav .sidebar-link:first-child', '/index.html', page.ready);
+      await assertCurrentSection(session, '/index.html');
+      await followLink(session, '.sidebar-nav .sidebar-link:nth-child(3)', '/pages/interviews.html', topicsReady);
+      await assertCurrentSection(session, '/pages/interviews.html');
+      await cdp.send('Page.navigate', { url: base + '/index.html#interviews' }, session);
+      await waitFor(session, `location.pathname === '/pages/interviews.html' && document.readyState === 'complete' && (${topicsReady})`);
+      await assertCurrentSection(session, '/pages/interviews.html');
+      await followLink(session, '.sidebar-nav .sidebar-link:first-child', '/index.html', page.ready);
+      await evaluate(session, "location.hash = 'interviews'");
+      await waitFor(session, `location.pathname === '/pages/interviews.html' && document.readyState === 'complete' && (${topicsReady})`);
+      await assertCurrentSection(session, '/pages/interviews.html');
+      console.log('PASS actual overview → topic directory → topic → breadcrumb navigation, distinct active sections and legacy hash redirects');
     }
     await cdp.send('Target.disposeBrowserContext', { browserContextId });
     console.log(`PASS ${page.name}: shared navigation, first content, 4 widths × 2 themes and relevant disclosures`);

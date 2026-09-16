@@ -547,7 +547,7 @@ try {
     .map(link => ({ text: link.textContent.trim(), url: link.href }))
     .filter(link => link.url.startsWith(location.origin + '/'))`);
   assert.ok(localLinks.some(link => new URL(link.url).pathname === '/index.html'), 'Paper topic must link home');
-  assert.ok(localLinks.some(link => new URL(link.url).pathname === '/index.html' && new URL(link.url).hash === '#interviews'),
+  assert.ok(localLinks.some(link => new URL(link.url).pathname === '/pages/interviews.html'),
     'Paper topic must link to the AI topic chooser');
   for (const pathname of new Set(localLinks.map(link => new URL(link.url).pathname))) {
     assert.equal((await fetch(base + pathname)).status, 200, `Local link must exist: ${pathname}`);

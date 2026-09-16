@@ -1,4 +1,4 @@
-/* Three learning paths, followed by the four subject readers. */
+/* Overview entrances and the separate AI topic directory. */
 .intro { padding:27px 0 32px; }
 .intro h1 { margin:0; font-size:clamp(29px,3.3vw,42px); line-height:1.3; letter-spacing:-1.1px; font-weight:650; }
 .intro-description { margin-top:13px; color:var(--muted); font-size:16px; line-height:1.8; }
@@ -14,6 +14,8 @@
 .path-card:hover { border-color:var(--accent); }
 .path-card:active { background:var(--inset); }
 .interview-section { margin-top:40px; scroll-margin-top:26px; }
+.interview-section.topic-directory { margin-top:0; }
+.directory-heading { font-size:15px; line-height:1.7; font-weight:550; color:var(--muted); margin-bottom:16px; }
 .section-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-bottom:17px; }
 .section-heading h2 { font-size:21px; font-weight:600; letter-spacing:-.4px; }
 .section-heading > span { color:var(--muted); font-size:12px; }
