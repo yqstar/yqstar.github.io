@@ -1,10 +1,11 @@
-// Run: node scripts/check-papers.mjs (optionally set CHROME_PATH).
+// Run: node scripts/check-papers.mjs (optionally set CHROME_PATH or ARXIV_PAPER_DIR).
 // Uses built-in Node APIs, local assets and a disposable Chrome profile.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -82,7 +83,8 @@ async function waitFor(session, expression) {
 }
 
 const ready = `document.readyState === 'complete' && Array.isArray(window.STUDY_PAPERS)
-  && document.querySelectorAll('#paper-list .paper-card').length === 8`;
+  && window.STUDY_PAPERS.length > 0
+  && document.querySelectorAll('#paper-list .paper-card').length === window.STUDY_PAPERS.length`;
 const visibleIds = `Array.from(document.querySelectorAll('#paper-list .paper-card'))
   .filter(card => card.getClientRects().length && !card.hidden).map(card => card.dataset.paperId)`;
 const recordsExpression = `(() => {
@@ -212,7 +214,7 @@ try {
       const path = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
       if (!path.startsWith(root + sep)) throw new Error('Invalid path');
       const content = await readFile(path);
-      const type = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' }[extname(path)];
+      const type = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.pdf': 'application/pdf' }[extname(path)];
       response.writeHead(200, { 'Content-Type': type || 'application/octet-stream', 'Cache-Control': 'no-store' });
       response.end(content);
     } catch { response.writeHead(404); response.end('Not found'); }
@@ -243,19 +245,96 @@ try {
   const base = `http://127.0.0.1:${server.address().port}`;
   const { sessionId: session, browserContextId } = await openPage(`${base}/pages/papers.html`);
   const papers = await evaluate(session, 'window.STUDY_PAPERS');
-  assert.equal(papers.length, 8);
-  assert.equal(new Set(papers.map(paper => paper.id)).size, 8, 'Paper IDs must be unique');
-  assert.deepEqual(await evaluate(session, visibleIds), papers.map(paper => paper.id));
+  const translated = papers.filter(paper => paper.collection === 'translated');
+  const analysisPapers = papers.filter(paper => paper.collection !== 'translated');
+  const firstAnalysis = analysisPapers[0];
+  const manifest = JSON.parse(await readFile(join(root, 'data/paper-translations-manifest.json'), 'utf8'));
+  assert.equal(manifest.version, 1);
+  const translatedFiles = new Map(manifest.entries.map(entry => [entry.id, entry]));
+  assert.equal(translatedFiles.size, translated.length, 'Every translated paper must have one PDF manifest entry');
+  assert.deepEqual([...translatedFiles.keys()].sort(), translated.map(paper => paper.id).sort());
+  const sourceRoot = process.env.ARXIV_PAPER_DIR || join(homedir(), 'Documents/hello_future/arxiv-paper');
+  let verifySourceFiles = false;
+  try { await readdir(sourceRoot); verifySourceFiles = true; }
+  catch (error) {
+    if (process.env.ARXIV_PAPER_DIR || !['ENOENT', 'EACCES', 'EPERM'].includes(error.code)) throw error;
+  }
+  assert.equal(papers.length, 47, 'The library must retain 8 analyses and import all 39 completed translations');
+  assert.equal(translated.length, 39);
+  assert.equal(analysisPapers.length, 8);
+  assert.equal(new Set(papers.map(paper => paper.id)).size, papers.length, 'Paper IDs must be unique');
+  assert.deepEqual(await evaluate(session, visibleIds), translated.map(paper => paper.id),
+    'The first visit should show the Chinese translations');
+  assert.equal(await evaluate(session, `document.querySelector('[data-collection="translated"]').getAttribute('aria-pressed')`), 'true');
+  for (const collection of ['all', 'analysis', 'translated']) {
+    await click(session, `[data-collection="${collection}"]`);
+    const expected = collection === 'all' ? papers : collection === 'analysis' ? analysisPapers : translated;
+    assert.deepEqual(await evaluate(session, visibleIds), expected.map(paper => paper.id));
+  }
+  for (const paper of translated) {
+    const rendered = await evaluate(session, `(() => {
+      const card = document.querySelector(${JSON.stringify(`[data-paper-id="${paper.id}"]`)});
+      return {
+        title: card.querySelector('.translation-heading h4')?.textContent,
+        guide: card.querySelector('.paper-translation-guide')?.textContent,
+        pdf: card.querySelector('.paper-source-links .chinese-pdf-link')?.href,
+        links: Array.from(card.querySelectorAll('.paper-source-links a'), link => link.href),
+        analysis: !!card.querySelector('.analysis-verdict'),
+      };
+    })()`);
+    assert.ok(paper.zhTitle?.length > 0, `${paper.id}: translated title is required`);
+    assert.equal(rendered.title, paper.zhTitle, `${paper.id}: translated title must be present in the reading guide`);
+    for (const field of ['problem', 'method', 'reading']) {
+      assert.ok(paper.guide?.[field]?.length > 0, `${paper.id}: missing reading guide ${field}`);
+      assert.ok(rendered.guide?.includes(paper.guide[field]), `${paper.id}: guide ${field} must render`);
+    }
+    assert.equal(rendered.analysis, false, 'Translations should use the source-based reading guide');
+    const pdfURL = new URL(paper.chinesePdf, `${base}/pages/papers.html`);
+    assert.equal(rendered.pdf, pdfURL.href);
+    assert.ok(rendered.links.includes(paper.url), `${paper.id}: English original link is required`);
+    assert.equal(new URL(paper.url).protocol, 'https:');
+    assert.ok(rendered.links.filter(link => new URL(link).origin === base).every(link => link === pdfURL.href),
+      `${paper.id}: only the Chinese PDF should be hosted locally`);
+    const entry = translatedFiles.get(paper.id);
+    assert.equal(entry.path, pdfURL.pathname.slice(1), `${paper.id}: PDF URL must match the checked source manifest`);
+    assert.equal(entry.bytes, paper.bytes);
+    assert.equal(entry.pages, paper.pages);
+    assert.match(entry.sha256, /^[a-f0-9]{64}$/);
+    const pdf = await readFile(resolve(root, '.' + pdfURL.pathname));
+    const digest = createHash('sha256').update(pdf).digest('hex');
+    assert.equal(digest, entry.sha256, `${paper.id}: PDF must match the imported translation hash`);
+    if (verifySourceFiles) {
+      const source = await readFile(resolve(sourceRoot, entry.sourceFile));
+      assert.equal(digest, createHash('sha256').update(source).digest('hex'),
+        `${paper.id}: published Chinese PDF must be byte-identical to the completed local translation`);
+    }
+    assert.equal(pdf.subarray(0, 5).toString(), '%PDF-', `${paper.id}: local file must be a PDF`);
+    assert.equal(pdf.length, paper.bytes, `${paper.id}: published size must match metadata`);
+    assert.ok(Number.isInteger(paper.pages) && paper.pages > 0, `${paper.id}: page count must be present`);
+    const response = await fetch(pdfURL);
+    assert.equal(response.status, 200, `${paper.id}: Chinese PDF link must load`);
+    assert.match(response.headers.get('content-type') || '', /^application\/pdf(?:;|$)/);
+    assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),
+      digest, `${paper.id}: HTTP download must preserve the PDF`);
+  }
+  await search(session, translated[0].zhTitle);
+  assert.deepEqual(await evaluate(session, visibleIds), [translated[0].id], 'Chinese title search should find the translation');
+  await search(session, '');
+  for (const category of ['ranking', 'sequential', 'generative']) {
+    await click(session, `[data-category="${category}"]`);
+    assert.deepEqual(await evaluate(session, visibleIds), translated.filter(paper => paper.category === category).map(paper => paper.id));
+  }
+  await click(session, '[data-category="all"]');
+  console.log(`PASS all 39 translation guides, Chinese PDF hashes/downloads${verifySourceFiles ? ' and source-file identity' : ''}, English original links, Chinese title search and collection filters`);
+  await click(session, '[data-collection="analysis"]');
   assert.equal(await evaluate(session, `Array.from(document.querySelectorAll('.paper-card')).every(card =>
     card.tagName === 'DETAILS' && card.querySelector('summary') && card.querySelector('textarea')?.labels.length > 0)`), true,
   'Each paper must use native details and a labelled note field');
   assert.equal(await evaluate(session, `document.querySelector('#paper-message').getAttribute('role')`), 'status');
-  assert.deepEqual(await evaluate(session, 'Object.keys(window.PAPER_ANALYSES).sort()'), papers.map(paper => paper.id).sort(),
-    'Every listed paper must have a locally loaded analysis');
-  assert.deepEqual(await evaluate(session, `Array.from(document.querySelectorAll('.paper-card[open]')).map(card => card.dataset.paperId)`), [papers[0].id],
-    'The first paper should open to its on-page analysis by default');
+  assert.deepEqual(await evaluate(session, 'Object.keys(window.PAPER_ANALYSES).sort()'), analysisPapers.map(paper => paper.id).sort(),
+    'Every original analysis paper must have a locally loaded analysis');
   const analyses = await evaluate(session, 'window.PAPER_ANALYSES');
-  for (const paper of papers) {
+  for (const paper of analysisPapers) {
     const rendered = await evaluate(session, `(() => {
       const card = document.querySelector(${JSON.stringify(`[data-paper-id="${paper.id}"]`)});
       const analysis = card.querySelector('.paper-analysis');
@@ -298,38 +377,41 @@ try {
   await search(session, '');
   await click(session, '[data-category="architecture"]');
   for (const section of ['overview', 'method', 'evidence', 'limits', 'notes']) {
-    await click(session, `.analysis-nav a[href="#paper=${papers[0].id}&section=${section}"]`);
-    await verifySectionScroll(session, papers[0].id, section);
+    await click(session, `.analysis-nav a[href="#paper=${firstAnalysis.id}&section=${section}"]`);
+    await verifySectionScroll(session, firstAnalysis.id, section);
     assert.equal(await evaluate(session, `document.querySelector('[data-category="architecture"]').getAttribute('aria-pressed')`), 'true',
       'Intra-paper navigation must preserve the selected category');
-    assert.deepEqual(await evaluate(session, visibleIds), papers.filter(paper => paper.category === 'architecture').map(paper => paper.id));
+    assert.deepEqual(await evaluate(session, visibleIds), analysisPapers.filter(paper => paper.category === 'architecture').map(paper => paper.id));
   }
-  const methodLink = `.analysis-nav a[href="#paper=${papers[0].id}&section=method"]`;
+  const methodLink = `.analysis-nav a[href="#paper=${firstAnalysis.id}&section=method"]`;
   await click(session, methodLink);
-  await verifySectionScroll(session, papers[0].id, 'method');
+  await verifySectionScroll(session, firstAnalysis.id, 'method');
   await evaluate(session, `window.scrollTo({ top: 0, behavior: 'instant' })`);
   await click(session, methodLink);
-  await verifySectionScroll(session, papers[0].id, 'method');
+  await verifySectionScroll(session, firstAnalysis.id, 'method');
   await click(session, '[data-category="all"]');
   console.log('PASS method/evidence keyword search, section deep links and focus, same-hash scroll and preserved category filter');
 
   for (const category of ['architecture', 'tuning', 'alignment', 'agents']) {
     await click(session, `[data-category="${category}"]`);
-    assert.deepEqual(await evaluate(session, visibleIds), papers.filter(paper => paper.category === category).map(paper => paper.id));
+    assert.deepEqual(await evaluate(session, visibleIds), analysisPapers.filter(paper => paper.category === category).map(paper => paper.id));
   }
   await click(session, '[data-category="all"]');
-  await search(session, `  ${papers[0].title.toUpperCase()}  `);
-  assert.deepEqual(await evaluate(session, visibleIds), [papers[0].id], 'Search should ignore surrounding spaces and case');
+  await search(session, `  ${firstAnalysis.title.toUpperCase()}  `);
+  assert.deepEqual(await evaluate(session, visibleIds), [firstAnalysis.id], 'Search should ignore surrounding spaces and case');
   assert.match(await evaluate(session, `document.querySelector('#paper-count').textContent`), /1/);
   await search(session, 'no-paper-matches-this-regression-query');
   assert.deepEqual(await evaluate(session, visibleIds), []);
   assert.match(await evaluate(session, `document.querySelector('#paper-count').textContent`), /0/);
   await click(session, '#reset-filters');
   assert.equal(await evaluate(session, `document.querySelector('#paper-search').value`), '');
-  assert.equal((await evaluate(session, visibleIds)).length, 8);
+  assert.equal((await evaluate(session, visibleIds)).length, papers.length);
   console.log('PASS search, all subject filters, result count and empty-state reset');
 
-  const [first, second] = papers;
+  await click(session, '[data-collection="translated"]');
+  const [first, second] = translated;
+  await evaluate(session, `location.hash = ${JSON.stringify('#paper=' + first.id)}`);
+  await waitFor(session, `location.hash === ${JSON.stringify('#paper=' + first.id)} && !document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"]`)}).hidden`);
   const note = '我的阅读笔记：先理解问题，再核对实验。\n<script>alert("literal note")</script>';
   await setStatus(session, first.id, 'reading');
   await setNote(session, first.id, note);
@@ -343,12 +425,13 @@ try {
   await click(session, '[data-status-filter="done"]');
   assert.deepEqual(await evaluate(session, visibleIds), []);
   await click(session, '#reset-filters');
+  await click(session, '[data-collection="translated"]');
   await setStatus(session, first.id, 'done');
   assert.match(await evaluate(session, `document.querySelector('#completed-count').textContent`), /1/);
   await click(session, '[data-status-filter="done"]');
   assert.deepEqual(await evaluate(session, visibleIds), [first.id]);
   await click(session, '[data-status-filter="all"]');
-  console.log('PASS status filters, completion count and exact note persistence across reload');
+  console.log('PASS translated paper status filters, completion count and exact note persistence across reload');
 
   await cdp.send('Browser.setDownloadBehavior', {
     behavior: 'allow', downloadPath: temporary, browserContextId,
@@ -452,7 +535,7 @@ try {
     }
     for (const width of [1440, 390]) {
       await viewport(overview.sessionId, width);
-      await screenshot(overview.sessionId, `home-${theme}-${width}.png`);
+      // Homepage layout remains part of the integration check; screenshots focus on the changed topic.
     }
   }
   await cdp.send('Target.disposeBrowserContext', { browserContextId: overview.browserContextId });
@@ -464,54 +547,85 @@ try {
   await cdp.send('Page.reload', {}, session);
   await waitFor(session, ready);
   assert.notEqual(await evaluate(session, 'document.documentElement.dataset.theme'), originalTheme, 'Theme choice should survive reload');
+  await click(session, '[data-collection="all"]');
   await evaluate(session, `document.querySelectorAll('.paper-card').forEach(card => { card.open = true; })`);
   await viewport(session, 320);
-  await evaluate(session, `document.querySelectorAll('.paper-card').forEach((card, index) => { card.open = index === 0; })`);
+  await evaluate(session, `document.querySelectorAll('.paper-card').forEach(card => { card.open = false; })`);
+  await click(session, '[data-collection="translated"]');
+  await click(session, `[data-paper-id="${first.id}"] summary`);
   for (const theme of ['light', 'dark']) {
     if (await evaluate(session, 'document.documentElement.dataset.theme') !== theme) await click(session, '[data-theme-toggle]');
-    await viewport(session, 1440);
-    await screenshot(session, `papers-${theme}-1440.png`, false);
-    for (const section of ['method', 'evidence', 'notes']) {
-      await sectionScreenshot(session, first.id, section, `analysis-${theme}-1440-${section}.png`);
+    for (const width of [1440, 320]) {
+      await viewport(session, width);
+      await screenshot(session, `papers-${theme}-${width}.png`, false);
+      await evaluate(session, `(() => {
+        const guide = document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"] .paper-translation-guide`)});
+        guide.scrollIntoView({ block: 'start', behavior: 'instant' });
+        return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      })()`);
+      const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' }, session);
+      await writeFile(join(artifacts, `translation-${theme}-${width}-guide.png`), Buffer.from(data, 'base64'));
     }
-    await viewport(session, 320);
-    await screenshot(session, `papers-${theme}-320-expanded.png`, false);
-    for (const section of ['method', 'evidence', 'notes']) {
-      await sectionScreenshot(session, first.id, section, `analysis-${theme}-320-${section}.png`);
-    }
-    const tableScroll = await evaluate(session, `(() => {
-      const region = document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"] .analysis-table-scroll`)});
-      const initial = { width: region.clientWidth, scrollWidth: region.scrollWidth,
-        label: region.getAttribute('aria-label'), tabindex: region.tabIndex };
-      region.scrollLeft = region.scrollWidth;
-      return { ...initial, scrolled: region.scrollLeft };
-    })()`);
-    assert.ok(tableScroll.scrollWidth > tableScroll.width && tableScroll.scrolled > 0,
-      'Narrow evidence tables must scroll inside their labelled region');
-    assert.ok(tableScroll.label.length > 0 && tableScroll.tabindex === 0, 'Evidence scroll region must be keyboard reachable and labelled');
-    await sectionScreenshot(session, first.id, 'evidence', `analysis-${theme}-320-evidence-scrolled.png`);
-    await evaluate(session, `document.querySelector(${JSON.stringify(`[data-paper-id="${first.id}"] .analysis-table-scroll`)}).scrollLeft = 0`);
-    await viewport(session, 320);
   }
-  console.log('PASS theme toggle/persistence, method/evidence/note views and contained mobile table scrolling');
+  await click(session, '[data-collection="analysis"]');
+  await click(session, `[data-paper-id="${firstAnalysis.id}"] summary`);
+  await sectionScreenshot(session, firstAnalysis.id, 'evidence', 'analysis-320-evidence.png');
+  const tableScroll = await evaluate(session, `(() => {
+    const region = document.querySelector(${JSON.stringify(`[data-paper-id="${firstAnalysis.id}"] .analysis-table-scroll`)});
+    const initial = { width: region.clientWidth, scrollWidth: region.scrollWidth,
+      label: region.getAttribute('aria-label'), tabindex: region.tabIndex };
+    region.scrollLeft = region.scrollWidth;
+    return { ...initial, scrolled: region.scrollLeft };
+  })()`);
+  assert.ok(tableScroll.scrollWidth > tableScroll.width && tableScroll.scrolled > 0,
+    'Narrow evidence tables must still scroll inside their labelled region');
+  assert.ok(tableScroll.label.length > 0 && tableScroll.tabindex === 0, 'Evidence scroll region must be keyboard reachable and labelled');
+  await viewport(session, 320);
+  console.log('PASS theme persistence, all 47 expanded cards without mobile overflow, translated guide views and existing evidence table scrolling');
   await cdp.send('Target.disposeBrowserContext', { browserContextId });
 
   const existingRecord = { status: 'reading', note: '升级前已保存的阅读笔记，应继续保留。' };
-  const existing = await openPage(`${base}/pages/papers.html`,
-    `localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(JSON.stringify({ version: 1, records: { [first.id]: existingRecord } }))});`);
+  const existing = await openPage(`${base}/pages/papers.html#paper=${firstAnalysis.id}&section=method`,
+    `localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(JSON.stringify({ version: 1, records: { [firstAnalysis.id]: existingRecord } }))});`);
   assert.equal(await evaluate(existing.sessionId,
-    `document.querySelector(${JSON.stringify(`input[name="status-${first.id}"]:checked`)}).value`), existingRecord.status);
+    `document.querySelector(${JSON.stringify(`input[name="status-${firstAnalysis.id}"]:checked`)}).value`), existingRecord.status);
   assert.equal(await evaluate(existing.sessionId,
-    `document.querySelector(${JSON.stringify(`[data-note-id="${first.id}"]`)}).value`), existingRecord.note);
-  assert.deepEqual((await evaluate(existing.sessionId, recordsExpression))[first.id], existingRecord);
+    `document.querySelector(${JSON.stringify(`[data-note-id="${firstAnalysis.id}"]`)}).value`), existingRecord.note);
+  assert.deepEqual((await evaluate(existing.sessionId, recordsExpression))[firstAnalysis.id], existingRecord);
+  await verifySectionScroll(existing.sessionId, firstAnalysis.id, 'method');
+  assert.ok((await evaluate(existing.sessionId, visibleIds)).includes(firstAnalysis.id), 'An existing analysis deep link must open across the default collection filter');
+  await click(existing.sessionId, '[data-collection="translated"]');
+  await setNote(existing.sessionId, first.id, '新增译文的笔记');
+  await waitFor(existing.sessionId, `${recordsExpression}[${JSON.stringify(first.id)}]?.note === '新增译文的笔记'`);
+  assert.deepEqual((await evaluate(existing.sessionId, recordsExpression))[firstAnalysis.id], existingRecord,
+    'Saving a translation note must preserve old analysis records in the same version 1 storage');
   await cdp.send('Target.disposeBrowserContext', { browserContextId: existing.browserContextId });
-  console.log('PASS pre-existing version 1 reading records remain intact with the expanded analyses');
+  console.log('PASS existing analysis deep links and version 1 records remain intact alongside new translation notes');
+
+  const largeNote = '中文笔记'.repeat(3000);
+  const largeBackup = JSON.stringify({ version: 1, records: Object.fromEntries(papers.map(paper =>
+    [paper.id, { status: 'reading', note: largeNote }])) });
+  assert.ok(Buffer.byteLength(largeBackup) > 1024 * 1024, 'The full-library backup must exercise more than the previous 1 MiB import limit');
+  const largeBackupPath = join(temporary, 'full-library-backup.json');
+  await writeFile(largeBackupPath, largeBackup);
+  const restored = await openPage(`${base}/pages/papers.html`);
+  await importFile(restored.sessionId, largeBackupPath);
+  await waitFor(restored.sessionId, `document.querySelector('#import-dialog').open`);
+  await click(restored.sessionId, '#confirm-import');
+  await waitFor(restored.sessionId, `Object.keys(${recordsExpression}).length === ${papers.length}`);
+  assert.equal(await evaluate(restored.sessionId, `Object.values(${recordsExpression})
+    .every(record => record.status === 'reading' && record.note === ${JSON.stringify(largeNote)})`), true,
+  'A large backup must restore Chinese notes for translations and previous analyses together');
+  await cdp.send('Target.disposeBrowserContext', { browserContextId: restored.browserContextId });
+  console.log('PASS full-library Chinese note backup above 1 MiB restores all 47 records');
 
   const file = await openPage(pathToFileURL(join(root, 'pages/papers.html')).href);
-  assert.equal((await evaluate(file.sessionId, visibleIds)).length, 8);
-  assert.equal(await evaluate(file.sessionId, `document.querySelectorAll('.paper-analysis .analysis-verdict').length`), 8,
+  assert.equal((await evaluate(file.sessionId, visibleIds)).length, translated.length);
+  assert.equal(await evaluate(file.sessionId, `document.querySelectorAll('.paper-analysis .analysis-verdict').length`), analysisPapers.length,
     'All analysis content must also load from file://');
-  await search(file.sessionId, papers[0].title);
+  assert.equal(await evaluate(file.sessionId, `document.querySelectorAll('.paper-translation-guide').length`), translated.length,
+    'All translated guides must also load from file://');
+  await search(file.sessionId, first.zhTitle);
   assert.deepEqual(await evaluate(file.sessionId, visibleIds), [first.id]);
   await setNote(file.sessionId, first.id, '本地文件阅读笔记');
   await cdp.send('Page.reload', {}, file.sessionId);

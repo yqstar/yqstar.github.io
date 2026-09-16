@@ -3,7 +3,7 @@
   'use strict';
   const papers = window.STUDY_PAPERS;
   const storageKey = 'study-hub:papers:v1';
-  const categories = { architecture: '模型架构', tuning: '高效微调', alignment: '偏好对齐', agents: 'Agent 与检索' };
+  const categories = { ranking: '推荐排序', sequential: '序列建模', generative: '生成式推荐', architecture: '模型架构', tuning: '高效微调', alignment: '偏好对齐', agents: 'Agent 与检索' };
   const statuses = { unread: '未开始', reading: '在读', done: '已读' };
   const paperIds = new Set(papers.map(paper => paper.id));
   const byId = id => document.getElementById(id);
@@ -13,6 +13,7 @@
   let records = Object.create(null);
   let storageAvailable = true;
   let category = 'all';
+  let collection = 'translated';
   let statusFilter = 'all';
   let pendingImport = null;
   let importSequence = 0;
@@ -75,10 +76,16 @@
   }
 
   const analysisFor = paper => window.PAPER_ANALYSES?.[paper.id];
+  const collectionFor = paper => paper.collection || 'analysis';
   const sectionLink = (id, section) => '#paper=' + id + '&section=' + section;
   const externalLink = (url, label, className = '') => `<a${className ? ` class="${className}"` : ''} href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ${arrow}</a>`;
 
   function renderAnalysis(paper) {
+    if (paper.collection === 'translated') return `<article class="paper-analysis paper-translation-guide" aria-label="${esc(paper.shortTitle)}阅读导引">
+      <div class="translation-heading"><div><span class="paper-eyebrow">中文全文 · 阅读导引</span><h4>${esc(paper.zhTitle)}</h4></div><span class="translation-file-info">${paper.pages} 页 · ${(paper.bytes / 1024 / 1024).toFixed(1)} MB</span></div>
+      <div class="translation-guide-sections">${[['problem', '01', '研究问题'], ['method', '02', '核心方法'], ['reading', '03', '精读线索']].map(([key, number, title]) => `<section><span>${number}</span><h5>${title}</h5><p>${esc(paper.guide[key])}</p></section>`).join('')}</div>
+      <p class="translation-reading-note">先沿导引理解问题与方法，再打开中文全文查看公式、图表和实验细节。英文原文可用于对照术语与版本。</p>
+    </article>`;
     const analysis = analysisFor(paper);
     if (!analysis) return `<div class="paper-analysis"><p class="paper-notice">${esc(paper.takeaway)} 详细解析未加载，请刷新页面重试。</p></div>`;
     const sectionId = section => 'analysis-' + paper.id + '-' + section;
@@ -118,12 +125,12 @@
     const record = recordFor(paper.id);
     return `<details class="paper-card" id="paper-${paper.id}" data-paper-id="${paper.id}">
       <summary class="paper-summary"><span class="paper-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
-        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span><span class="paper-analysis-badge">中文解析</span></span>
+        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span><span class="paper-analysis-badge">${paper.chinesePdf ? '中文全文' : '中文解析'}</span></span>
           <h3>${esc(paper.shortTitle)}</h3><span class="paper-summary-description">${esc(paper.summary)}</span></div>
         <span class="paper-summary-end"><span class="paper-status" data-state="${record.status}">${statuses[record.status]}</span><svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></span>
       </summary>
       <div class="paper-content"><div class="paper-source-row"><div class="paper-bibliography"><p class="paper-full-title">${esc(paper.title)}</p><p class="paper-authors">${esc(paper.authors)} · ${esc(paper.venue)}</p></div>
-        <div class="paper-source-links"><a class="paper-button" href="${esc(paper.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(paper.shortTitle)}：查看原文，新标签页打开">查看原文 ${arrow}</a><a class="paper-button" href="${esc(paper.pdf)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(paper.shortTitle)}：阅读 PDF，新标签页打开">阅读 PDF ${arrow}</a></div></div>
+        <div class="paper-source-links">${paper.chinesePdf ? `<a class="paper-button primary chinese-pdf-link" href="${esc(paper.chinesePdf)}" target="_blank" rel="noopener" aria-label="${esc(paper.shortTitle)}：阅读中文 PDF，新标签页打开">阅读中文 PDF ${arrow}</a>${externalLink(paper.url, '英文原文', 'paper-button')}` : `${externalLink(paper.url, '英文原文', 'paper-button')}${externalLink(paper.pdf, '英文 PDF', 'paper-button')}`}</div></div>
         <div class="reading-workspace">${renderAnalysis(paper)}
           <div class="paper-notebook" id="analysis-${paper.id}-notes" tabindex="-1"><div class="notebook-progress"><h4>留下自己的理解</h4><p>把最有启发的结论、还没想清楚的问题，写成自己的话。</p><fieldset class="reading-state"><legend>${esc(paper.shortTitle)} · 阅读状态</legend><div class="reading-state-options">${Object.entries(statuses).map(([value, label]) => `<label><input type="radio" name="status-${paper.id}" value="${value}" data-status-id="${paper.id}"${record.status === value ? ' checked' : ''}><span>${label}</span></label>`).join('')}</div></fieldset></div>
             <div class="notebook-editor"><div class="note-heading"><label for="note-${paper.id}">我的笔记<span class="sr-only">：${esc(paper.shortTitle)}</span></label><button class="insert-template" type="button" data-template-id="${paper.id}" aria-label="为${esc(paper.shortTitle)}插入笔记模板">插入模板</button></div>
@@ -134,7 +141,7 @@
   byId('paper-list').innerHTML = papers.map(renderPaper).join('');
   const cards = new Map(papers.map(paper => [paper.id, byId('paper-' + paper.id)]));
   const searchText = new Map(papers.map(paper => [paper.id,
-    [paper.title, paper.shortTitle, paper.authors, paper.year, paper.venue, paper.summary, categories[paper.category],
+    [paper.title, paper.zhTitle || '', paper.shortTitle, paper.authors, paper.year, paper.venue, paper.summary, categories[paper.category],
       cards.get(paper.id).querySelector('.paper-analysis').textContent,
     ].join(' ').toLocaleLowerCase()]));
 
@@ -151,7 +158,8 @@
     const focusedCard = document.activeElement?.closest('.paper-card');
     let count = 0;
     for (const paper of papers) {
-      const matches = (category === 'all' || paper.category === category)
+      const matches = (collection === 'all' || collectionFor(paper) === collection)
+        && (category === 'all' || paper.category === category)
         && (statusFilter === 'all' || recordFor(paper.id).status === statusFilter)
         && (!query || searchText.get(paper.id).includes(query));
       cards.get(paper.id).hidden = !matches;
@@ -161,6 +169,7 @@
     byId('empty-papers').hidden = count !== 0;
     document.querySelectorAll('[data-category]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.category === category)));
     document.querySelectorAll('[data-status-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.statusFilter === statusFilter)));
+    document.querySelectorAll('[data-collection]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.collection === collection)));
     if (focusedCard?.hidden) document.querySelector(`[data-status-filter="${statusFilter}"]`).focus();
   }
 
@@ -183,6 +192,12 @@
   }
 
   byId('paper-search').addEventListener('input', filterPapers);
+  document.querySelectorAll('[data-collection]').forEach(button => button.addEventListener('click', () => {
+    collection = button.dataset.collection;
+    category = statusFilter = 'all';
+    byId('paper-search').value = '';
+    filterPapers();
+  }));
   document.querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => {
     category = button.dataset.category;
     filterPapers();
@@ -192,7 +207,7 @@
     filterPapers();
   }));
   function resetFilters() {
-    category = statusFilter = 'all';
+    collection = category = statusFilter = 'all';
     byId('paper-search').value = '';
     filterPapers();
   }
@@ -279,7 +294,7 @@
     event.target.value = '';
     if (!file) return;
     try {
-      if (file.size > 1024 * 1024) throw new Error('备份文件不能超过 1 MiB。');
+      if (file.size > 8 * 1024 * 1024) throw new Error('备份文件不能超过 8 MiB。');
       const incoming = validateBackup(JSON.parse(await file.text()));
       if (sequence !== importSequence) return;
       const ids = Object.keys(incoming);
@@ -317,7 +332,10 @@
   });
   updateProgress();
   filterPapers();
-  if (!openHash()) cards.get(papers[0].id).open = true;
+  if (!openHash()) {
+    const firstVisible = papers.find(paper => !cards.get(paper.id).hidden);
+    if (firstVisible) cards.get(firstVisible.id).open = true;
+  }
   const sidebar = document.querySelector('.sidebar-nav');
   const active = sidebar.querySelector('[aria-current="page"]');
   if (sidebar.scrollWidth > sidebar.clientWidth && active) sidebar.scrollLeft = active.offsetLeft - sidebar.clientWidth / 2 + active.offsetWidth / 2;

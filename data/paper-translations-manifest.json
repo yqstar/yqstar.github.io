@@ -1,0 +1,356 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "amber",
+      "sourceName": "AMBER",
+      "sourceFile": "AMBER/paper-zh/AMBER-zh.pdf",
+      "path": "assets/papers/zh/amber.pdf",
+      "sha256": "a6a19d155b3e20816d1e9f2787f53d7cb1ea956576bf4c9230a58466fa33dc72",
+      "bytes": 2077326,
+      "pages": 14
+    },
+    {
+      "id": "actionpiece",
+      "sourceName": "ActionPiece",
+      "sourceFile": "ActionPiece/paper-zh/ActionPiece-zh.pdf",
+      "path": "assets/papers/zh/actionpiece.pdf",
+      "sha256": "65441bb0ffbf217f4671c4cc26dce5861e7a365e312cc90ac86133a4d4b6605d",
+      "bytes": 903996,
+      "pages": 25
+    },
+    {
+      "id": "agentx",
+      "sourceName": "AgentX",
+      "sourceFile": "AgentX/paper-zh/AgentX-zh.pdf",
+      "path": "assets/papers/zh/agentx.pdf",
+      "sha256": "cafe1c2ad921b60d86c617a777b4c475944345f3dbc313d3a76b98375d4117c3",
+      "bytes": 6209771,
+      "pages": 51
+    },
+    {
+      "id": "ccformer",
+      "sourceName": "CCFormer",
+      "sourceFile": "CCFormer/paper-zh/CCFormer-zh.pdf",
+      "path": "assets/papers/zh/ccformer.pdf",
+      "sha256": "8e1682a25aff1cc88a316f71f42eab10f2fcae646ba5a31bf738dbf629f43947",
+      "bytes": 1335463,
+      "pages": 8
+    },
+    {
+      "id": "densinglaw",
+      "sourceName": "DensingLaw",
+      "sourceFile": "DensingLaw/paper-zh/DensingLaw-zh.pdf",
+      "path": "assets/papers/zh/densinglaw.pdf",
+      "sha256": "e75080fcae4f8b99eed5f5f3961861d82c46f7d45831119cb558a671e53d47d1",
+      "bytes": 5943535,
+      "pages": 24
+    },
+    {
+      "id": "est",
+      "sourceName": "EST",
+      "sourceFile": "EST/paper-zh/EST-zh.pdf",
+      "path": "assets/papers/zh/est.pdf",
+      "sha256": "8e15f4e09657f81717f790438ad14475bc99c673aecf525129d5d47d2279834f",
+      "bytes": 1396209,
+      "pages": 9
+    },
+    {
+      "id": "eta",
+      "sourceName": "ETA",
+      "sourceFile": "ETA/paper-zh/ETA-zh.pdf",
+      "path": "assets/papers/zh/eta.pdf",
+      "sha256": "3d9c1033f41cb0a9152f8ce33def2d9d99bd84d6424e545384847fcfc3f4eb14",
+      "bytes": 520137,
+      "pages": 9
+    },
+    {
+      "id": "eureka",
+      "sourceName": "Eureka",
+      "sourceFile": "Eureka/paper-zh/Eureka-zh.pdf",
+      "path": "assets/papers/zh/eureka.pdf",
+      "sha256": "dad1da755d6ca3ad1a22d39020722db9dc54bf734aee91aa21f42c7ad7605e71",
+      "bytes": 2041791,
+      "pages": 10
+    },
+    {
+      "id": "evorec",
+      "sourceName": "EvoRec",
+      "sourceFile": "EvoRec/paper-zh/EvoRec-zh.pdf",
+      "path": "assets/papers/zh/evorec.pdf",
+      "sha256": "01b12d82c3d509c95bcaeaed32ccc420d91d8f398997e71f1882ae7012ce1a54",
+      "bytes": 646947,
+      "pages": 5
+    },
+    {
+      "id": "fluid",
+      "sourceName": "FLUID",
+      "sourceFile": "FLUID/paper-zh/FLUID-zh.pdf",
+      "path": "assets/papers/zh/fluid.pdf",
+      "sha256": "ecc0f4673dac3b277511c1141beedc5dd1dd828c376d609be350c04b246a8201",
+      "bytes": 21824491,
+      "pages": 9
+    },
+    {
+      "id": "hstu",
+      "sourceName": "HSTU",
+      "sourceFile": "HSTU/paper-zh/HSTU-zh.pdf",
+      "path": "assets/papers/zh/hstu.pdf",
+      "sha256": "761c8fc0e91d0c58b21cecbf21225d4fd9b0bd25ba5a4f097c2d8a3bc793c745",
+      "bytes": 1645670,
+      "pages": 31
+    },
+    {
+      "id": "hubmixer",
+      "sourceName": "HubMixer",
+      "sourceFile": "HubMixer/paper-zh/HubMixer-zh.pdf",
+      "path": "assets/papers/zh/hubmixer.pdf",
+      "sha256": "1738df9bed11d487998c67bbd7f7d9ed079914700216f93e002949adfd51ba78",
+      "bytes": 1940559,
+      "pages": 7
+    },
+    {
+      "id": "hyformer",
+      "sourceName": "HyFormer",
+      "sourceFile": "HyFormer/paper-zh/HyFormer-zh.pdf",
+      "path": "assets/papers/zh/hyformer.pdf",
+      "sha256": "eaa06f3d04a55c252c2a8e601053876d04747e6f742d547c2e026df9d70cd6e7",
+      "bytes": 681350,
+      "pages": 8
+    },
+    {
+      "id": "longer",
+      "sourceName": "LONGER",
+      "sourceFile": "LONGER/paper-zh/LONGER-zh.pdf",
+      "path": "assets/papers/zh/longer.pdf",
+      "sha256": "90db4c9c713647d80a5a7997a6f863252eae369bd208400f27ce9dc77e6a9fbe",
+      "bytes": 782020,
+      "pages": 8
+    },
+    {
+      "id": "mdl",
+      "sourceName": "MDL",
+      "sourceFile": "MDL/paper-zh/MDL-zh.pdf",
+      "path": "assets/papers/zh/mdl.pdf",
+      "sha256": "6bd0d4ed131604d5cbe03ef8099be396f84e6aa36967fb5ed3e49c596709467c",
+      "bytes": 3175705,
+      "pages": 7
+    },
+    {
+      "id": "mlp-mixer",
+      "sourceName": "MLP-Mixer",
+      "sourceFile": "MLP-Mixer/paper-zh/MLP-Mixer-zh.pdf",
+      "path": "assets/papers/zh/mlp-mixer.pdf",
+      "sha256": "b6eff7d00512fafa863d463fe2e6c24c8084ee172967e1070ac26091f40ca6e9",
+      "bytes": 4352930,
+      "pages": 14
+    },
+    {
+      "id": "mixformer",
+      "sourceName": "MixFormer",
+      "sourceFile": "MixFormer/paper-zh/MixFormer-zh.pdf",
+      "path": "assets/papers/zh/mixformer.pdf",
+      "sha256": "27961321fe423e8a21041fc49d2ee05aabfe333c1c809f2352502728d57d7bc1",
+      "bytes": 746337,
+      "pages": 8
+    },
+    {
+      "id": "nova",
+      "sourceName": "NOVA",
+      "sourceFile": "NOVA/paper-zh/NOVA-zh.pdf",
+      "path": "assets/papers/zh/nova.pdf",
+      "sha256": "fb70f5e3236088d0de653e2cd07b72a156243b89b1f8bb323785c7fdbb904bc8",
+      "bytes": 2521266,
+      "pages": 15
+    },
+    {
+      "id": "onerec",
+      "sourceName": "OneRec",
+      "sourceFile": "OneRec/paper-zh/OneRec-zh.pdf",
+      "path": "assets/papers/zh/onerec.pdf",
+      "sha256": "c0cc64fe456edfeaa529b3a0caa91c01e10b406be4ede018a584636b7156f5d3",
+      "bytes": 3962263,
+      "pages": 13
+    },
+    {
+      "id": "onetrans",
+      "sourceName": "OneTrans",
+      "sourceFile": "OneTrans/paper-zh/OneTrans-zh.pdf",
+      "path": "assets/papers/zh/onetrans.pdf",
+      "sha256": "113540b3361b191355a262cc649309c8ce78b56928b9195e59a6998cb94ca408",
+      "bytes": 859745,
+      "pages": 13
+    },
+    {
+      "id": "optdist",
+      "sourceName": "OptDist",
+      "sourceFile": "OptDist/paper-zh/OptDist-zh.pdf",
+      "path": "assets/papers/zh/optdist.pdf",
+      "sha256": "d2f1877eabfbca551b821e6513f96512b72506fecbe0021a0ab6d6c2d941b97f",
+      "bytes": 637329,
+      "pages": 10
+    },
+    {
+      "id": "psd",
+      "sourceName": "PSD",
+      "sourceFile": "PSD/paper-zh/PSD-zh.pdf",
+      "path": "assets/papers/zh/psd.pdf",
+      "sha256": "3e52781656b268de74c054ebd7ecaadd5ca2cd0cf56c511cb3a785dd03b7505a",
+      "bytes": 1123369,
+      "pages": 8
+    },
+    {
+      "id": "rankelastor",
+      "sourceName": "RankElastor",
+      "sourceFile": "RankElastor/paper-zh/RankElastor-zh.pdf",
+      "path": "assets/papers/zh/rankelastor.pdf",
+      "sha256": "e7cd1bc6f4db56a103f560933b938e05373c9ae7d908248c4e3fe0f466121cfc",
+      "bytes": 1545277,
+      "pages": 22
+    },
+    {
+      "id": "rankmixer",
+      "sourceName": "RankMixer",
+      "sourceFile": "RankMixer/paper-zh/RankMixer-zh.pdf",
+      "path": "assets/papers/zh/rankmixer.pdf",
+      "sha256": "74650beb50a194aec87d78b54c4b85eb9204f923215d40b0c67f372665a47aa5",
+      "bytes": 1185589,
+      "pages": 12
+    },
+    {
+      "id": "recharness",
+      "sourceName": "RecHarness",
+      "sourceFile": "RecHarness/paper-zh/RecHarness-zh.pdf",
+      "path": "assets/papers/zh/recharness.pdf",
+      "sha256": "ce7f0350200da8f6effab7277002fd0f3026e15c6c4f6a27ab470ec6fdadaffb",
+      "bytes": 878514,
+      "pages": 8
+    },
+    {
+      "id": "stca",
+      "sourceName": "STCA",
+      "sourceFile": "STCA/paper-zh/STCA-zh.pdf",
+      "path": "assets/papers/zh/stca.pdf",
+      "sha256": "aba98d216c2b0eb86d7b0ec0c220f90fc4529239786f9b47fcb9e94e84058d79",
+      "bytes": 1123102,
+      "pages": 14
+    },
+    {
+      "id": "slimper",
+      "sourceName": "SlimPer",
+      "sourceFile": "SlimPer/paper-zh/SlimPer-zh.pdf",
+      "path": "assets/papers/zh/slimper.pdf",
+      "sha256": "5e69a5ea2ca4cc0701921cb8d8f03ae5040619925a736943764e3fa2f56d28e1",
+      "bytes": 8724310,
+      "pages": 10
+    },
+    {
+      "id": "tiger",
+      "sourceName": "TIGER",
+      "sourceFile": "TIGER/paper-zh/TIGER-zh.pdf",
+      "path": "assets/papers/zh/tiger.pdf",
+      "sha256": "c162ab11db5f190f77916877a948db0ea3c4529355d11f21ab8c331fac61ed85",
+      "bytes": 2163882,
+      "pages": 20
+    },
+    {
+      "id": "tm20k",
+      "sourceName": "TM20K",
+      "sourceFile": "TM20K/paper-zh/TM20K-zh.pdf",
+      "path": "assets/papers/zh/tm20k.pdf",
+      "sha256": "c07a58751efda108b28df53043dd435e239860a901a855d133c4da32d6605254",
+      "bytes": 1907302,
+      "pages": 9
+    },
+    {
+      "id": "trm-rankmixer",
+      "sourceName": "TRM-RankMixer",
+      "sourceFile": "TRM-RankMixer/paper-zh/TRM-RankMixer-zh.pdf",
+      "path": "assets/papers/zh/trm-rankmixer.pdf",
+      "sha256": "05f695be4592846341e625e3a2495a2599e80dfe0858f61e2b7887644f38b8fd",
+      "bytes": 948639,
+      "pages": 12
+    },
+    {
+      "id": "tokenminds",
+      "sourceName": "TokenMinds",
+      "sourceFile": "TokenMinds/paper-zh/TokenMinds-zh.pdf",
+      "path": "assets/papers/zh/tokenminds.pdf",
+      "sha256": "707c3f71968daadaff9c9e05992bf7c9082b2c14a182b9368c7c942cf0ac4d53",
+      "bytes": 1748064,
+      "pages": 9
+    },
+    {
+      "id": "tokenmixer",
+      "sourceName": "TokenMixer",
+      "sourceFile": "TokenMixer/paper-zh/TokenMixer-zh.pdf",
+      "path": "assets/papers/zh/tokenmixer.pdf",
+      "sha256": "e24fd6b612b4c63c0c4ecfd36b0492c3af3e9b81dbc06665569505a4fcd7dc0f",
+      "bytes": 1856150,
+      "pages": 17
+    },
+    {
+      "id": "trace2skill-agent",
+      "sourceName": "Trace2Skill-Agent",
+      "sourceFile": "Trace2Skill-Agent/paper-zh/Trace2Skill-Agent-zh.pdf",
+      "path": "assets/papers/zh/trace2skill-agent.pdf",
+      "sha256": "8fc561884eb81246116553f8a1ee108e723c6b5141842233ad9e5f03ed40c2eb",
+      "bytes": 1146957,
+      "pages": 27
+    },
+    {
+      "id": "trace2skill-eda",
+      "sourceName": "Trace2Skill-EDA",
+      "sourceFile": "Trace2Skill-EDA/paper-zh/Trace2Skill-EDA-zh.pdf",
+      "path": "assets/papers/zh/trace2skill-eda.pdf",
+      "sha256": "6496749e6218d71ea93c1fda666ed4bae8c35c8c25c4aeecd40a6fca1933674c",
+      "bytes": 641890,
+      "pages": 20
+    },
+    {
+      "id": "transretrieval",
+      "sourceName": "TransRetrieval",
+      "sourceFile": "TransRetrieval/paper-zh/TransRetrieval-zh.pdf",
+      "path": "assets/papers/zh/transretrieval.pdf",
+      "sha256": "ea817a017d922ea68b6ebafd3d509695c7d5bb3fdf3e68485eef8552927acea6",
+      "bytes": 524207,
+      "pages": 8
+    },
+    {
+      "id": "unidot",
+      "sourceName": "UniDot",
+      "sourceFile": "UniDot/paper-zh/UniDot-zh.pdf",
+      "path": "assets/papers/zh/unidot.pdf",
+      "sha256": "30f09a8f5ed30b7e101182fde776d3fac3ceb211a66eab2dc7cfc78a29bf289b",
+      "bytes": 765048,
+      "pages": 9
+    },
+    {
+      "id": "uniformer",
+      "sourceName": "UniFormer",
+      "sourceFile": "UniFormer/paper-zh/UniFormer-zh.pdf",
+      "path": "assets/papers/zh/uniformer.pdf",
+      "sha256": "0fc67803b615c730faa40160d9a13f83cea4588cc73687990caded694adfa8e2",
+      "bytes": 1366173,
+      "pages": 8
+    },
+    {
+      "id": "unimixer",
+      "sourceName": "UniMixer",
+      "sourceFile": "UniMixer/paper-zh/UniMixer-zh.pdf",
+      "path": "assets/papers/zh/unimixer.pdf",
+      "sha256": "537d166089faa98318c1227107a32169bc85b25e0a6628f24ffd938f51be817c",
+      "bytes": 1922677,
+      "pages": 20
+    },
+    {
+      "id": "wukong",
+      "sourceName": "Wukong",
+      "sourceFile": "Wukong/paper-zh/Wukong-zh.pdf",
+      "path": "assets/papers/zh/wukong.pdf",
+      "sha256": "d6523480b9ff83696473b8a6a7670580dcff86568d15e7fae911be688cf9b93f",
+      "bytes": 769705,
+      "pages": 12
+    }
+  ]
+}
