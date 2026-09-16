@@ -76,7 +76,9 @@ if (application.split(marker).length !== 2 || !application.includes('id="app-hea
 const adapter = await readFile(new URL("./algorithms-site.js", import.meta.url), "utf8");
 const theme = await readFile(new URL("../assets/js/theme.js", import.meta.url), "utf8");
 if (/<\/script/i.test(theme)) throw new Error("共享主题脚本包含 script 结束标记，无法安全内嵌。");
-const adapted = application.replace(marker, () => `${adapter}\n${marker}\nstate.settings.theme = window.StudyHubTheme.get();`);
+const navigation = await readFile(new URL("../assets/js/navigation.js", import.meta.url), "utf8");
+if (/<\/script/i.test(navigation)) throw new Error("共享导航脚本包含 script 结束标记，无法安全内嵌。");
+const adapted = application.replace(marker, () => `${navigation}\n${adapter}\n${marker}\nstate.settings.theme = window.StudyHubTheme.get();`);
 const output = adapted
   .replace('<meta name="color-scheme" content="light dark">', () => `<meta name="color-scheme" content="light dark">\n<script>\n${theme}</script>`)
   .replace("<head>", `<head>\n  <!-- Source revision: ${revision}; see ../NOTICE.md\n       SHA-256: ${checksum}\n       Rebuilt with scripts/sync-algorithms.mjs; site changes: display naming, navigation, shared appearance and offline module loading -->`);

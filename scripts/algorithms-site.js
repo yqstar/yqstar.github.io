@@ -3,20 +3,23 @@
   const style = document.createElement("style");
   style.id = "study-hub-navigation-style";
   style.textContent = `
-    :root { --header-height: 64px; }
-    .app-header { gap: 18px; height: var(--header-height); padding: 0 28px; }
-    #study-hub-home { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 4px; min-height: 40px; color: var(--muted); font-size: 13px; font-weight: 500; line-height: 1.3; text-decoration: none; white-space: nowrap; border-radius: 6px; }
-    #study-hub-home svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    #study-hub-home:hover { color: var(--text); }
-    #study-hub-home:active { color: var(--accent); }
-    .app-header > .header-leading { display: flex; flex: 1; margin-right: auto; }
-    .app-header .brand-mark, .app-header .brand-subtitle, .app-header .offline-pill { display: none; }
-    .app-header .brand-copy { display: block; }
-    .app-header .brand-title { font-size: 15px; white-space: nowrap; }
-    .app-header .header-actions { width: auto; gap: 8px; }
-    #theme-button { width: 40px; height: 40px; flex: 0 0 auto; }
+    :root { --header-height: 76px; }
+    .app-header { gap: 24px; height: var(--header-height); padding: 12px max(32px,calc((100% - 1180px)/2)); background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: none; backdrop-filter: none; }
+    #study-hub-home { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 10px; color: var(--text); font-size: 18px; font-weight: 650; letter-spacing: -.4px; text-decoration: none; white-space: nowrap; }
+    #study-hub-home .brand-mark { display: grid; place-content: center; grid-auto-flow: column; width: 32px; height: 32px; flex-shrink: 0; background: var(--text); color: var(--surface); border: 1px solid transparent; border-radius: 10px; box-shadow: none; font: 700 21px/1 "SFMono-Regular",Consolas,"Liberation Mono",monospace; letter-spacing: -3px; padding-right: 3px; }
+    #study-hub-home .brand-mark span { opacity: .65; }
+    .app-header .sidebar-nav { display: flex; align-items: center; gap: 6px; min-width: 0; margin-left: auto; }
+    .app-header .sidebar-link { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 10px 14px; border: 1px solid transparent; border-radius: 9px; color: var(--muted); font-size: 13px; line-height: 1.5; text-decoration: none; white-space: nowrap; }
+    .app-header .sidebar-link svg { width: 17px; height: 17px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .app-header .sidebar-link:hover { color: var(--text); background: var(--surface-2); }
+    .app-header .sidebar-link:active { background: var(--line); }
+    .app-header .sidebar-link[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 550; }
+    .app-header .nav-short { display: none; }
+    .app-header .header-actions { width: auto; flex: 0 0 auto; gap: 8px; }
+    #theme-button { width: 44px; height: 44px; flex: 0 0 auto; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
+    #theme-button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     #study-hub-tools { position: relative; }
-    #study-hub-tools > summary { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--surface); font-size: 13px; font-weight: 500; line-height: 1.3; list-style: none; cursor: pointer; user-select: none; }
+    #study-hub-tools > summary { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--surface); font-size: 13px; font-weight: 500; line-height: 1.3; list-style: none; cursor: pointer; user-select: none; }
     #study-hub-tools > summary::-webkit-details-marker, .practice-stats > summary::-webkit-details-marker { display: none; }
     #study-hub-tools > summary:hover { background: var(--surface-2); border-color: var(--line-strong); }
     #study-hub-tools > summary:active { background: var(--surface-3); }
@@ -67,14 +70,6 @@
       .practice-overview .hero { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     }
     @media (max-width: 640px) {
-      :root { --header-height: 56px; }
-      .app-header { gap: 10px; padding: 0 12px; }
-      .app-header .brand-title { font-size: 14px; }
-      .app-header .header-actions { gap: 4px; }
-      #study-hub-home { gap: 1px; font-size: 12px; }
-      #study-hub-home svg { width: 14px; height: 14px; }
-      #study-hub-tools > summary { gap: 5px; padding: 8px 9px; font-size: 12px; }
-      .study-tools-panel { position: fixed; top: calc(var(--header-height) + 4px); right: 12px; }
       .practice-overview .hero { padding: 20px; gap: 16px; }
       .practice-overview .hero h1 { font-size: 23px; letter-spacing: -.025em; }
       .practice-overview .hero-actions .button { flex: 1; padding-inline: 8px; min-height: 42px; font-size: 12px; }
@@ -86,13 +81,21 @@
       .practice-stats .summary-label .ui-icon { display: none; }
       .practice-stats .summary-value { font-size: 20px; }
     }
-    @media (max-width: 360px) {
-      .app-header { gap: 6px; padding-inline: 8px; }
-      .app-header .header-actions { gap: 2px; }
-      .app-header .brand-title { font-size: 13px; }
-      #study-hub-home { font-size: 11px; }
-      #theme-button { width: 36px; }
+    @media (max-width: 860px) {
+      :root { --header-height: 113px; }
+      .app-header { flex-wrap: wrap; gap: 10px; padding: 14px 20px 10px; }
+      #study-hub-home { font-size: 17px; }
+      #study-hub-home .brand-mark { width: 29px; height: 29px; font-size: 19px; border-radius: 9px; }
+      .app-header .header-actions { margin-left: auto; gap: 8px; }
+      .app-header .sidebar-nav { order: 3; width: 100%; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; margin-left: 0; }
+      .app-header .sidebar-link { padding: 8px 6px; min-height: 40px; font-size: 12px; }
+      .app-header .sidebar-link svg,.app-header .nav-text { display: none; }
+      .app-header .nav-short { display: inline; }
+      #theme-button { width: 38px; height: 38px; min-height: 38px; padding: 9px; }
+      #study-hub-tools > summary { min-height: 38px; padding: 8px 10px; font-size: 12px; }
+      .study-tools-panel { position: fixed; top: calc(var(--header-height) + 4px); right: 16px; }
     }
+    @media (max-width: 380px) { .app-header { padding-inline: 16px; } }
     @media (prefers-reduced-transparency: reduce) { .study-tools-panel { background: var(--surface); } }
     @media (prefers-contrast: more) { .study-tools-panel { border-color: var(--text); background: var(--surface); } }
   `;
@@ -100,13 +103,13 @@
 
   const chevron = '<svg class="site-disclosure-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>';
   const header = document.getElementById("app-header");
-  const homeLink = document.createElement("a");
+  // Reuse the site's real brand and destinations; embed the shared renderer at build time.
+  const template = document.createElement("template");
+  template.innerHTML = window.StudyHubNavigation.markup("../", "algorithms");
+  const homeLink = template.content.querySelector(".brand");
   homeLink.id = "study-hub-home";
-  homeLink.href = "../index.html";
-  homeLink.setAttribute("aria-label", "返回 Study Hub");
-  homeLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"></path></svg><span>Study Hub</span>';
-  header.prepend(homeLink);
-  header.querySelector(".brand-title").textContent = "算法训练场";
+  const navigation = template.content.querySelector(".sidebar-nav");
+  header.querySelector(".header-leading").replaceWith(homeLink, navigation);
 
   // Move the existing controls rather than replacing their state or event handlers.
   const actions = header.querySelector(".header-actions");
