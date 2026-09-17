@@ -3,8 +3,9 @@
   const style = document.createElement("style");
   style.id = "study-hub-navigation-style";
   style.textContent = `
-    :root { --header-height: 76px; }
-    .app-header { gap: 24px; height: var(--header-height); padding: 12px max(32px,calc((100% - 1180px)/2)); background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: none; backdrop-filter: none; }
+    :root { --header-height: 76px; --workspace-gutter: 32px; }
+    .catalog-shell { width: min(1180px,calc(100% - 2 * var(--workspace-gutter))); max-width: none; padding: 28px 0 40px; }
+    .app-header { gap: 24px; height: var(--header-height); padding: 12px max(var(--workspace-gutter),calc((100% - 1180px)/2)); background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: none; backdrop-filter: none; }
     #study-hub-home { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 10px; color: var(--text); font-size: 18px; font-weight: 650; letter-spacing: -.4px; text-decoration: none; white-space: nowrap; }
     #study-hub-home .brand-mark { display: grid; place-content: center; grid-auto-flow: column; width: 32px; height: 32px; flex-shrink: 0; background: var(--text); color: var(--surface); border: 1px solid transparent; border-radius: 10px; box-shadow: none; font: 700 21px/1 "SFMono-Regular",Consolas,"Liberation Mono",monospace; letter-spacing: -3px; padding-right: 3px; }
     #study-hub-home .brand-mark span { opacity: .65; }
@@ -40,21 +41,21 @@
     .study-tools-panel .header-data-actions .button { border-radius: 0; }
     .study-tools-panel #undo-import-button { width: 100%; margin-top: 6px; text-align: left; }
     .study-tools-panel #reset-progress-button { width: 100%; margin-top: 6px; justify-content: flex-start; text-align: left; }
-    .practice-overview { margin-bottom: 24px; border-radius: 18px; background: var(--surface); box-shadow: none; }
-    .practice-overview .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; padding: 24px 28px; }
+    .practice-overview { margin-bottom: 24px; padding: 4px 0 20px; overflow: visible; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }
+    .practice-overview .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; padding: 0; }
     .practice-overview .hero-copy { display: block; }
     .practice-overview .eyebrow { display: none; }
-    .practice-overview .hero h1 { max-width: none; font-size: 28px; line-height: 1.3; }
+    .practice-overview .hero h1 { max-width: none; font-size: 28px; line-height: 1.3; letter-spacing: -.035em; }
     .practice-overview .hero-description { max-width: none; margin: 8px 0 0; font-size: 13px; line-height: 1.6; }
     .practice-overview .hero-actions { display: flex; gap: 8px; align-items: center; }
     .practice-overview .hero-actions .button { padding-inline: 16px; border-radius: 10px; font-size: 13px; }
     .practice-overview .hero-actions .primary::after { display: none; }
-    .practice-stats { border-top: 1px solid var(--line); }
-    .practice-stats > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 28px; color: var(--muted); font-size: 12px; line-height: 1.5; list-style: none; cursor: pointer; }
+    .practice-stats { margin-top: 12px; border: 0; }
+    .practice-stats > summary { display: flex; align-items: center; gap: 8px; width: fit-content; min-height: 36px; padding: 6px 10px; margin-left: -10px; border-radius: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; list-style: none; cursor: pointer; }
     .practice-stats > summary:hover { color: var(--text); background: var(--surface-2); }
-    .practice-stats > summary > .site-disclosure-chevron { margin-left: auto; }
+    .practice-stats > summary > .site-disclosure-chevron { margin-left: 4px; }
     .practice-stats-hint { color: var(--faint); font-size: 11px; }
-    .practice-stats-content { display: grid; grid-template-columns: minmax(260px, 1fr) 1.6fr; gap: 12px 28px; padding: 12px 28px 20px; }
+    .practice-stats-content { display: grid; grid-template-columns: minmax(260px, 1fr) 1.6fr; gap: 12px 28px; margin-top: 10px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
     .practice-stats .hero-progress { display: flex; grid-column: auto; grid-row: auto; padding: 0; gap: 20px; }
     .practice-stats .progress-orbit { width: 88px; height: 88px; }
     .practice-stats .progress-number { font-size: 26px; }
@@ -70,11 +71,11 @@
       .practice-overview .hero { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     }
     @media (max-width: 640px) {
-      .practice-overview .hero { padding: 20px; gap: 16px; }
+      .practice-overview .hero { padding: 0; gap: 18px; }
       .practice-overview .hero h1 { font-size: 23px; letter-spacing: -.025em; }
       .practice-overview .hero-actions .button { flex: 1; padding-inline: 8px; min-height: 42px; font-size: 12px; }
-      .practice-stats > summary { padding-inline: 20px; }
-      .practice-stats-content { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 8px 20px 18px; }
+      .practice-stats > summary { padding-inline: 10px; }
+      .practice-stats-content { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 16px; }
       .practice-stats .hero-progress { justify-content: flex-start; }
       .practice-stats .summary-card { padding: 10px 8px; gap: 8px; }
       .practice-stats .summary-label { font-size: 11px; }
@@ -82,8 +83,9 @@
       .practice-stats .summary-value { font-size: 20px; }
     }
     @media (max-width: 860px) {
-      :root { --header-height: 113px; }
-      .app-header { flex-wrap: wrap; gap: 10px; padding: 14px 20px 10px; }
+      :root { --header-height: 113px; --workspace-gutter: 20px; }
+      .catalog-shell { padding-top: 24px; }
+      .app-header { flex-wrap: wrap; gap: 10px; padding: 14px var(--workspace-gutter) 10px; }
       #study-hub-home { font-size: 17px; }
       #study-hub-home .brand-mark { width: 29px; height: 29px; font-size: 19px; border-radius: 9px; }
       .app-header .header-actions { margin-left: auto; gap: 8px; }
@@ -95,7 +97,7 @@
       #study-hub-tools > summary { min-height: 38px; padding: 8px 10px; font-size: 12px; }
       .study-tools-panel { position: fixed; top: calc(var(--header-height) + 4px); right: 16px; }
     }
-    @media (max-width: 380px) { .app-header { padding-inline: 16px; } }
+    @media (max-width: 380px) { :root { --workspace-gutter: 16px; } }
     @media (prefers-reduced-transparency: reduce) { .study-tools-panel { background: var(--surface); } }
     @media (prefers-contrast: more) { .study-tools-panel { border-color: var(--text); background: var(--surface); } }
   `;
@@ -172,6 +174,7 @@
 
   const overview = document.querySelector(".practice-overview");
   const hero = overview.querySelector(".hero");
+  hero.querySelector("h1").textContent = "算法训练场";
   const statistics = document.createElement("details");
   statistics.className = "practice-stats";
   statistics.innerHTML = '<summary>学习概况<span class="practice-stats-hint">进度与统计</span>' + chevron + '</summary><div class="practice-stats-content"></div>';

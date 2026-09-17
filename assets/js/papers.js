@@ -1,14 +1,17 @@
-/* Local paper notebook. Plain scripts also work when opened with file://. */
+/* Paper library rendering, filters, navigation and read-only archive export. */
 (() => {
   'use strict';
-  window.StudyHubNavigation?.mountAll();
   const papers = window.STUDY_PAPERS;
-  const storageKey = 'study-hub:papers:v1';
   const categories = { ranking: '推荐排序', sequential: '序列建模', generative: '生成式推荐', architecture: '模型架构', tuning: '高效微调', alignment: '偏好对齐', agents: 'Agent 与检索' };
-  const statuses = { unread: '未开始', reading: '在读', done: '已读' };
-  const paperIds = new Set(papers.map(paper => paper.id));
+  const paperById = new Map(papers.map(paper => [paper.id, paper]));
+  const lessons = window.PAPER_LESSONS;
+  const learningPaths = window.PAPER_LEARNING_PATHS;
   const byId = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  const searchInput = byId('paper-search');
+  const paperList = byId('paper-list');
+  const categoryButtons = [...document.querySelectorAll('[data-category]')];
+  const collectionButtons = [...document.querySelectorAll('[data-collection]')];
   const arrow = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
   const disclosures = ['paper-filters', 'paper-tools'].map(byId);
   function closePanels() { disclosures.forEach(panel => { panel.open = false; }); }
@@ -59,14 +62,8 @@
   window.addEventListener('scroll', event => {
     if (!disclosures.some(disclosure => disclosure.contains(event.target))) closePanels();
   }, { passive: true, capture: true });
-  const noteTemplate = '## 研究问题\n作者想解决什么？已有方法的不足是什么？\n\n## 核心方法\n用自己的话说明关键步骤。\n\n## 实验证据\n记录数据、基线、评价指标和关键消融。\n\n## 局限与疑问\n哪些结论还需要验证？\n\n## 我的理解\n用一句话总结，并联系已有知识。\n';
-  let records = Object.create(null);
-  let storageAvailable = true;
   let category = 'all';
   let collection = 'translated';
-  let statusFilter = 'all';
-  let pendingImport = null;
-  let importSequence = 0;
 
   function notice(message, error = false) {
     const element = byId('paper-message');
@@ -75,65 +72,36 @@
     element.hidden = false;
   }
 
-  function disableStorage(message) {
-    storageAvailable = false;
-    byId('storage-warning').textContent = message + ' 当前修改仅保留在本次页面中，请导出备份。';
-    byId('storage-warning').hidden = false;
-  }
-
-  function validateBackup(value) {
-    if (!value || typeof value !== 'object' || Array.isArray(value) || value.version !== 1
-      || !value.records || typeof value.records !== 'object' || Array.isArray(value.records)) {
-      throw new Error('请选择本专题导出的版本 1 JSON 备份。');
-    }
-    const next = Object.create(null);
-    for (const [id, record] of Object.entries(value.records)) {
-      if (!paperIds.has(id)) throw new Error('备份中包含不支持的论文记录。');
-      if (!record || typeof record !== 'object' || Array.isArray(record)
-        || typeof record.status !== 'string' || !Object.hasOwn(statuses, record.status)
-        || typeof record.note !== 'string' || record.note.length > 20000) {
-        throw new Error('论文记录格式不正确，或单篇笔记超过 20,000 字符。');
-      }
-      next[id] = { status: record.status, note: record.note };
-    }
-    return next;
-  }
-
-  function readStored() {
-    const stored = localStorage.getItem(storageKey);
-    return stored === null ? Object.create(null) : validateBackup(JSON.parse(stored));
-  }
-
-  try { records = readStored(); }
-  catch { disableStorage('无法读取本机记录，已有存储不会被覆盖。'); }
-
-  function recordFor(id) {
-    return records[id] || { status: 'unread', note: '' };
-  }
-
-  function commit(patch) {
-    // Merge only the edited records so a second tab's other notes are preserved.
-    let current = records;
-    if (storageAvailable) {
-      try { current = readStored(); }
-      catch { disableStorage('无法读取本机记录，已停止自动写入。'); }
-    }
-    records = Object.assign(Object.create(null), current, patch);
-    if (storageAvailable) {
-      try { localStorage.setItem(storageKey, JSON.stringify({ version: 1, records })); }
-      catch { disableStorage('保存失败，浏览器存储可能不可用或已满。'); }
-    }
-  }
-
-  const analysisFor = paper => window.PAPER_ANALYSES?.[paper.id];
+  const analysisFor = paper => window.PAPER_ANALYSES[paper.id];
   const collectionFor = paper => paper.collection || 'analysis';
   const sectionLink = (id, section) => '#paper=' + id + '&section=' + section;
   const externalLink = (url, label, className = '') => `<a${className ? ` class="${className}"` : ''} href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)} ${arrow}</a>`;
 
+  function renderLesson(paper) {
+    const lesson = lessons[paper.id];
+    return `<section class="analysis-section paper-lesson" id="analysis-${paper.id}-study" tabindex="-1" aria-labelledby="lesson-title-${paper.id}">
+      <div class="analysis-heading"><span aria-hidden="true">学</span><h4 id="lesson-title-${paper.id}">推导与动手学习</h4></div>
+      <p class="lesson-label">以下算例、自测与实验方案为原创教学内容，非论文报告结果。</p>
+      <div class="lesson-preparation"><p><strong>先备知识</strong>${esc(lesson.prerequisite)}</p><p><strong>学习目标</strong>${esc(lesson.goal)}</p></div>
+      <div class="lesson-derivation"><h5>${esc(lesson.derivation.title)}</h5><ol>${lesson.derivation.steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol><div class="analysis-formula"><code>${esc(lesson.derivation.formula)}</code></div></div>
+      <aside class="analysis-example"><span class="example-label">手算与反例</span><p>${esc(lesson.worked)}</p></aside>
+      ${lesson.code ? `<details class="lesson-code"><summary>查看最小 Python 算例<span>仅标准库 · 复制到本地运行</span></summary><pre tabindex="0" role="region" aria-label="${esc(paper.shortTitle)} Python 教学算例"><code>${esc(lesson.code)}</code></pre></details>` : ''}
+      <div class="lesson-experiment"><h5>动手验证</h5><p>${esc(lesson.experiment.setup)}</p><ol>${lesson.experiment.steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol><p class="lesson-check"><strong>如何验收：</strong>${esc(lesson.experiment.check)}</p></div>
+      <div class="lesson-questions"><h5>先回答，再核对</h5>${lesson.questions.map((item,index) => `<div class="lesson-question"><h6>${index+1}. ${esc(item.q)}</h6><details><summary>查看参考答案<span class="sr-only">：${esc(item.q)}</span></summary><p>${esc(item.a)}</p></details></div>`).join('')}</div>
+      <div class="lesson-related"><h5>带着问题接着读</h5>${lesson.related.map(([id,why]) => { const next = paperById.get(id); return `<p><a href="${sectionLink(id, 'study')}">${esc(next.shortTitle)} →</a><span>${esc(why)}</span></p>`; }).join('')}</div>
+      <p class="lesson-source">方法依据：${externalLink(lesson.source.url, lesson.source.label)}</p>
+    </section>`;
+  }
+
+  const pathContainer = byId('paper-learning-paths');
+  pathContainer.innerHTML = `<details class="learning-path-disclosure"><summary><span><strong>按路线系统学习</strong><span>${learningPaths.length} 条路线 · ${papers.length} 篇进阶讲义 · ${Object.values(lessons).reduce((count, lesson) => count + lesson.questions.length, 0)} 道自测</span></span><svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary><div class="paper-learning-routes">${learningPaths.map(route => `<section><h3>${esc(route.title)}</h3><p>${esc(route.description)}</p><ol>${route.ids.map(id => { const paper = paperById.get(id); return `<li><a href="#paper=${id}">${esc(paper.shortTitle)}</a></li>`; }).join('')}</ol><p class="route-outcome">${esc(route.outcome)}</p></section>`).join('')}</div></details>`;
+
   function renderAnalysis(paper) {
     if (paper.collection === 'translated') return `<article class="paper-analysis paper-translation-guide" aria-label="${esc(paper.shortTitle)}阅读导引">
       <div class="translation-heading"><div><span class="paper-eyebrow">中文全文 · 阅读导引</span><h4>${esc(paper.zhTitle)}</h4></div><span class="translation-file-info">${paper.pages} 页 · ${(paper.bytes / 1024 / 1024).toFixed(1)} MB</span></div>
-      <div class="translation-guide-sections">${[['problem', '01', '研究问题'], ['method', '02', '核心方法'], ['reading', '03', '精读线索']].map(([key, number, title]) => `<section><span>${number}</span><h5>${title}</h5><p>${esc(paper.guide[key])}</p></section>`).join('')}</div>
+      <nav class="analysis-nav" aria-label="${esc(paper.shortTitle)}学习目录"><a href="${sectionLink(paper.id, 'overview')}">阅读导引</a><a href="${sectionLink(paper.id, 'study')}">推导与练习</a></nav>
+      <div class="translation-guide-sections" id="analysis-${paper.id}-overview" tabindex="-1">${[['problem', '01', '研究问题'], ['method', '02', '核心方法'], ['reading', '03', '精读线索']].map(([key, number, title]) => `<section><span>${number}</span><h5>${title}</h5><p>${esc(paper.guide[key])}</p></section>`).join('')}</div>
+      ${renderLesson(paper)}
       <p class="translation-reading-note">先沿导引理解问题与方法，再打开中文全文查看公式、图表和实验细节。英文原文可用于对照术语与版本。</p>
     </article>`;
     const analysis = analysisFor(paper);
@@ -143,7 +111,7 @@
     return `<article class="paper-analysis" aria-label="${esc(paper.shortTitle)}中文解析">
       <div class="analysis-verdict"><span>先记住这个结论</span><p>${esc(analysis.verdict)}</p></div>
       <nav class="analysis-nav" aria-label="${esc(paper.shortTitle)}解析目录">${[
-        ['overview', '研究问题'], ['method', '方法拆解'], ['evidence', '实验与证据'], ['limits', '贡献与边界'], ['notes', '我的笔记'],
+        ['overview', '研究问题'], ['method', '方法拆解'], ['evidence', '实验与证据'], ['limits', '贡献与边界'], ['study', '推导与练习'],
       ].map(([section, label]) => `<a href="${sectionLink(paper.id, section)}">${label}</a>`).join('')}</nav>
       <section class="analysis-section" id="${sectionId('overview')}" tabindex="-1">${heading('01', '为什么需要这项研究')}
         <div class="analysis-comparison"><div><h5>研究问题</h5><p>${esc(analysis.problem)}</p></div><div><h5>已有方法的不足</h5><p>${esc(analysis.baseline)}</p></div></div>
@@ -164,6 +132,7 @@
         <div class="analysis-comparison"><div><h5>值得记住的贡献</h5><ul>${analysis.contributions.map(value => `<li>${esc(value)}</li>`).join('')}</ul></div><div><h5>不能直接推导出的结论</h5><ul>${analysis.limits.map(value => `<li>${esc(value)}</li>`).join('')}</ul></div></div>
         <div class="analysis-application"><h5>应用判断</h5><p><strong>可以借鉴：</strong>${esc(analysis.application.fit)}</p><p><strong>还需验证：</strong>${esc(analysis.application.caution)}</p></div>
       </section>
+      ${renderLesson(paper)}
       <section class="analysis-section analysis-further">${heading('05', '想深入，再回到这几处原文')}
         <ul class="analysis-reading-path">${analysis.nextReading.map(item => `<li>${externalLink(item.url, item.label)}<p>${esc(item.detail)}</p></li>`).join('')}</ul>
         <div class="analysis-sources"><strong>资料来源</strong>${analysis.sources.map(source => externalLink(source.url, source.label)).join('')}</div>
@@ -172,141 +141,77 @@
   }
 
   function renderPaper(paper, index) {
-    const record = recordFor(paper.id);
     return `<details class="paper-card" id="paper-${paper.id}" data-paper-id="${paper.id}">
       <summary class="paper-summary"><span class="paper-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
-        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span><span class="paper-analysis-badge">${paper.chinesePdf ? '中文全文' : '中文解析'}</span></span>
+        <div class="paper-summary-copy"><span class="paper-meta"><span class="paper-category">${categories[paper.category]}</span><span class="paper-meta-dot" aria-hidden="true"></span><span>${paper.year}</span><span class="paper-analysis-badge">${paper.chinesePdf ? '中文全文' : '中文解析'} · 进阶讲义</span></span>
           <h3>${esc(paper.shortTitle)}</h3><span class="paper-summary-description">${esc(paper.summary)}</span></div>
-        <span class="paper-summary-end"><span class="paper-status" data-state="${record.status}">${statuses[record.status]}</span><svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></span>
+        <span class="paper-summary-end"><svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></span>
       </summary>
       <div class="paper-content"><div class="paper-source-row"><div class="paper-bibliography"><p class="paper-full-title">${esc(paper.title)}</p><p class="paper-authors">${esc(paper.authors)} · ${esc(paper.venue)}</p></div>
         <div class="paper-source-links">${paper.chinesePdf ? `<a class="paper-button primary chinese-pdf-link" href="${esc(paper.chinesePdf)}" target="_blank" rel="noopener" aria-label="${esc(paper.shortTitle)}：阅读中文 PDF，新标签页打开">阅读中文 PDF ${arrow}</a>${externalLink(paper.url, '英文原文', 'paper-button')}` : `${externalLink(paper.url, '英文原文', 'paper-button')}${externalLink(paper.pdf, '英文 PDF', 'paper-button')}`}</div></div>
         <div class="reading-workspace">${renderAnalysis(paper)}
-          <div class="paper-notebook" id="analysis-${paper.id}-notes" tabindex="-1"><div class="notebook-progress"><h4>留下自己的理解</h4><p>把最有启发的结论、还没想清楚的问题，写成自己的话。</p><fieldset class="reading-state"><legend>${esc(paper.shortTitle)} · 阅读状态</legend><div class="reading-state-options">${Object.entries(statuses).map(([value, label]) => `<label><input type="radio" name="status-${paper.id}" value="${value}" data-status-id="${paper.id}"${record.status === value ? ' checked' : ''}><span>${label}</span></label>`).join('')}</div></fieldset></div>
-            <div class="notebook-editor"><div class="note-heading"><label for="note-${paper.id}">我的笔记<span class="sr-only">：${esc(paper.shortTitle)}</span></label><button class="insert-template" type="button" data-template-id="${paper.id}" aria-label="为${esc(paper.shortTitle)}插入笔记模板">插入模板</button></div>
-            <textarea id="note-${paper.id}" data-note-id="${paper.id}" maxlength="20000" aria-describedby="save-${paper.id}" placeholder="这篇论文解决了什么？哪些证据说服了你？\n记下自己的理解与尚未解决的问题。">${esc(record.note)}</textarea><p class="note-save-state" id="save-${paper.id}">${storageAvailable ? (record.note ? '笔记已保存在本机' : '输入后自动保存到本机 · 最多 20,000 字符') : '本次页面暂存 · 请导出备份'}</p>
-          </div></div></div></div></details>`;
+        </div></div></details>`;
   }
 
-  byId('paper-list').innerHTML = papers.map(renderPaper).join('');
+  paperList.innerHTML = papers.map(renderPaper).join('');
   const cards = new Map(papers.map(paper => [paper.id, byId('paper-' + paper.id)]));
   const searchText = new Map(papers.map(paper => [paper.id,
     [paper.title, paper.zhTitle || '', paper.shortTitle, paper.authors, paper.year, paper.venue, paper.summary, categories[paper.category],
       cards.get(paper.id).querySelector('.paper-analysis').textContent,
     ].join(' ').toLocaleLowerCase()]));
 
-  function updateProgress() {
-    const done = papers.filter(paper => recordFor(paper.id).status === 'done').length;
-    byId('completed-count').textContent = done;
-    byId('total-count').textContent = papers.length;
-    byId('reading-progress').max = papers.length;
-    byId('reading-progress').value = done;
-  }
-
   function filterPapers() {
-    const query = byId('paper-search').value.trim().toLocaleLowerCase();
+    const query = searchInput.value.trim().toLocaleLowerCase();
     const focusedCard = document.activeElement?.closest('.paper-card');
     let count = 0;
     for (const paper of papers) {
       const matches = (collection === 'all' || collectionFor(paper) === collection)
         && (category === 'all' || paper.category === category)
-        && (statusFilter === 'all' || recordFor(paper.id).status === statusFilter)
         && (!query || searchText.get(paper.id).includes(query));
-      cards.get(paper.id).hidden = !matches;
+      const card = cards.get(paper.id);
+      const hidden = !matches;
+      if (card.hidden !== hidden) card.hidden = hidden;
       if (matches) count++;
     }
     byId('paper-count').textContent = count + ' 篇论文';
     byId('empty-papers').hidden = count !== 0;
-    const filterCount = Number(category !== 'all') + Number(statusFilter !== 'all');
+    const filterCount = Number(category !== 'all');
     byId('active-filter-count').textContent = filterCount;
     byId('active-filter-count').hidden = !filterCount;
-    byId('filter-description').textContent = (categories[category] || '全部主题') + ' · ' + (statusFilter === 'all' ? '全部状态' : statuses[statusFilter]);
-    document.querySelectorAll('[data-category]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.category === category)));
-    document.querySelectorAll('[data-status-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.statusFilter === statusFilter)));
-    document.querySelectorAll('[data-collection]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.collection === collection)));
+    byId('filter-description').textContent = (categories[category] || '全部主题');
+    categoryButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.category === category)));
+    collectionButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.collection === collection)));
     if (focusedCard?.hidden) byId('paper-filters').querySelector('summary').focus();
   }
 
-  function refreshRecords() {
-    for (const paper of papers) {
-      const record = recordFor(paper.id);
-      const card = cards.get(paper.id);
-      card.querySelectorAll('[data-status-id]').forEach(radio => { radio.checked = radio.value === record.status; });
-      const badge = card.querySelector('.paper-status');
-      badge.dataset.state = record.status;
-      badge.textContent = statuses[record.status];
-      const note = byId('note-' + paper.id);
-      if (note.value !== record.note) note.value = record.note;
-      byId('save-' + paper.id).textContent = storageAvailable
-        ? (record.note ? '笔记已保存在本机' : '输入后自动保存到本机 · 最多 20,000 字符')
-        : '本次页面暂存 · 请导出备份';
-    }
-    updateProgress();
-    filterPapers();
-  }
-
-  byId('paper-search').addEventListener('input', filterPapers);
-  document.querySelectorAll('[data-collection]').forEach(button => button.addEventListener('click', () => {
+  searchInput.addEventListener('input', filterPapers);
+  collectionButtons.forEach(button => button.addEventListener('click', () => {
     closePanels();
     collection = button.dataset.collection;
-    category = statusFilter = 'all';
-    byId('paper-search').value = '';
+    category = 'all';
+    searchInput.value = '';
     filterPapers();
   }));
-  document.querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => {
+  categoryButtons.forEach(button => button.addEventListener('click', () => {
     category = button.dataset.category;
     filterPapers();
   }));
-  document.querySelectorAll('[data-status-filter]').forEach(button => button.addEventListener('click', () => {
-    statusFilter = button.dataset.statusFilter;
-    filterPapers();
-  }));
   function resetFilters() {
-    collection = category = statusFilter = 'all';
-    byId('paper-search').value = '';
+    collection = category = 'all';
+    searchInput.value = '';
     filterPapers();
   }
-  byId('reset-filters').addEventListener('click', () => { resetFilters(); byId('paper-search').focus(); });
-
-  function saveNote(input) {
-    const id = input.dataset.noteId;
-    commit({ [id]: { ...recordFor(id), note: input.value } });
-    refreshRecords();
-  }
-  byId('paper-list').addEventListener('input', event => {
-    if (event.target.matches('[data-note-id]')) saveNote(event.target);
-  });
-  byId('paper-list').addEventListener('change', event => {
-    const id = event.target.dataset.statusId;
-    if (!id) return;
-    commit({ [id]: { ...recordFor(id), status: event.target.value } });
-    refreshRecords();
-  });
-  byId('paper-list').addEventListener('click', event => {
-    const button = event.target.closest('[data-template-id]');
-    if (!button) return;
-    const input = byId('note-' + button.dataset.templateId);
-    const insertion = (input.value ? '\n\n' : '') + noteTemplate;
-    if (input.value.length + insertion.length > input.maxLength) {
-      notice('笔记已接近字数上限，请先整理内容再插入模板。', true);
-      input.focus();
-      return;
-    }
-    // Append so an existing note is never replaced by the template.
-    input.setRangeText(insertion, input.value.length, input.value.length, 'end');
-    saveNote(input);
-    input.focus();
-  });
+  byId('reset-filters').addEventListener('click', () => { resetFilters(); searchInput.focus(); });
 
   function openHash() {
     const route = new URLSearchParams(location.hash.slice(1));
     const id = route.get('paper');
-    if (!paperIds.has(id)) return false;
+    if (!paperById.has(id)) return false;
     const card = cards.get(id);
     if (card.hidden) resetFilters();
     card.open = true;
     const section = route.get('section');
-    const target = ['overview', 'method', 'evidence', 'limits', 'notes'].includes(section)
+    const target = ['overview', 'method', 'evidence', 'limits', 'study'].includes(section)
       ? byId('analysis-' + id + '-' + section) || card : card;
     requestAnimationFrame(() => {
       target.scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -322,15 +227,22 @@
     });
   }
   window.addEventListener('hashchange', openHash);
-  byId('paper-list').addEventListener('click', event => {
-    const link = event.target.closest('.analysis-nav a');
+  pathContainer.addEventListener('click', event => {
+    const link = event.target.closest('a');
+    if (link && link.hash === location.hash) { event.preventDefault(); openHash(); }
+  });
+  paperList.addEventListener('click', event => {
+    const link = event.target.closest('.analysis-nav a, .lesson-related a');
     if (link && link.hash === location.hash) { event.preventDefault(); openHash(); }
   });
 
   byId('export-papers').addEventListener('click', () => {
-    const backup = { version: 1, exportedAt: new Date().toISOString(), records };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    // Read at click time: preserve every stored byte without migration or writes.
+    let archive;
+    try { archive = localStorage.getItem('study-hub:papers:v1'); }
+    catch { notice('无法读取浏览器中的历史笔记，请检查存储权限。', true); return; }
+    if (!archive) { notice('当前浏览器中没有历史笔记。'); return; }
+    const url = URL.createObjectURL(new Blob([archive], { type: 'application/json;charset=utf-8' }));
     const link = document.createElement('a');
     link.href = url;
     link.download = 'study-hub-papers-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -338,58 +250,9 @@
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    notice('已生成 JSON 备份，请在浏览器下载记录中确认保存。');
+    notice('已导出历史笔记，浏览器中的原始记录保持不变。');
   });
 
-  const dialog = byId('import-dialog');
-  byId('choose-import').addEventListener('click', () => {
-    closePanels();
-    byId('paper-tools').querySelector('summary').focus();
-    byId('import-papers').click();
-  });
-  byId('import-papers').addEventListener('change', async event => {
-    const sequence = ++importSequence;
-    const file = event.target.files[0];
-    event.target.value = '';
-    if (!file) return;
-    try {
-      if (file.size > 8 * 1024 * 1024) throw new Error('备份文件不能超过 8 MiB。');
-      const incoming = validateBackup(JSON.parse(await file.text()));
-      if (sequence !== importSequence) return;
-      const ids = Object.keys(incoming);
-      if (!ids.length) { notice('这份备份没有阅读记录，当前笔记保持不变。'); return; }
-      const conflicts = ids.filter(id => Object.hasOwn(records, id)
-        && (records[id].note !== incoming[id].note || records[id].status !== incoming[id].status));
-      pendingImport = incoming;
-      byId('import-description').textContent = `将合并 ${ids.length} 篇论文的阅读记录。` + (conflicts.length
-        ? `其中 ${conflicts.length} 篇与当前记录不同，确认后将用备份中的进度和笔记覆盖。`
-        : '其余论文的进度和笔记保持不变。');
-      dialog.returnValue = '';
-      dialog.showModal();
-      byId('cancel-import').focus();
-    } catch (error) {
-      pendingImport = null;
-      notice('导入失败，当前记录保持不变：' + error.message, true);
-    }
-  });
-  dialog.addEventListener('cancel', () => { dialog.returnValue = 'cancel'; });
-  dialog.addEventListener('close', () => {
-    const incoming = pendingImport;
-    pendingImport = null;
-    if (dialog.returnValue === 'confirm' && incoming) {
-      commit(incoming);
-      refreshRecords();
-      notice(storageAvailable ? '已合并导入并保存到本机。' : '已在本次页面中合并导入，请及时导出备份。');
-    }
-    byId('paper-tools').querySelector('summary').focus();
-  });
-
-  window.addEventListener('storage', event => {
-    if (!storageAvailable || (event.key !== storageKey && event.key !== null)) return;
-    try { records = readStored(); refreshRecords(); }
-    catch { disableStorage('其他页面的记录无法读取，已停止自动写入。'); refreshRecords(); }
-  });
-  updateProgress();
   filterPapers();
   openHash();
 })();

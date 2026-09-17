@@ -184,7 +184,7 @@ try {
   const pages = [
     { name: 'home', path: '/index.html', ready: "document.querySelector('#papers .paper-feature')", first: '.practice-card' },
     { name: 'topics', path: '/pages/interviews.html', ready: "document.querySelectorAll('#interviews .topic-card').length === 4", first: '#interviews .topic-card' },
-    { name: 'papers', path: '/pages/papers.html', ready: "document.querySelectorAll('.paper-card').length === 47", first: '.paper-card:not([hidden]) > summary' },
+    { name: 'papers', path: '/pages/papers.html', ready: "document.querySelectorAll('.paper-card').length === 51", first: '.paper-card:not([hidden]) > summary' },
     ...['transformer', 'rl', 'sft', 'agent'].map(name => ({ name, path: `/pages/interviews/${name}-interview.html`, ready: "document.querySelector('.q-card')", first: '.q-card > summary' })),
   ];
   const requested = process.argv.slice(2);
@@ -315,21 +315,10 @@ try {
       console.log('PASS file:// header theme, overview → directory → detail and parent return');
     }
     if (page.name === 'papers') {
-      const note = '界面层级调整后的笔记回归：保留自己的阅读理解。';
-      const firstPaperId = await evaluate(session, "document.querySelector('.paper-card:not([hidden])').dataset.paperId");
-      const noteSelector = `[data-paper-id="${firstPaperId}"] textarea`;
-      await click(session, noteSelector);
-      await cdp.send('Input.insertText', { text: note }, session);
-      await waitFor(session, `JSON.parse(localStorage.getItem('study-hub:papers:v1'))?.records[${JSON.stringify(firstPaperId)}]?.note === ${JSON.stringify(note)}`);
-      await click(session, `input[name="status-${firstPaperId}"][value="done"] + span`);
-      await cdp.send('Page.reload', {}, session);
-      await waitFor(session, `document.readyState === 'complete' && (${page.ready})`);
-      assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(noteSelector)}).value`), note,
-        'The reorganized paper page must preserve edited notes after reload');
-      assert.equal(await evaluate(session, `document.querySelector(${JSON.stringify(`input[name="status-${firstPaperId}"]:checked`)}).value`), 'done',
-        'Reading progress must survive the page layout change');
+      assert.equal(await evaluate(session, "document.querySelectorAll('.paper-notebook, textarea, [data-template-id]').length"), 0);
+      assert.equal(await evaluate(session, "document.querySelectorAll('.paper-lesson').length"), 51);
       await assertHierarchy(session, 'papers');
-      console.log('PASS paper note input and reading status persist across reload');
+      console.log('PASS all paper lessons available without removed notebook');
     }
     await cdp.send('Target.disposeBrowserContext', { browserContextId });
     console.log(`PASS ${page.name}: shared navigation, first content, 4 widths × 2 themes and relevant disclosures`);
