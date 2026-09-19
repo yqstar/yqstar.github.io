@@ -17,6 +17,10 @@
     .app-header .sidebar-link[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 550; }
     .app-header .nav-short { display: none; }
     .app-header .header-actions { width: auto; flex: 0 0 auto; gap: 8px; }
+    .study-nav #back-button.study-back-button { width: 38px; height: 38px; min-height: 38px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border-color: var(--line); color: var(--text); background: var(--surface); }
+    .study-nav #back-button.study-back-button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .study-nav #back-button.study-back-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .study-nav #back-button.study-back-button::before { content: none; }
     #theme-button { width: 44px; height: 44px; flex: 0 0 auto; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
     #theme-button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     #study-hub-tools { position: relative; }
@@ -134,6 +138,12 @@
   records.querySelector("#undo-import-button").textContent = "↶ 撤销上次导入";
   const theme = document.getElementById("theme-button");
   actions.replaceChildren(tools, theme);
+
+  const backButton = document.getElementById("back-button");
+  backButton.className = "icon-button study-back-button";
+  backButton.setAttribute("aria-label", "返回题目目录");
+  backButton.title = "返回题目目录";
+  backButton.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12.5 4.5-5.5 5.5 5.5 5.5"></path></svg>';
 
   const toolsSummary = tools.querySelector("summary");
   let toolDialog = null;
