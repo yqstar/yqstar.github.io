@@ -45,6 +45,7 @@
     .practice-overview .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; padding: 0; }
     .practice-overview .hero-copy { display: block; }
     .practice-overview .eyebrow { display: none; }
+    .practice-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
     .practice-overview .hero h1 { max-width: none; font-size: 28px; line-height: 1.3; letter-spacing: -.035em; }
     .practice-overview .hero-description { max-width: none; margin: 8px 0 0; font-size: 13px; line-height: 1.6; }
     .practice-overview .hero-actions { display: flex; gap: 8px; align-items: center; }
@@ -67,6 +68,11 @@
     .practice-stats .summary-card:nth-child(n+3) { border-top: 1px solid var(--line); }
     .practice-stats .summary-value { margin-top: 0; font-size: 22px; }
     .practice-stats .practice-caption { grid-column: 1 / -1; margin: 0; }
+    .catalog-source-link { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1.5; text-decoration: none; white-space: nowrap; }
+    .catalog-source-link:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .catalog-source-link:active { background: var(--surface-2); }
+    .catalog-source-link svg { width: 16px; height: 16px; fill: currentColor; stroke: none; }
+    .catalog-source-arrow { color: var(--faint); font-size: 13px; }
     @media (max-width: 980px) {
       .practice-overview .hero { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     }
@@ -174,7 +180,20 @@
 
   const overview = document.querySelector(".practice-overview");
   const hero = overview.querySelector(".hero");
-  hero.querySelector("h1").textContent = "算法训练场";
+  const title = hero.querySelector("h1");
+  title.textContent = "算法训练场";
+  const titleRow = document.createElement("div");
+  titleRow.className = "practice-title-row";
+  title.before(titleRow);
+  titleRow.append(title);
+  const sourceLink = document.createElement("a");
+  sourceLink.className = "catalog-source-link";
+  sourceLink.href = "https://github.com/yqstar/leetcode_hot100_html";
+  sourceLink.target = "_blank";
+  sourceLink.rel = "noopener noreferrer";
+  sourceLink.setAttribute("aria-label", "在 GitHub 查看算法训练场原始项目，新标签页打开");
+  sourceLink.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.62-3.37-1.2-3.37-1.2-.45-1.18-1.11-1.49-1.11-1.49-.91-.63.07-.62.07-.62 1 .08 1.53 1.06 1.53 1.06.9 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.64-1.38-2.22-.26-4.56-1.14-4.56-5a4 4 0 0 1 1.03-2.72 3.72 3.72 0 0 1 .1-2.68s.84-.27 2.75 1.04a9.3 9.3 0 0 1 5 0c1.91-1.31 2.75-1.04 2.75-1.04a3.72 3.72 0 0 1 .1 2.68 4 4 0 0 1 1.03 2.72c0 3.88-2.34 4.73-4.57 4.99.36.32.68.94.68 1.9v2.82c0 .27.18.58.69.48A10 10 0 0 0 12 2.2Z"/></svg><span>GitHub 项目</span><span class="catalog-source-arrow" aria-hidden="true">↗</span>';
+  titleRow.append(sourceLink);
   const statistics = document.createElement("details");
   statistics.className = "practice-stats";
   statistics.innerHTML = '<summary>学习概况<span class="practice-stats-hint">进度与统计</span>' + chevron + '</summary><div class="practice-stats-content"></div>';
